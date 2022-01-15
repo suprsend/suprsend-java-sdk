@@ -1,17 +1,16 @@
 package suprsend;
 
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONObject;
 
 public class Signature {
@@ -44,14 +43,8 @@ public class Signature {
 	}
 	
 	private String getMD5(String input) throws NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		byte[] encodedInput = md.digest(input.getBytes());
-        BigInteger no = new BigInteger(1, encodedInput);
-        String hashText = no.toString();
-        while (hashText.length() < 32) {
-            hashText = "0" + hashText;
-        }
-		return hashText;
+		String md5hex = DigestUtils.md5Hex(input);
+		return md5hex;
 	}
 	
 	private String getURI(String url) throws MalformedURLException {

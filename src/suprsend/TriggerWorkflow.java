@@ -82,7 +82,6 @@ class TriggerWorkflow {
 			contentText = this.data.toString();
 		}
 		httpClient.setDoOutput(true);
-		
 		try(OutputStream stream = httpClient.getOutputStream()){
 			byte[] input = contentText.getBytes(StandardCharsets.UTF_8);
 			stream.write(input, 0, input.length);

@@ -33,6 +33,9 @@ public class Suprsend {
 		this.authEnabled = ((kwargs.get("authEnabled") == null) ? false : (Boolean)kwargs.get("authEnabled"));
 		this.includeSignatureParam = ((kwargs.get("includeSignatureParam") == null) ? false : (Boolean)kwargs.get("includeSignatureParam"));
 		this.userAgent = String.format("suprsend/%s;java/%s", this.sdkVersion, System.getProperty("java.version"));
+		if (debug == true) {
+			new RequestLogs();
+		}
 		validate();
 	}
 	
@@ -51,7 +54,7 @@ public class Suprsend {
 			}
 			baseUrl = baseUrl.trim();
 		}
-		if (baseUrl.substring(baseUrl.length() - 1) != "/") {
+		if (baseUrl.substring(baseUrl.length() - 1).equals("/") == false) {
 			baseUrl = baseUrl + "/";
 		}
 		return baseUrl;

@@ -26,9 +26,9 @@ public class TestSuprsendSDK {
 		JSONObject data = new JSONObject();
 		JSONObject body = new JSONObject();
 		
-		whatsapp.put("+917738300561");
+		whatsapp.put("+91__mobile_number__");
 		
-		user.put("distinct_id", "nikitanavral1404@gmail.com");
+		user.put("distinct_id", "__distinct_id__");
 		user.put("$whatsapp", whatsapp);
 		users.put(user);
 		
@@ -58,7 +58,7 @@ public class TestSuprsendSDK {
 		// TODO Auto-generated method stub
 		JSONObject params = getParams();
 		JSONObject body = getBody();
-		suprsend = new Suprsend("kfWdrPL1nFqs7OUihiBn", "From1HA1ZiSXs3ofBHXh", null, false, params);
+		suprsend = new Suprsend("__env_key__", "__env_secret__", null, false, params);
 		JSONObject response = suprsend.triggerWorkflow(body);
 		System.out.println(response);
 	}

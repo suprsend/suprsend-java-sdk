@@ -1,8 +1,7 @@
 package suprsend;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.xml.bind.ValidationException;
 
@@ -36,9 +35,9 @@ public class RequestSchema {
 	}
 	
 	private JSONObject loadJSONSchema(String schemaName) throws IOException {
-		String rootPath = new File(".").getCanonicalPath();
-		String relativePath = String.format("request_json/%s.json", schemaName);
-		JSONObject jsonObject = new JSONObject(new JSONTokener(new FileReader(String.format("%s/%s", rootPath, relativePath))));
+		String relativePath = String.format("/%s.json", schemaName);
+		InputStream schemaStream = this.getClass().getResourceAsStream(relativePath);
+		JSONObject jsonObject = new JSONObject(new JSONTokener(schemaStream));
 		return jsonObject;
 	}
 }

@@ -89,7 +89,7 @@ class TriggerWorkflow {
 		int statusCode = httpClient.getResponseCode();
 		String responseText = httpClient.getResponseMessage();
 		Boolean success = false;
-		if(Math.floorDiv(statusCode, 2) == 2) {
+		if(statusCode == 202) {
 			success = true;
 		}
 		response.put("success", success);

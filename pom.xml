@@ -15,6 +15,11 @@
         </configuration>
       </plugin>
     </plugins>
+    <resources>
+    	<resource>
+    		<directory>src/suprsend/resources</directory>
+    	</resource>
+    </resources>
   </build>
   <dependencies>
   	

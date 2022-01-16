@@ -43,11 +43,11 @@ public class TestSuprsendSDK {
 		data.put("time_to_call", "3PM");
 		data.put("consumer_name", "Joe");
 		data.put("service_title", "Points");
-		data.put("videocall_link", "https://staging2.topmate.io/videocallv2/8bqxWsmbRcbpEix9zyqMX7");
+		data.put("videocall_link", "https://dummy");
 		data.put("answers", answers);
 		
-		body.put("name", "Topmate Booking Confirmed");
-		body.put("template", "topmate-booking");
+		body.put("name", "Booking Confirmed");
+		body.put("template", "template-booking");
 		body.put("notification_category", "transactional");
 		body.put("users", users);
 		body.put("data", data);

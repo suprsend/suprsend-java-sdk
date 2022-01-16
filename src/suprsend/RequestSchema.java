@@ -1,18 +1,30 @@
 package suprsend;
 
-import java.io.IOException;
 import java.io.InputStream;
 
-import javax.xml.bind.ValidationException;
-
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-
+/**
+ * This class takes care of loading the JSON schema which will
+ * be used to validate the data sent by client to trigger
+ * workflow. 
+ * @author Suprsend
+ */
 public class RequestSchema {
 	public static JSONObject JSON_SCHEMA;
 	
-	public JSONObject getSchema(String schemaName) throws IOException, ValidationException {
+	/**
+	 * get JSON schema from existing JSON object or from respective file. 
+	 * @param schemaName
+	 * 	      Name of schema which needs to be loaded
+	 * @return
+	 * 	      JSON object of the loaded schema
+	 * @throws SuprsendException
+	 * 		  Throw custom exception
+	 */
+	public JSONObject getSchema(String schemaName) throws SuprsendException {
 		if (JSON_SCHEMA == null) {
 			JSON_SCHEMA = new JSONObject();
 		}
@@ -25,7 +37,7 @@ public class RequestSchema {
 		if(schemaBody == null) {
 			schemaBody = loadJSONSchema(schemaName);
 			if(schemaBody == null) {
-				throw new ValidationException("Invalid or no schema");
+				throw new SuprsendException("Error occured while loading schema with name " + schemaName);
 			}
 			else {
 				JSON_SCHEMA.put(schemaName, schemaBody);
@@ -34,10 +46,23 @@ public class RequestSchema {
 		return schemaBody;
 	}
 	
-	private JSONObject loadJSONSchema(String schemaName) throws IOException {
+	/**
+	 * Load JSON schema from schema file.
+	 * @param schemaName
+	 *        Name of schema to be loaded
+	 * @return
+	 * 	      Return JSON object of schema
+	 * @throws SuprsendException
+	 */
+	private JSONObject loadJSONSchema(String schemaName) throws SuprsendException {
+		JSONObject jsonObject;
 		String relativePath = String.format("/%s.json", schemaName);
 		InputStream schemaStream = this.getClass().getResourceAsStream(relativePath);
-		JSONObject jsonObject = new JSONObject(new JSONTokener(schemaStream));
+		try {
+			jsonObject = new JSONObject(new JSONTokener(schemaStream));
+		} catch(JSONException e) {
+			throw new SuprsendException("Error occured while loading schema with name " + schemaName, e);
+		}
 		return jsonObject;
 	}
 }

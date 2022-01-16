@@ -1,6 +1,5 @@
 package suprsend;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -10,22 +9,38 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javax.xml.bind.ValidationException;
-
 import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 
+/**
+ * This class makes HTTP request to workflow backend.
+ * @author Suprsend
+ */
 class TriggerWorkflow {
 	Suprsend config;
 	JSONObject data;
 	String url;
+	
+	/**
+	 * Constructor to initialize necessary data
+	 * @param config
+	 * 		  object of class Suprsend
+	 * @param data
+	 * 		  JSON data to be sent to workflow backend
+	 */
 	TriggerWorkflow(Suprsend config, JSONObject data) {
 		this.config = config;
 		this.data = data;
 		this.url = getUrl();
 	}
 	
+	/**
+	 * Workflow backend URL
+	 * @return
+	 * 		Formatted workflow backend URL
+	 */
 	private String getUrl() {
 		String urlTemplate = "%s%s/trigger/";
 		String baseUrl = this.config.baseUrl;
@@ -44,6 +59,11 @@ class TriggerWorkflow {
 		return urlFormatted;
 	}
 	
+	/**
+	 * Headers required to trigger workflow request
+	 * @return
+	 * 		Headers as JSON object
+	 */
 	private JSONObject getHeaders() {
 		String userAgent = this.config.userAgent;
 		ZoneId zone = ZoneId.of("UTC");
@@ -57,12 +77,25 @@ class TriggerWorkflow {
 		return headers;
 	}
 	
+	/**
+	 * Set HTTP headers in HTTP client object
+	 * @param httpClient
+	 * 		  HTTP client object
+	 * @param headers
+	 * 		  Headers in JSON format
+	 */
 	private void setMandatoryHeaders(HttpURLConnection httpClient, JSONObject headers) {
 		httpClient.setRequestProperty("Content-Type", headers.get("Content-Type").toString());
 		httpClient.setRequestProperty("User-Agent", headers.get("User-Agent").toString());
 		httpClient.setRequestProperty("Date", headers.get("Date").toString());
 	}
 	
+	/**
+	 * This method Execute workflow request
+	 * @return
+	 * 		Response from workflow backend
+	 * @throws Exception
+	 */
 	public JSONObject executeWorkflow() throws Exception {
 		JSONObject signatureResult;
 		JSONObject response = new JSONObject();
@@ -98,7 +131,13 @@ class TriggerWorkflow {
 		return response;
 	}
 	
-	public JSONObject validateData() throws org.everit.json.schema.ValidationException, IOException, ValidationException {
+	/**
+	 * Validate data against the JSON schema 
+	 * @return
+	 * 		Validated data
+	 * @throws SuprsendException
+	 */
+	public JSONObject validateData() throws SuprsendException {
 		JSONObject jsonSchema;
 		if(this.data.get("data") == null) {
 			this.data.put("data", new JSONObject());
@@ -108,8 +147,8 @@ class TriggerWorkflow {
 		Schema schemaValidator = SchemaLoader.load(jsonSchema);
 		try {
 			schemaValidator.validate(this.data);
-		} catch(org.everit.json.schema.ValidationException e) {
-			throw new org.everit.json.schema.ValidationException(schemaValidator, e.getMessage());
+		} catch(ValidationException e) {
+			throw new ValidationException(schemaValidator, e.getMessage());
 		}
 		return this.data;
 	}

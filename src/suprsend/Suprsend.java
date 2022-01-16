@@ -7,25 +7,41 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 
-import javax.xml.bind.ValidationException;
-
+import org.everit.json.schema.ValidationException;
 import org.json.JSONObject;
 
-import suprsend.Constants;
-
+/**
+ * This class is the entry point to suprsend-java-sdk.
+ * It Suprsend Java SDK allows you to trigger workflow which
+ * have been configured in suprsend system 
+ * @author Suprsend
+ */
 public class Suprsend {
-	String envKey;
-	String envSecret;
-	String sdkVersion;
-	String userAgent;
-	String baseUrl;
-	Boolean authEnabled;
-	Boolean includeSignatureParam;
+	String envKey, envSecret, sdkVersion, userAgent, baseUrl;
+	Boolean authEnabled, includeSignatureParam;
 	final String defaultUrl = "https://hub.suprsend.com/";
 	final String defaultUatUrl = "https://collector-staging.suprsend.workers.dev/";
 	private BufferedReader reader;
 	
-	public Suprsend(String envKey, String envSecret, String baseUrl, Boolean debug, JSONObject kwargs) throws ValidationException {
+	/**
+	 * This constructor will help you initialize the Suprsend SDK with 
+	 * certain inputs
+	 * @param envKey
+	 * 		  Environment key provided by Suprsend
+	 * @param envSecret
+	 *        Environment secret key provided by Suprsend
+	 * @param baseUrl
+	 * 		  Base URl to Suprsend workflow system. Pass null to use default URL 
+	 * @param debug
+	 *        If set to true will print the HTTP logs for the requests that
+	 *        will be sent to Suprsend backend
+	 * @param kwargs
+	 * 		  Extra arguments to be passed which include any of the follows: 
+	 * 	      authEnabled, includeSignatureParam, isUAT 
+	 * @throws SuprsendException
+	 *         Custom exception thrown by SDK
+	 */
+	public Suprsend(String envKey, String envSecret, String baseUrl, Boolean debug, JSONObject kwargs) throws SuprsendException {
 		this.envKey = envKey;
 		this.envSecret = envSecret;
 		this.sdkVersion = Constants.version;
@@ -39,6 +55,16 @@ public class Suprsend {
 		validate();
 	}
 	
+	/**
+	 * Get Suprsend backend URL
+	 * @param baseUrl
+	 *        Base URL to be used if passed by client
+	 * @param kwargs
+	 * 		  Extra parameter which contains isUAT. This parameter defines
+	 *        the environment to be used
+	 * @return
+	 * 		  Base URL which will be used to trigger workflow
+	 */
 	private String getUrl(String baseUrl, JSONObject kwargs) {
 		// Trim URL to remove any spaces
 		if (baseUrl != null) {
@@ -60,15 +86,20 @@ public class Suprsend {
 		return baseUrl;
 	}
 	
-	private void validate() throws ValidationException {
+	/**
+	 * Validate for mandatory parameters
+	 * @throws SuprsendException
+	 * 		   Throw custom exception with relevant message.
+	 */
+	private void validate() throws SuprsendException {
 		if (this.envKey == null) {
-			throw new ValidationException("Missing value for envKey");
+			throw new SuprsendException("Missing value for envKey");
 		}
 		if (this.envSecret == null) {
-			throw new ValidationException("Missing value for envSecret");
+			throw new SuprsendException("Missing value for envSecret");
 		}
 		if (this.baseUrl == null) {
-			throw new ValidationException("Missing value for baseUrl");
+			throw new SuprsendException("Missing value for baseUrl");
 		}
 	}
 	
@@ -108,7 +139,18 @@ public class Suprsend {
 		return response;
 	}
 	
-	public JSONObject triggerWorkflow(JSONObject data) throws org.everit.json.schema.ValidationException, IOException, ValidationException, Exception {
+	/**
+	 * Method which needs to be called to trigger workflow
+	 * @param data
+	 * 	      Data that needs to be passed
+	 * @return
+	 * 	      Trigger workflow response. 202 if successfully triggered
+	 * @throws ValidationException
+	 * @throws IOException
+	 * @throws SuprsendException
+	 * @throws Exception
+	 */
+	public JSONObject triggerWorkflow(JSONObject data) throws ValidationException, IOException, SuprsendException, Exception {
 		TriggerWorkflow workFlow = new TriggerWorkflow(this, data);
 		workFlow.validateData();
 		return workFlow.executeWorkflow();

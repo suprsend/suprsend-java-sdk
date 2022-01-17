@@ -46,8 +46,8 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.sdkVersion = Constants.version;
 		this.baseUrl = getUrl(baseUrl, kwargs);
-		this.authEnabled = ((kwargs.get("authEnabled") == null) ? false : (Boolean)kwargs.get("authEnabled"));
-		this.includeSignatureParam = ((kwargs.get("includeSignatureParam") == null) ? false : (Boolean)kwargs.get("includeSignatureParam"));
+		this.authEnabled = ((kwargs.has("authEnabled") == false || kwargs.get("authEnabled") == null) ? false : (Boolean)kwargs.get("authEnabled"));
+		this.includeSignatureParam = ((kwargs.has("includeSignatureParam") == false || kwargs.get("includeSignatureParam") == null) ? false : (Boolean)kwargs.get("includeSignatureParam"));
 		this.userAgent = String.format("suprsend/%s;java/%s", this.sdkVersion, System.getProperty("java.version"));
 		if (debug == true) {
 			new RequestLogs();
@@ -72,7 +72,7 @@ public class Suprsend {
 		}
 		else {
 			// If base URL is null then set default URL
-			if ((Boolean) kwargs.get("isUAT") == true) {
+			if (kwargs.has("isUAT") && (Boolean) kwargs.get("isUAT") == true) {
 				baseUrl = defaultUatUrl;
 			}
 			else {
@@ -112,7 +112,7 @@ public class Suprsend {
 		}
 		JSONObject attachment = getAttachmentJSONForFile(filePath);
 		JSONObject data = (JSONObject)body.get("data");
-		if (data.get("$attachments") == null) {
+		if (data.has("$attachments") == false || data.get("$attachments") == null) {
 			data.put("$attachments", new ArrayList<>());
 		}
 		ArrayList<JSONObject> attachments = (ArrayList<JSONObject>) data.get("$attachments");

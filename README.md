@@ -9,14 +9,14 @@ We're working towards creating SDK in other languages as well.
 * java (`suprsend-java-sdk`)
 
 ### Installation
-`suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.0.1-SNAPSHOT-jar-with-dependencies.jar. 
+`suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.1.0-jar-with-dependencies.jar. 
 
 You can include the jar using following two ways:
 1. As a Maven dependency for maven projects
    You can include the jar as maven dependency using following procedure:
    a. Run following command:
    
-   `mvn install:install-file -Dfile=suprsend-java-sdk-0.0.1-SNAPSHOT-jar-with-dependencies.jar  -DgroupId=suprsend-java-sdk -DartifactId=suprsend-java-sdk -Dversion=0.0.1-SNAPSHOT -Dpackaging=jar`
+   `mvn install:install-file -Dfile=suprsend-java-sdk-0.1.0-jar-with-dependencies.jar  -DgroupId=suprsend-java-sdk -DartifactId=suprsend-java-sdk -Dversion=0.0.1-SNAPSHOT -Dpackaging=jar`
    
    b. Once above command is executed add following to pom.xml:
    ```

@@ -8,14 +8,6 @@ import suprsend.Suprsend;
 public class TestSuprsendSDK {
 	
 	private static Suprsend suprsend;
-
-	private static JSONObject getParams() {
-		JSONObject params = new JSONObject();
-		params.put("isUAT", true);
-		params.put("authEnabled", true);
-		params.put("includeSignatureParam", true);
-		return params;
-	}
 	
 	private static JSONObject getBody() {
 		JSONArray whatsapp = new JSONArray();
@@ -55,8 +47,6 @@ public class TestSuprsendSDK {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		JSONObject params = getParams();
 		JSONObject body = getBody();
 		suprsend = new Suprsend("__env_key__", "__env_secret__");
 		JSONObject response = suprsend.triggerWorkflow(body);

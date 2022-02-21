@@ -149,7 +149,7 @@ public class TestSuprsendSDK {
 		// TODO Auto-generated method stub
 		TestSuprsendSDK sdk = new TestSuprsendSDK();
 		JSONObject body = sdk.loadBody("input");
-		suprsend = new Suprsend("kfWdrPL1nFqs7OUihiBn", "From1HA1ZiSXs3ofBHXh");
+		suprsend = new Suprsend("__env_key__", "__env_secret__");
 		JSONObject response = suprsend.triggerWorkflow(body);
 		System.out.println(response);
 	}

@@ -28,7 +28,7 @@ You can include the jar using following two ways:
         </dependency>
     </dependencies>
     ```
-   ######Note: We are working towards making the dependency available via Maven central. It will be live shortly.
+   ###### Note: We are working towards making the dependency available via Maven central. It will be live shortly.
    
 2. As a jar file for non maven projects:
    a. Right click on your java project.
@@ -37,7 +37,7 @@ You can include the jar using following two ways:
    d. Select the jar file you received from local machine.
    e. Click "Apply and Close"
 
-###Initialization
+### Initialization
 Initialize the Suprsend library using the following:
 
 For initializing SDK, you need workspace key and workspace secret. You will get both the tokens from client dashboard.
@@ -61,7 +61,7 @@ import suprsend.Suprsend;
 Suprsend suprsend = new Suprsend("__env_key__", "__env_secret__", true);
 ```
 
-###How the call is made to SuprSend?
+### How the call is made to SuprSend?
 Once you have the object initialized you can make a call to suprsend backend using following line:
 
 ```
@@ -87,7 +87,7 @@ Response could be one of the following:
 
 Note: The actual processing/execution of workflow happens asynchronously.
 
-###Sample
+### Sample
 
 Sample workflow body
 ```

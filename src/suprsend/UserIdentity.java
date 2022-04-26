@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class UserIdentity {
@@ -32,9 +33,9 @@ public class UserIdentity {
 		this.url = getUrl();
 		this.suprProperties = getSuperProperties();
 		
-		errors = new ArrayList<String>();
-		info = new ArrayList<String>();
-		events = new ArrayList<JSONObject>();
+		this.errors = new ArrayList<String>();
+		this.info = new ArrayList<String>();
+		this.events = new ArrayList<JSONObject>();
 		
 		appendCount = removeCount = unsetCount = 0;
 		
@@ -87,10 +88,9 @@ public class UserIdentity {
 		return this.errors;
 	}
 	
-	public List<JSONObject> getEvents() {
-		List<JSONObject> allEvents = this.events;
-		for(int i = 0; i < allEvents.size(); i++) {
-			allEvents.get(i).put("properties", this.suprProperties);
+	public void setEvents() {
+		for(int i = 0; i < this.events.size(); i++) {
+			this.events.get(i).put("properties", this.suprProperties);
 		}
 		
 		if (this.appendCount > 0) {
@@ -108,9 +108,8 @@ public class UserIdentity {
 			userIdentifyEvent.put("event", "$identify");
 			userIdentifyEvent.put("properties", properties);
 			
-			allEvents.add(userIdentifyEvent);
+			this.events.add(userIdentifyEvent);
 		}
-		return allEvents;
 	}
 	
 	private void validateBody() throws SuprsendException {
@@ -122,7 +121,7 @@ public class UserIdentity {
 			throw new SuprsendException(String.format("Error: %s", String.join("\n", this.errors)));
 		}
 		
-		if(this.events.size() > 0) {
+		if(this.events.size() <= 0) {
 			throw new SuprsendException("ERROR: no user properties have been edited. "
 					+ "Use user.append/remove/unset method to update user properties");
 		}
@@ -143,20 +142,19 @@ public class UserIdentity {
 	
 	public JSONObject save() {
 		JSONObject headers, signatureResult, response;
-		List<JSONObject> events;
 		HttpURLConnection httpClient;
 		String contentText;
 		response = new JSONObject();
 		try {
 			validateBody();
 			headers = getHeaders();
-			events = getEvents();
+			setEvents();
 			httpClient = (HttpURLConnection) new URL(this.url).openConnection();
 			httpClient.setRequestMethod("POST");
 			setMandatoryHeaders(httpClient, headers);
 			if(this.config.authEnabled) {
 				Signature signature = new Signature();
-				signatureResult = signature.getRequestSignature(this.url, "POST", events, headers, this.config.envSecret);
+				signatureResult = signature.getRequestSignature(this.url, "POST", this.events, headers, this.config.envSecret);
 				contentText = signatureResult.get("contentTxt").toString();
 				httpClient.setRequestProperty("Authorization", String.format("%s:%s", this.config.envKey, signatureResult.get("signature").toString()));
 			}
@@ -192,20 +190,26 @@ public class UserIdentity {
 		return response;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void collectEvent() {
 		JSONObject response = this.helper.getIdentityEvent();
-		if (response.get("errors") != null) {
-			this.errors.addAll((List<String>)response.get("errors"));
+		JSONArray errors = response.getJSONArray("errors");
+		JSONArray info = response.getJSONArray("info");
+		JSONObject event = response.getJSONObject("event");
+		if (errors.length() > 0) {
+			for(int i=0; i < errors.length(); i++) {
+				this.errors.add(errors.get(i).toString());
+			}
 		}
-		if (response.get("info") != null) {
-			this.info.addAll((List<String>)response.get("info"));
+		if (info.length() > 0) {
+			for(int i=0; i < info.length(); i++) {
+				this.errors.add(info.get(i).toString());
+			}
 		}
-		if (response.get("event") != null) {
-			this.events.add((JSONObject)response.get("event"));
-			this.appendCount = this.appendCount + response.getInt("appendCount");
-			this.removeCount = this.removeCount + response.getInt("removeCount");
-			this.unsetCount = this.unsetCount + response.getInt("unsetCount");
+		if (event.length() > 0) {
+			this.events.add(event);
+			this.appendCount = this.appendCount + response.getInt("append");
+			this.removeCount = this.removeCount + response.getInt("remove");
+			this.unsetCount = this.unsetCount + response.getInt("unset");
 		}
 		
 	}

@@ -79,13 +79,12 @@ public class IdentityEventInternalHelper {
 	public JSONObject getIdentityEvent() {
 		JSONObject retValue = new JSONObject();
 		JSONObject event = fromEvent();
-		
-		retValue.append("errors", this.errors);
-		retValue.append("info", this.info);
-		retValue.append("event", event);
-		retValue.append("append", this.appendCount);
-		retValue.append("remove", this.removeCount);
-		retValue.append("unset", this.unsetCount);
+		retValue.put("errors", this.errors);
+		retValue.put("info", this.info);
+		retValue.put("event", event);
+		retValue.put("append", this.appendCount);
+		retValue.put("remove", this.removeCount);
+		retValue.put("unset", this.unsetCount);
 
 		reset();
 
@@ -98,17 +97,17 @@ public class IdentityEventInternalHelper {
 		if (this.dictAppend != null || this.dictRemove != null || this.listUnset != null) {
 			JSONObject event = new JSONObject();
 
-			event.append("$insert_id", uuid.toString());
-			event.append("$time", Instant.now().getEpochSecond() * 1000);
-			event.append("env", this.worspaceKey);
-			event.append("distinct_id", this.distinctID);
+			event.put("$insert_id", uuid.toString());
+			event.put("$time", Instant.now().getEpochSecond() * 1000);
+			event.put("env", this.worspaceKey);
+			event.put("distinct_id", this.distinctID);
 			
 			if (this.dictAppend != null) {
-				event.append("$append", this.dictAppend);
+				event.put("$append", this.dictAppend);
 				this.appendCount = this.appendCount + 1;
-				event.append("$remove", this.dictRemove);
+				event.put("$remove", this.dictRemove);
 				this.removeCount = this.removeCount + 1;
-				event.append("$unset", this.listUnset);
+				event.put("$unset", this.listUnset);
 				this.unsetCount = this.unsetCount + 1;
 			}
 
@@ -121,8 +120,8 @@ public class IdentityEventInternalHelper {
 	private JSONObject validateKeyBasic(String key, String caller) {
 		JSONObject response = new JSONObject();
 		if (key!=null && key instanceof String) {
-			response.append("key", key);
-			response.append("status", true);
+			response.put("key", key);
+			response.put("status", true);
 		}
 		else {
 			if (key == null) {
@@ -131,8 +130,8 @@ public class IdentityEventInternalHelper {
 			else {
 				this.info.add(String.format("[%s] skipping key: %s. key must be a string", caller, key));
 			}
-			response.append("key", key);
-			response.append("status", false);
+			response.put("key", key);
+			response.put("status", false);
 		}
 		return response;
 	}
@@ -157,7 +156,7 @@ public class IdentityEventInternalHelper {
 	
 	public void appendKV(String key, String value, JSONObject kwargs, String caller) {
 		JSONObject validatedResponse = validateKeyBasic(key, caller);
-		String validatedKey = validatedResponse.getString("key");
+		String validatedKey = validatedResponse.get("key").toString();
 		Boolean isKeyValid = (Boolean)validatedResponse.get("status");
 		if (isKeyValid) {
 			if (isIdentitykey(validatedKey)) {
@@ -166,7 +165,7 @@ public class IdentityEventInternalHelper {
 			else {
 			    Boolean isKValid = validateKeyPrefix(validatedKey, caller);
 			    if(isKValid) {
-			    	this.dictAppend.append(validatedKey, value);
+			    	this.dictAppend.put(validatedKey, value);
 			    }
 			}
 		}
@@ -183,7 +182,7 @@ public class IdentityEventInternalHelper {
 			else {
 			    Boolean isKValid = validateKeyPrefix(validatedKey, caller);
 			    if(isKValid) {
-			    	this.dictAppend.append(validatedKey, value);
+			    	this.dictAppend.put(validatedKey, value);
 			    }
 			}
 		}
@@ -201,7 +200,7 @@ public class IdentityEventInternalHelper {
 			else {
 			    Boolean isKValid = validateKeyPrefix(validatedKey, caller);
 			    if(isKValid) {
-			    	this.dictRemove.append(validatedKey, value);
+			    	this.dictRemove.put(validatedKey, value);
 			    }
 			}
 		}
@@ -218,7 +217,7 @@ public class IdentityEventInternalHelper {
 			else {
 			    Boolean isKValid = validateKeyPrefix(validatedKey, caller);
 			    if(isKValid) {
-			    	this.dictRemove.append(validatedKey, value);
+			    	this.dictRemove.put(validatedKey, value);
 			    }
 			}
 		}
@@ -304,13 +303,13 @@ public class IdentityEventInternalHelper {
 		JSONObject response = new JSONObject();
 		String msg = "value must a string with proper value";
 		if (value != null && value instanceof String) {
-			response.append("value", value);
-			response.append("status", true);
+			response.put("value", value);
+			response.put("status", true);
 		}
 		else {
 			this.errors.add(String.format("[%s] %s", caller, msg));
-			response.append("value", value);
-			response.append("status", false);
+			response.put("value", value);
+			response.put("status", false);
 		}
 		return response;
 	}
@@ -321,8 +320,8 @@ public class IdentityEventInternalHelper {
 		String validatedEmail = identValStringResponse.get("value").toString();
 		Boolean isValid = (Boolean)identValStringResponse.get("status");
 		if (isValid == false) {
-			response.append("email", validatedEmail);
-			response.append("status", false);
+			response.put("email", validatedEmail);
+			response.put("status", false);
 			return response;
 		}
 		String msg = "value in email format required. e.g. user@example.com";
@@ -335,19 +334,19 @@ public class IdentityEventInternalHelper {
 		
 		if (isValidEmail == false) {
 			this.errors.add(String.format("[%s] invalid value %s. %s", caller, validatedEmail, msg));
-			response.append("email", validatedEmail);
-			response.append("status", false);
+			response.put("email", validatedEmail);
+			response.put("status", false);
 			return response;
 		}
 		
 		if (validatedEmail.length() < minLength || validatedEmail.length() > maxLength) {
 			this.errors.add(String.format("[%s] invalid value %s. must be 6 <= len(email) <= 127", caller, validatedEmail, msg));
-			response.append("email", validatedEmail);
-			response.append("status", false);
+			response.put("email", validatedEmail);
+			response.put("status", false);
 			return response;
 		}
-		response.append("email", validatedEmail);
-		response.append("status", true);
+		response.put("email", validatedEmail);
+		response.put("status", true);
 		return response;
 	}
 	
@@ -356,7 +355,7 @@ public class IdentityEventInternalHelper {
 		String validatedEmail = validatedEmailResponse.get("email").toString();
 		Boolean isValid = (Boolean)validatedEmailResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_EMAIL, validatedEmail); 
+			this.dictAppend.put(IDENT_KEY_EMAIL, validatedEmail); 
 		}
 	}
 	
@@ -366,7 +365,7 @@ public class IdentityEventInternalHelper {
 		String validatedEmail = validatedEmailResponse.get("email").toString();
 		Boolean isValid = (Boolean)validatedEmailResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_EMAIL, validatedEmail); 
+			this.dictRemove.put(IDENT_KEY_EMAIL, validatedEmail); 
 		}
 	}
 	
@@ -376,8 +375,8 @@ public class IdentityEventInternalHelper {
 		String validatedMobileNo = identValStringResponse.get("value").toString();
 		Boolean isValid = (Boolean)identValStringResponse.get("status");
 		if (isValid == false) {
-			response.append("mobileNo", validatedMobileNo);
-			response.append("status", false);
+			response.put("mobileNo", validatedMobileNo);
+			response.put("status", false);
 			return response;
 		}
 		String msg = "number must start with + and must contain country code. e.g. +41446681800";
@@ -387,19 +386,19 @@ public class IdentityEventInternalHelper {
 		Boolean isValidMobileNo = Pattern.compile(mobileRegex).matcher(validatedMobileNo).matches();
 		if (isValidMobileNo == false) {
 			this.errors.add(String.format("[%s] invalid value %s. %s", caller, validatedMobileNo, msg));
-			response.append("mobile", isValidMobileNo);
-			response.append("status", false);
+			response.put("mobile", isValidMobileNo);
+			response.put("status", false);
 			return response;
 		}
 		
 		if (validatedMobileNo.length() < minLength) {
 			this.errors.add(String.format("[%s] invalid value %s. len(mobile_no) must be >= 8", caller, validatedMobileNo, msg));
-			response.append("mobile", validatedMobileNo);
-			response.append("status", false);
+			response.put("mobile", validatedMobileNo);
+			response.put("status", false);
 			return response;
 		}
-		response.append("mobile", validatedMobileNo);
-		response.append("status", true);
+		response.put("mobile", validatedMobileNo);
+		response.put("status", true);
 		return response;
 	}
 	
@@ -408,7 +407,7 @@ public class IdentityEventInternalHelper {
 		String validatedMobileNo = validatedMobileResponse.get("mobile").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_SMS, validatedMobileNo); 
+			this.dictAppend.put(IDENT_KEY_SMS, validatedMobileNo); 
 		}
 	}
 	
@@ -417,7 +416,7 @@ public class IdentityEventInternalHelper {
 		String validatedMobileNo = validatedMobileResponse.get("email").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_SMS, validatedMobileNo); 
+			this.dictRemove.put(IDENT_KEY_SMS, validatedMobileNo); 
 		}
 	}
 	
@@ -426,7 +425,7 @@ public class IdentityEventInternalHelper {
 		String validatedMobileNo = validatedMobileResponse.get("mobile").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_WHATSAPP, validatedMobileNo); 
+			this.dictAppend.put(IDENT_KEY_WHATSAPP, validatedMobileNo); 
 		}
 	}
 	
@@ -435,7 +434,7 @@ public class IdentityEventInternalHelper {
 		String validatedMobileNo = validatedMobileResponse.get("email").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_WHATSAPP, validatedMobileNo); 
+			this.dictRemove.put(IDENT_KEY_WHATSAPP, validatedMobileNo); 
 		}
 	}
 	
@@ -448,9 +447,9 @@ public class IdentityEventInternalHelper {
 		String validatedValue = identValStringResponse.get("value").toString();
 		Boolean isValid = (Boolean)identValStringResponse.get("status");
 		if (isValid == false) {
-			response.append("value", validatedValue);
-			response.append("provider", provider);
-			response.append("status", false);
+			response.put("value", validatedValue);
+			response.put("provider", provider);
+			response.put("status", false);
 			return response;
 		}
 		
@@ -460,14 +459,14 @@ public class IdentityEventInternalHelper {
 		
 		if (providers.contains(provider) == false) {
 			this.errors.add(String.format("[%s] unsupported androidpush provider %s", caller, provider));
-			response.append("value", validatedValue);
-			response.append("provider", provider);
-			response.append("status", false);
+			response.put("value", validatedValue);
+			response.put("provider", provider);
+			response.put("status", false);
 			return response;
 		}
-		response.append("value", validatedValue);
-		response.append("provider", provider);
-		response.append("status", true);
+		response.put("value", validatedValue);
+		response.put("provider", provider);
+		response.put("status", true);
 		
 		return response;
 	}
@@ -478,8 +477,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedAndroidPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedAndroidPushResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_ANDROIDPUSH, validatedValue);
-			this.dictAppend.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictAppend.put(IDENT_KEY_ANDROIDPUSH, validatedValue);
+			this.dictAppend.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 	
@@ -489,8 +488,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedAndroidPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedAndroidPushResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_ANDROIDPUSH, validatedValue);
-			this.dictRemove.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictRemove.put(IDENT_KEY_ANDROIDPUSH, validatedValue);
+			this.dictRemove.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 	
@@ -504,9 +503,9 @@ public class IdentityEventInternalHelper {
 		Boolean isValid = (Boolean)identValStringResponse.get("status");
 		
 		if (isValid == false) {
-			response.append("value", validatedValue);
-			response.append("provider", provider);
-			response.append("status", false);
+			response.put("value", validatedValue);
+			response.put("provider", provider);
+			response.put("status", false);
 			return response;
 		}
 		
@@ -516,14 +515,14 @@ public class IdentityEventInternalHelper {
 		
 		if (providers.contains(provider) == false) {
 			this.errors.add(String.format("[%s] unsupported iospush provider %s", caller, provider));
-			response.append("value", validatedValue);
-			response.append("provider", provider);
-			response.append("status", false);
+			response.put("value", validatedValue);
+			response.put("provider", provider);
+			response.put("status", false);
 			return response;
 		}
-		response.append("value", validatedValue);
-		response.append("provider", provider);
-		response.append("status", true);
+		response.put("value", validatedValue);
+		response.put("provider", provider);
+		response.put("status", true);
 		
 		return response;
 	}
@@ -534,8 +533,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedIosPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedIosPushResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_IOSPUSH, validatedValue);
-			this.dictAppend.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictAppend.put(IDENT_KEY_IOSPUSH, validatedValue);
+			this.dictAppend.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 	
@@ -545,8 +544,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedIosPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedIosPushResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_IOSPUSH, validatedValue);
-			this.dictRemove.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictRemove.put(IDENT_KEY_IOSPUSH, validatedValue);
+			this.dictRemove.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 
@@ -560,14 +559,14 @@ public class IdentityEventInternalHelper {
 		
 		if (providers.contains(provider) == false) {
 			this.errors.add(String.format("[%s] unsupported webpush provider %s", caller, provider));
-			response.append("value", value);
-			response.append("provider", provider);
-			response.append("status", false);
+			response.put("value", value);
+			response.put("provider", provider);
+			response.put("status", false);
 			return response;
 		}
-		response.append("value", value);
-		response.append("provider", provider);
-		response.append("status", true);
+		response.put("value", value);
+		response.put("provider", provider);
+		response.put("status", true);
 		return response;
 	}
 
@@ -577,8 +576,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedWebPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedWebPushResponse.get("status");
 		if (isValid == true) {
-			this.dictAppend.append(IDENT_KEY_WEBPUSH, validatedValue);
-			this.dictAppend.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictAppend.put(IDENT_KEY_WEBPUSH, validatedValue);
+			this.dictAppend.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 	
@@ -588,8 +587,8 @@ public class IdentityEventInternalHelper {
 		String validatedProvider = validatedWebPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedWebPushResponse.get("status");
 		if (isValid == true) {
-			this.dictRemove.append(IDENT_KEY_WEBPUSH, validatedValue);
-			this.dictRemove.append(KEY_PUSHVENDOR, validatedProvider);
+			this.dictRemove.put(IDENT_KEY_WEBPUSH, validatedValue);
+			this.dictRemove.put(KEY_PUSHVENDOR, validatedProvider);
 		}
 	}
 

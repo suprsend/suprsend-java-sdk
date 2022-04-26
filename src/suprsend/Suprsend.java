@@ -28,7 +28,7 @@ public class Suprsend {
 	final String defaultUrl = "https://hub.suprsend.com/";
 	final String defaultUatUrl = "https://collector-staging.suprsend.workers.dev/";
 	private BufferedReader reader;
-	UserIdentityFactory user;
+	public UserIdentityFactory user;
 
 	/**
 	 * This constructor will help you initialize the Suprsend SDK with env key and
@@ -43,7 +43,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(null, this.isUAT);
 		validate();
-		user = new UserIdentityFactory(this);
+		this.user = new UserIdentityFactory(this);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(baseUrl, this.isUAT);
 		validate();
-		user = new UserIdentityFactory(this);
+		this.user = new UserIdentityFactory(this);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
-		user = new UserIdentityFactory(this);
+		this.user = new UserIdentityFactory(this);
 	}
 	
 	/**
@@ -109,7 +109,7 @@ public class Suprsend {
 				|| kwargs.get("includeSignatureParam") == null) ? false
 						: (Boolean) kwargs.get("includeSignatureParam"));
 		validate();
-		user = new UserIdentityFactory(this);
+		this.user = new UserIdentityFactory(this);
 	}
 
 	/**
@@ -145,6 +145,7 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
+		this.user = new UserIdentityFactory(this);
 	}
 
 	/**

@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -40,6 +41,57 @@ public class Signature {
 	 * @throws SuprsendException
 	 */
 	public JSONObject getRequestSignature(String url, String httpVerb, JSONObject content, JSONObject headers, String secret) throws SuprsendException {
+		Mac sha256mac;
+		String requestURI;
+		String stringToSign;
+		String signature;
+		String contentTxt = "";
+		String contentMD5 = "";
+		
+		JSONObject result = new JSONObject();
+		
+		if(httpVerb != "GET") {
+			contentTxt = content.toString();
+			contentMD5 = getMD5(contentTxt);
+		}
+		requestURI = getURI(url);
+		stringToSign = String.format("%s\n%s\n%s\n%s\n%s", httpVerb, contentMD5, headers.get("Content-Type").toString(), headers.get("Date").toString(), requestURI);
+		final byte[] byteKey = secret.getBytes(StandardCharsets.UTF_8);
+		try {
+			sha256mac = Mac.getInstance(HMAC_SHA256);
+		} catch (NoSuchAlgorithmException e) {
+			throw new SuprsendException("Invalid algorithm name passed.", e);
+		}
+		SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA256);
+		try {
+			sha256mac.init(keySpec);
+		} catch (InvalidKeyException e) {
+			throw new SuprsendException("Invalid key passed.", e);
+		}
+		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
+		signature = Base64.getEncoder().encodeToString(macData);
+		result.put("contentTxt", contentTxt);
+		result.put("signature", signature);
+		return result;
+	}
+	
+	/**
+	 * Get request signature
+	 * @param url
+	 * 		  Workflow backend URL
+	 * @param httpVerb
+	 *        HTTP method
+	 * @param content
+	 *        Raw content as list of dictionary
+	 * @param headers
+	 *        Raw headers
+	 * @param secret
+	 *        Environment secret key given to client by Suprsend
+	 * @return
+	 *        JSON object which contains raw content in string format and signature.
+	 * @throws SuprsendException
+	 */
+	public JSONObject getRequestSignature(String url, String httpVerb, List<JSONObject> content, JSONObject headers, String secret) throws SuprsendException {
 		Mac sha256mac;
 		String requestURI;
 		String stringToSign;

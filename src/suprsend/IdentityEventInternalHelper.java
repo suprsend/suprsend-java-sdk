@@ -413,7 +413,7 @@ public class IdentityEventInternalHelper {
 	
 	public void removeSMS(String value, String caller) {
 		JSONObject validatedMobileResponse = validateMobileNo(value, caller);
-		String validatedMobileNo = validatedMobileResponse.get("email").toString();
+		String validatedMobileNo = validatedMobileResponse.get("mobile").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
 			this.dictRemove.put(IDENT_KEY_SMS, validatedMobileNo); 
@@ -431,7 +431,7 @@ public class IdentityEventInternalHelper {
 	
 	public void removeWhatsapp(String value, String caller) {
 		JSONObject validatedMobileResponse = validateMobileNo(value, caller);
-		String validatedMobileNo = validatedMobileResponse.get("email").toString();
+		String validatedMobileNo = validatedMobileResponse.get("mobile").toString();
 		Boolean isValid = (Boolean)validatedMobileResponse.get("status");
 		if (isValid == true) {
 			this.dictRemove.put(IDENT_KEY_WHATSAPP, validatedMobileNo); 

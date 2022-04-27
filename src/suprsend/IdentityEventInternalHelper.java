@@ -94,7 +94,7 @@ public class IdentityEventInternalHelper {
 	private JSONObject fromEvent() {
 		UUID uuid = UUID.randomUUID();
 
-		if (this.dictAppend != null || this.dictRemove != null || this.listUnset != null) {
+		if (this.dictAppend.length() > 0 || this.dictRemove.length() > 0 || this.listUnset.size() > 0) {
 			JSONObject event = new JSONObject();
 
 			event.put("$insert_id", uuid.toString());
@@ -102,7 +102,7 @@ public class IdentityEventInternalHelper {
 			event.put("env", this.worspaceKey);
 			event.put("distinct_id", this.distinctID);
 			
-			if (this.dictAppend != null) {
+			if (this.dictAppend.length() > 0) {
 				event.put("$append", this.dictAppend);
 				this.appendCount = this.appendCount + 1;
 				event.put("$remove", this.dictRemove);
@@ -119,20 +119,19 @@ public class IdentityEventInternalHelper {
 	
 	private JSONObject validateKeyBasic(String key, String caller) {
 		JSONObject response = new JSONObject();
-		if (key!=null && key instanceof String) {
-			response.put("key", key);
-			response.put("status", true);
-		}
-		else {
-			if (key == null) {
-				this.info.add(String.format("[%s] skipping key: empty string", caller));
+		if (key.isEmpty() == false) {
+			if (key instanceof String) {
+				response.put("key", key);
+				response.put("status", true);
 			}
 			else {
 				this.info.add(String.format("[%s] skipping key: %s. key must be a string", caller, key));
 			}
-			response.put("key", key);
-			response.put("status", false);
 		}
+		else {
+			this.info.add(String.format("[%s] skipping key: empty string", caller));
+		}
+
 		return response;
 	}
 	
@@ -245,13 +244,13 @@ public class IdentityEventInternalHelper {
 		}
 		else if (key == IDENT_KEY_ANDROIDPUSH) {
 			addAndroidPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictAppend.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.get(KEY_PUSHVENDOR));
 			}
 		}
 		else if (key ==	IDENT_KEY_IOSPUSH) {
 			addIosPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictAppend.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.get(KEY_PUSHVENDOR));
 			}
 		}
@@ -260,7 +259,7 @@ public class IdentityEventInternalHelper {
 	private void addIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
 		if (key == IDENT_KEY_WEBPUSH) {
 			addWebPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictAppend.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.get(KEY_PUSHVENDOR));
 			}
 		}
@@ -278,13 +277,13 @@ public class IdentityEventInternalHelper {
 		}
 		else if (key == IDENT_KEY_ANDROIDPUSH) {
 			removeAndroidPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictRemove.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.get(KEY_PUSHVENDOR));
 			}
 		}
 		else if (key ==	IDENT_KEY_IOSPUSH) {
 			removeIosPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictRemove.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.get(KEY_PUSHVENDOR));
 			}
 		}
@@ -293,7 +292,7 @@ public class IdentityEventInternalHelper {
 	private void removeIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
 		if (key == IDENT_KEY_WEBPUSH) {
 			removeWebPush(value, kwargs.getString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.get(KEY_PUSHVENDOR) != null) {
+			if (this.dictRemove.getString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.get(KEY_PUSHVENDOR));
 			}
 		}
@@ -302,7 +301,7 @@ public class IdentityEventInternalHelper {
 	private JSONObject checkIdentValString(String value, String caller) {
 		JSONObject response = new JSONObject();
 		String msg = "value must a string with proper value";
-		if (value != null && value instanceof String) {
+		if (value.isEmpty() == false && value instanceof String) {
 			response.put("value", value);
 			response.put("status", true);
 		}
@@ -453,7 +452,7 @@ public class IdentityEventInternalHelper {
 			return response;
 		}
 		
-		if (provider == null) {
+		if (provider.isEmpty()) {
 			provider = "fcm";
 		}
 		
@@ -509,7 +508,7 @@ public class IdentityEventInternalHelper {
 			return response;
 		}
 		
-		if (provider == null) {
+		if (provider.isEmpty()) {
 			provider = "apns";
 		}
 		
@@ -551,7 +550,7 @@ public class IdentityEventInternalHelper {
 
 	private JSONObject checkWebPushdict(JSONObject value, String provider, String caller) {
 		JSONObject response = new JSONObject();
-		if (provider == null) {
+		if (provider.isEmpty()) {
 			provider = "vapid";
 		}
 		

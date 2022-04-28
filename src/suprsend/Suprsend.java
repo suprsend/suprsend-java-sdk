@@ -29,6 +29,7 @@ public class Suprsend {
 	final String defaultUatUrl = "https://collector-staging.suprsend.workers.dev/";
 	private BufferedReader reader;
 	public UserIdentityFactory user;
+	public WorkflowBatchFactory workflowBatch;
 
 	/**
 	 * This constructor will help you initialize the Suprsend SDK with env key and
@@ -43,6 +44,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(null, this.isUAT);
 		validate();
+		this.workflowBatch = new WorkflowBatchFactory(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -60,6 +62,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(baseUrl, this.isUAT);
 		validate();
+		this.workflowBatch = new WorkflowBatchFactory(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -81,6 +84,7 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
+		this.workflowBatch = new WorkflowBatchFactory(this);
 		this.user = new UserIdentityFactory(this);
 	}
 	
@@ -109,6 +113,7 @@ public class Suprsend {
 				|| kwargs.get("includeSignatureParam") == null) ? false
 						: (Boolean) kwargs.get("includeSignatureParam"));
 		validate();
+		this.workflowBatch = new WorkflowBatchFactory(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -145,9 +150,14 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
+		this.workflowBatch = new WorkflowBatchFactory(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
+	public WorkflowBatch getWorkflowBatch() {
+		return this.workflowBatch.newWorkflowBatch();
+	}
+	
 	/**
 	 * Get Suprsend backend URL
 	 * 

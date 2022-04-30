@@ -192,26 +192,33 @@ public class UserIdentity {
 	
 	private void collectEvent() {
 		JSONObject response = this.helper.getIdentityEvent();
-		JSONArray errors = response.getJSONArray("errors");
-		JSONArray info = response.getJSONArray("info");
-		JSONObject event = response.getJSONObject("event");
-		if (errors.length() > 0) {
-			for(int i=0; i < errors.length(); i++) {
-				this.errors.add(errors.get(i).toString());
+		if (response.has("errors")) {
+			JSONArray errors = response.getJSONArray("errors");
+			if (errors.length() > 0) {
+				for(int i=0; i < errors.length(); i++) {
+					this.errors.add(errors.get(i).toString());
+				}
 			}
-		}
-		if (info.length() > 0) {
-			for(int i=0; i < info.length(); i++) {
-				this.errors.add(info.get(i).toString());
-			}
-		}
-		if (event.length() > 0) {
-			this.events.add(event);
-			this.appendCount = this.appendCount + response.getInt("append");
-			this.removeCount = this.removeCount + response.getInt("remove");
-			this.unsetCount = this.unsetCount + response.getInt("unset");
 		}
 		
+		if (response.has("info")) {
+			JSONArray info = response.getJSONArray("info");
+			if (info.length() > 0) {
+				for(int i=0; i < info.length(); i++) {
+					this.errors.add(info.get(i).toString());
+				}
+			}
+		}
+		
+		if (response.has("event")) {
+			JSONObject event = response.getJSONObject("event");
+			if (event.length() > 0) {
+				this.events.add(event);
+				this.appendCount = this.appendCount + response.getInt("append");
+				this.removeCount = this.removeCount + response.getInt("remove");
+				this.unsetCount = this.unsetCount + response.getInt("unset");
+			}
+		}		
 	}
 	
 	public void append(JSONObject arg1) {

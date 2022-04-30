@@ -13,13 +13,18 @@ public class TestUserIdentity {
 	}
 	
 	public static void testSave() throws Exception {
-		Suprsend suprsendClient = new Suprsend("lap5NefpkeN4gKyi8CiM", "Ya1eDjXYDsg9Bt88dpWw");
+//		JSONObject params = new JSONObject();
+//		params.put("isUAT", true);
+//		params.put("authEnabled", true);
+//		params.put("includeSignatureParam", true);
+		
+		Suprsend suprsendClient = new Suprsend("kfWdrPL1nFqs7OUihiBn", "From1HA1ZiSXs3ofBHXh", "https://collector-staging.suprsend.workers.dev/");
 		UserIdentity user = suprsendClient.user.newUserIdentity("gaurang");
 		JSONObject obj = new JSONObject();
-		obj.put("$email", "gaurang");
+		obj.put("$email", "gaurang@suprsend.com");
 		obj.put("$sms", "+917738300561");
 		obj.put("$whatsapp", "+917738300561");
-		user.append(obj);
+		user.append(obj);		
 		JSONObject res = user.save();
 		System.out.println(res);
 	}

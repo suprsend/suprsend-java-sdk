@@ -81,7 +81,7 @@ public class IdentityEventInternalHelper {
 		JSONObject event = fromEvent();
 		retValue.put("errors", this.errors);
 		retValue.put("info", this.info);
-		retValue.put("event", event);
+		retValue.put("event", new JSONObject(event.toString()));
 		retValue.put("append", this.appendCount);
 		retValue.put("remove", this.removeCount);
 		retValue.put("unset", this.unsetCount);

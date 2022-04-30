@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://github.com/suprsend/suprsend-java-sdk/request_json/workflow.json",
+  "$id": "http://github.com/suprsend/suprsend-py-sdk/request_json/workflow.json",
   "title": "workflow_request",
   "description": "Json schema for workflow request",
   "$comment": "Json schema for workflow request",
   "type": "object",
   "properties": {
-    "name": {
+    "name":     {
       "$ref": "#/definitions/non_empty_string",
       "description": "name of workflow"
     },
@@ -24,13 +24,17 @@
       "description": "If string: format [XX]d[XX]h[XX]m[XX]s e.g 1d2h30m10s(for 1day 2hours 30minutes 10sec). If integer: value in number of seconds"
     },
     "trigger_at": {
-      "$ref": "#/definitions/non_empty_string",
-      "description": "timestamp in ISO-8601 format. e.g 2021-08-27T20:14:51.643Z"
+        "$ref": "#/definitions/non_empty_string",
+        "description": "timestamp in ISO-8601 format. e.g 2021-08-27T20:14:51.643Z"
     },
-    "priority_algorithm": { "type": "boolean" },
+    "delivery": {
+      "type": "object",
+      "$ref": "#/definitions/delivery_setting",
+      "description": "set parameters e.g smart (true/false), success metric, TTL, mandatory channels etc"
+    },
     "users": {
       "type": "array",
-      "items": { "$ref": "#/definitions/user_setting" },
+      "items": { "$ref": "#/definitions/user_setting"},
       "minItems": 1,
       "maxItems": 100,
       "description": "user object to run workflow for. At least 1 user is required"
@@ -47,11 +51,10 @@
       "minLength": 2
     },
     "mobile_number_pattern": {
-      "type": "string",
-      "minLength": 8,
+      "type": "string", "minLength": 8,
       "pattern": "^\\+[0-9\\s]+",
       "message": {
-        "required": "Either a mobile-number or an array of mobile-numbers. e.g [\"41446681800\"]",
+        "required": "Either a mobile-number or an array of mobile-numbers. e.g [\"+41446681800\"]",
         "pattern": "number must start with + and must contain country code. e.g. +41446681800"
       }
     },
@@ -70,10 +73,14 @@
     "user_setting": {
       "type": "object",
       "properties": {
-        "distinct_id": { "$ref": "#/definitions/non_empty_string" },
+        "distinct_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "distinct_id: Id which uniquely identify a user in your app"
+        },
         "$email": {
           "oneOf": [
-            { "$ref": "#/definitions/email_pattern" },
+            {"$ref": "#/definitions/email_pattern"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -85,7 +92,7 @@
         },
         "$sms": {
           "oneOf": [
-            { "$ref": "#/definitions/mobile_number_pattern" },
+            {"$ref": "#/definitions/mobile_number_pattern"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -97,7 +104,7 @@
         },
         "$androidpush": {
           "oneOf": [
-            { "$ref": "#/definitions/non_empty_string" },
+            {"$ref": "#/definitions/non_empty_string"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -109,7 +116,7 @@
         },
         "$iospush": {
           "oneOf": [
-            { "$ref": "#/definitions/non_empty_string" },
+            {"$ref": "#/definitions/non_empty_string"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -121,7 +128,7 @@
         },
         "$whatsapp": {
           "oneOf": [
-            { "$ref": "#/definitions/mobile_number_pattern" },
+            {"$ref": "#/definitions/mobile_number_pattern"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -133,13 +140,13 @@
         },
         "$webpush": {
           "oneOf": [
-            { "type": "object", "minProperties": 1 },
+            {"type": "object", "minProperties": 1},
             {
               "type": "array",
               "uniqueItems": true,
               "maxItems": 10,
               "minItems": 1,
-              "items": { "type": "object", "minProperties": 1 }
+              "items": {"type": "object", "minProperties": 1}
             }
           ]
         },
@@ -157,7 +164,7 @@
         },
         "$messenger": {
           "oneOf": [
-            { "$ref": "#/definitions/non_empty_string" },
+            {"$ref": "#/definitions/non_empty_string"},
             {
               "type": "array",
               "uniqueItems": true,
@@ -168,7 +175,38 @@
           ]
         }
       },
-      "required": ["distinct_id"],
+      "required": [ "distinct_id" ],
+      "additionalProperties": false
+    },
+    "delivery_setting": {
+      "type": "object",
+      "properties": {
+        "smart": {
+          "type": "boolean",
+          "default": false,
+          "description": "If false, notifications are sent to all channels at once. If true, notifications are sent one-by-one until success metric is satisfied"
+        },
+        "success": {
+          "type": "string",
+          "default": "seen",
+          "description": "possible values: seen/interaction/<user_defined_event>."
+        },
+        "time_to_live": {
+          "type": "string",
+          "default": "1h",
+          "description": "Used if smart=true. format [XX]d[XX]h[XX]m[XX]s e.g 1d2h30m10s(for 1day 2hours 30minutes 10sec)"
+        },
+        "mandatory_channels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp"]
+          },
+          "minItems": 0,
+          "description": "e.g ['email', 'sms']. Used if smart=true, notification on these channels must be sent, independent of success metric outcome"
+        }
+      },
+      "required": [],
       "additionalProperties": false
     }
   }

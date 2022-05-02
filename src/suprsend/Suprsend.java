@@ -29,6 +29,7 @@ public class Suprsend {
 	final String defaultUatUrl = "https://collector-staging.suprsend.workers.dev/";
 	private BufferedReader reader;
 	public UserIdentityFactory user;
+	public EventCollector eventCollector;
 
 	/**
 	 * This constructor will help you initialize the Suprsend SDK with env key and
@@ -43,6 +44,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(null, this.isUAT);
 		validate();
+		this.eventCollector = new EventCollector(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -60,6 +62,7 @@ public class Suprsend {
 		this.envSecret = envSecret;
 		this.baseUrl = getUrl(baseUrl, this.isUAT);
 		validate();
+		this.eventCollector = new EventCollector(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -81,6 +84,7 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
+		this.eventCollector = new EventCollector(this);
 		this.user = new UserIdentityFactory(this);
 	}
 	
@@ -109,6 +113,7 @@ public class Suprsend {
 				|| kwargs.get("includeSignatureParam") == null) ? false
 						: (Boolean) kwargs.get("includeSignatureParam"));
 		validate();
+		this.eventCollector = new EventCollector(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -145,6 +150,7 @@ public class Suprsend {
 			new RequestLogs();
 		}
 		validate();
+		this.eventCollector = new EventCollector(this);
 		this.user = new UserIdentityFactory(this);
 	}
 
@@ -243,5 +249,23 @@ public class Suprsend {
 		TriggerWorkflow workFlow = new TriggerWorkflow(this, data);
 		workFlow.validateData();
 		return workFlow.executeWorkflow();
+	}
+	
+	/**
+	 * You can track and send events to SuprSend platform by using track method.
+	 * @param distinctID
+	 * @param eventName
+	 * @param properties
+	 * @return
+	 * {
+	       "success": True,
+	       "status": "success",
+	       "status_code": resp.status_code,
+	       "message": resp.text,
+	   }
+	 * @throws SuprsendException
+	 */
+	public JSONObject track(String distinctID, String eventName, JSONObject properties) throws SuprsendException {
+		return this.eventCollector.collect(distinctID, eventName, properties);
 	}
 }

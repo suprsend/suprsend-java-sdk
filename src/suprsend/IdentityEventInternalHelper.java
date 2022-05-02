@@ -582,7 +582,7 @@ public class IdentityEventInternalHelper {
 
 	public void addWebPush(JSONObject value, String provider, String caller) {
 		JSONObject validatedWebPushResponse = checkWebPushdict(value, provider, caller);
-		String validatedValue = validatedWebPushResponse.get("value").toString();
+		JSONObject validatedValue = validatedWebPushResponse.getJSONObject("value");
 		String validatedProvider = validatedWebPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedWebPushResponse.get("status");
 		if (isValid == true) {
@@ -593,7 +593,7 @@ public class IdentityEventInternalHelper {
 	
 	public void removeWebPush(JSONObject value, String provider, String caller) {
 		JSONObject validatedWebPushResponse = checkWebPushdict(value, provider, caller);
-		String validatedValue = validatedWebPushResponse.get("value").toString();
+		JSONObject validatedValue = validatedWebPushResponse.getJSONObject("value");
 		String validatedProvider = validatedWebPushResponse.get("provider").toString();
 		Boolean isValid = (Boolean)validatedWebPushResponse.get("status");
 		if (isValid == true) {

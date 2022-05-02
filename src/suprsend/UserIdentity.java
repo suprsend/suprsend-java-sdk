@@ -205,7 +205,7 @@ public class UserIdentity {
 			JSONArray info = response.getJSONArray("info");
 			if (info.length() > 0) {
 				for(int i=0; i < info.length(); i++) {
-					this.errors.add(info.get(i).toString());
+					this.info.add(info.get(i).toString());
 				}
 			}
 		}
@@ -223,16 +223,16 @@ public class UserIdentity {
 	
 	public void append(JSONObject arg1) {
 		String caller = "append";
-		Iterator<String> keys = arg1.keys();
-		while(keys.hasNext()) {
-			String key = keys.next();
+		
+		arg1.keys().forEachRemaining(key -> {
 			if (arg1.get(key) instanceof String) {
-				this.helper.appendKV(key, arg1.getString(key), new JSONObject(), caller);
+				this.helper.appendKV(key, arg1.getString(key), arg1, caller);
 			}
 			else {
-				this.helper.appendKV(key, arg1.getJSONObject(key), new JSONObject(), caller);
+				this.helper.appendKV(key, arg1.getJSONObject(key), arg1, caller);
 			}
-		}
+		});
+		
 		collectEvent();
 	}
 	

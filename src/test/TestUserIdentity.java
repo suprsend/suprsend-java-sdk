@@ -30,11 +30,11 @@ public class TestUserIdentity {
 	}
 	
 	public static void testRemove() throws Exception {
-		String distinctID = "nikitanavral1404@gmail.com";
-		Suprsend suprsendClient = new Suprsend("lap5NefpkeN4gKyi8CiM", "Ya1eDjXYDsg9Bt88dpWw");
+		String distinctID = "gaurang";
+		Suprsend suprsendClient = new Suprsend("kfWdrPL1nFqs7OUihiBn", "From1HA1ZiSXs3ofBHXh", "https://collector-staging.suprsend.workers.dev/");
 		UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
 		JSONObject obj = new JSONObject();
-		obj.put("$whatsapp", "+917738300561");
+		obj.put("$sms", "+917738300561");
 		user.remove(obj);
 		JSONObject res = user.save();
 		System.out.println(res);

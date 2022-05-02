@@ -81,7 +81,12 @@ public class IdentityEventInternalHelper {
 		JSONObject event = fromEvent();
 		retValue.put("errors", this.errors);
 		retValue.put("info", this.info);
-		retValue.put("event", new JSONObject(event.toString()));
+		if (event == null) {
+			retValue.put("event", new JSONObject());
+		}
+		else {
+			retValue.put("event", new JSONObject(event.toString()));
+		}
 		retValue.put("append", this.appendCount);
 		retValue.put("remove", this.removeCount);
 		retValue.put("unset", this.unsetCount);
@@ -101,12 +106,18 @@ public class IdentityEventInternalHelper {
 			event.put("$time", Instant.now().getEpochSecond() * 1000);
 			event.put("env", this.worspaceKey);
 			event.put("distinct_id", this.distinctID);
-			
+
 			if (this.dictAppend.length() > 0) {
 				event.put("$append", this.dictAppend);
 				this.appendCount = this.appendCount + 1;
+			}
+
+			if (this.dictRemove.length() > 0) {
 				event.put("$remove", this.dictRemove);
 				this.removeCount = this.removeCount + 1;
+			}
+
+			if (this.listUnset.size() > 0) {
 				event.put("$unset", this.listUnset);
 				this.unsetCount = this.unsetCount + 1;
 			}

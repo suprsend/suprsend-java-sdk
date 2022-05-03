@@ -238,11 +238,44 @@ public class TestUserIdentity {
         obj.put("$email", "example@example.com");
 		obj.put("$sms", "+919999999999");
 		obj.put("$whatsapp", "+919999999999");
-        obj.put("$androidpush", "__fcm_androidpush_token__");
         user.append(obj);
         JSONObject response = user.save();
 		System.out.println(response);
     }
+
+    public static void testAppendWebPush() throws Exception {
+		String disctinctID = "__disctint_id__";
+		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
+		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
+		JSONObject webpush = new JSONObject();
+		JSONObject keys = new JSONObject();
+		keys.put("p256dh", "__p256dh__");
+		keys.put("auth", "__auth_key__");
+		webpush.put("endpoint", "__end_point__");
+		webpush.put("expirationTime", "");
+		webpush.put("keys", keys);
+		
+		JSONObject obj = new JSONObject();
+		obj.put("$webpush", webpush);
+		obj.put("$pushvendor", "vapid");
+		
+		user.append(obj);
+		JSONObject response = user.save();
+		System.out.println(response);
+	}
+
+    public static void testAppendAndroidPush() throws Exception {
+		String disctinctID = "__disctint_id__";
+		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
+		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
+		
+		JSONObject obj = new JSONObject();
+		obj.put("$androidpush", "__android_push_key__");
+		obj.put("$pushvendor", "fcm");		
+		user.append(obj);
+		JSONObject response = user.save();
+		System.out.println(response);
+	}
 }
 ```
 
@@ -294,6 +327,40 @@ public class TestUserIdentity {
         JSONObject response = user.save();
 		System.out.println(response);
     }
+
+    public static void testRemoveWebPush() throws Exception {
+		String disctinctID = "__disctint_id__";
+		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
+		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
+		JSONObject webpush = new JSONObject();
+		JSONObject keys = new JSONObject();
+		keys.put("p256dh", "__p256dh__");
+		keys.put("auth", "__auth_key__");
+		webpush.put("endpoint", "__end_point__");
+		webpush.put("expirationTime", "");
+		webpush.put("keys", keys);
+		
+		JSONObject obj = new JSONObject();
+		obj.put("$webpush", webpush);
+		obj.put("$pushvendor", "vapid");
+		
+		user.remove(obj);
+		JSONObject response = user.save();
+		System.out.println(response);
+	}
+
+    public static void testRemoveAndroidPush() throws Exception {
+		String disctinctID = "__disctint_id__";
+		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
+		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
+		
+		JSONObject obj = new JSONObject();
+		obj.put("$androidpush", "__android_push_key__");
+		obj.put("$pushvendor", "fcm");		
+		user.remove(obj);
+		JSONObject response = user.save();
+		System.out.println(response);
+	}
 }
 ```
 
@@ -323,11 +390,22 @@ public class TestUserIdentity {
 		String distinctID = "__distinct_id__";
         Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
         UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
-		user.addEmail("example@example.com");
+
+        JSONObject webpush = new JSONObject();
+		JSONObject keys = new JSONObject();
+		keys.put("p256dh", "__p256dh__");
+		keys.put("auth", "__auth_key__");
+		webpush.put("endpoint", "__end_point__");
+		webpush.put("expirationTime", "");
+		webpush.put("keys", keys);
+
+        user.addEmail("example@example.com");
 		user.addSMS("+919999999999");
 		user.addWhatsapp("+919999999999");
         user.addAndroidPush("__android_push_token__", "__provider_name__");
         user.addIOSPush("__iospush_token__", "__provider_name__");
+        user.addWebPush(webpush, "vapid");        
+
 		JSONObject response = user.save();
 		System.out.println(response);
 	}
@@ -336,11 +414,22 @@ public class TestUserIdentity {
 		String distinctID = "__distinct_id__";
         Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
         UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
+        
+        JSONObject webpush = new JSONObject();
+		JSONObject keys = new JSONObject();
+		keys.put("p256dh", "__p256dh__");
+		keys.put("auth", "__auth_key__");
+		webpush.put("endpoint", "__end_point__");
+		webpush.put("expirationTime", "");
+		webpush.put("keys", keys);
+
 		user.removeEmail("example@example.com");
 		user.removeSMS("+919999999999");
 		user.removeWhatsapp("+919999999999");
         user.removeAndroidPush("__android_push_token__", "__provider_name__");
         user.removeIOSPush("__iospush_token__", "__provider_name__");
+        user.removeWebPush(webpush, "vapid");
+
 		JSONObject response = user.save();
 		System.out.println(response);
 	}
@@ -376,3 +465,29 @@ Sample workflow after setting user profile:
    ]
 }
 ``` 
+
+### Track and Send Event
+You can track and send events to SuprSend platform by using `suprsend.track` method.
+Event: `event_name`, tracked wrt a user: `distinct_id`, with event-attributes: `properties`
+
+```
+# Method Signature
+public JSONObject track(String distinctID, String eventName, JSONObject properties) throws SuprsendException {}
+```
+
+```
+# Response structure
+{
+    "success": True, # if true, request was accepted.
+    "status": "success",
+    "status_code": 202, # http status code
+    "message": "OK",
+}
+
+{
+    "success": False, # error will be present in message
+    "status": "fail",
+    "status_code": 500, # http status code
+    "message": "error message",
+}
+```

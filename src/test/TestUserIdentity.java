@@ -9,7 +9,7 @@ public class TestUserIdentity {
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		testRemoveGeneralAndroidPush();
+		testSave();
 	}
 	
 	public static void testSave() throws Exception {

@@ -78,8 +78,9 @@ Response could be one of the following:
 # If the call succeeds, response will looks like:
 {
     "success": True,
-    "status": 201,
-    "message": "Message received",
+    "status":"success"
+    "status_code": 202,
+    "message": "Accepted",
 }
 
 # In case the call fails. You will receive a response with success=False

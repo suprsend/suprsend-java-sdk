@@ -11,7 +11,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -250,16 +249,16 @@ public class UserIdentity {
 	
 	public void remove(JSONObject arg1) {
 		String caller = "remove";
-		Iterator<String> keys = arg1.keys();
-		while(keys.hasNext()) {
-			String key = keys.next();
+		
+		arg1.keys().forEachRemaining(key -> {
 			if (arg1.get(key) instanceof String) {
-				this.helper.removeKV(key, arg1.getString(key), new JSONObject(), caller);
+				this.helper.removeKV(key, arg1.getString(key), arg1, caller);
 			}
 			else {
-				this.helper.removeKV(key, arg1.getJSONObject(key), new JSONObject(), caller);
+				this.helper.removeKV(key, arg1.getJSONObject(key), arg1, caller);
 			}
-		}
+		});
+		
 		collectEvent();
 	}
 	

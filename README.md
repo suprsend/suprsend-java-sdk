@@ -7,6 +7,8 @@ We're working towards creating SDK in other languages as well.
 ### Suprsend SDKs available in following languages
 
 * java (`suprsend-java-sdk`)
+* python3 >= 3.7 (`suprsend-py-sdk`)
+* node (`suprsend-node-sdk`)
 
 ### Installation
 Please download jar from following link:
@@ -91,11 +93,15 @@ Response could be one of the following:
 Note: The actual processing/execution of workflow happens asynchronously.
 
 ### Sample
+Following example shows a sample request for triggering a workflow.
+It triggers a notification to a user with id: `distinct_id`,
+mobile: `919999999999`
+using template `purchase-made` and notification_category `transactional`
 
 Sample workflow body
 ```
 {
-   "template":"Name of registered template",
+   "template":"purchase-made",
    "notification_category":"transactional",
    "data":{
       "event": {
@@ -115,7 +121,7 @@ Sample workflow body
    "users":[
       {
          "$sms":[
-            "+91__mobile_no__"
+            "+919999999999"
          ],
          "distinct_id":"__distinct_id__"
       }
@@ -163,6 +169,22 @@ public class TestSuprsendSDK {
 
 }
 ```
+
+#### Duration Format
+format for specifying duration: `[xx]d[xx]h[xx]m[xx]s`
+Where
+* `d` stands for days. value boundary: 0 <= `d`
+* `h` stands for hours. value boundary: 0 <= `h` <= 23
+* `m` stands for minutes. value boundary: 0 <= `m` <= 59
+* `s` stands for seconds. value boundary: 0 <= `s` <= 59
+
+Examples:
+* 2 days, 3 hours, 12 mins, 23 seconds -> 2d3h12m23s or 02d03h12m23s
+* 48 hours -> 2d
+* 30 hours -> 1d6h
+* 300 seconds -> 5m
+* 320 seconds -> 5m20s
+* 60 seconds -> 1m
 
 #### Delivery instruction
 All delivery options:

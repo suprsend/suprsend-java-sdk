@@ -11,31 +11,27 @@ We're working towards creating SDK in other languages as well.
 * node (`suprsend-node-sdk`)
 
 ### Installation
-Please download jar from following link:
-`https://suprsend-java-sdk.s3.ap-south-1.amazonaws.com/jar/suprsend-java-sdk-0.2.0-jar-with-dependencies.jar`
-
-`suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.2.0-jar-with-dependencies.jar. 
 
 You can include the jar using following two ways:
 1. As a Maven dependency for maven projects
-   You can include the jar as maven dependency using following procedure:
-   a. Run following command:
-   
-   `mvn install:install-file -Dfile=suprsend-java-sdk-0.2.0-jar-with-dependencies.jar  -DgroupId=suprsend-java-sdk -DartifactId=suprsend-java-sdk -Dversion=0.2.0 -Dpackaging=jar`
-   
-   b. Once above command is executed add following to pom.xml:
+   suprsend-java-sdk is present as a maven dependency on maven central.
+   Add following to your pom.xml to include the sdk:
    ```
     <dependencies>
         <dependency>
-            <groupId>suprsend-java-sdk</groupId>
-            <artifactId>suprsend-java-sdk</artifactId>
-            <version>0.2.0</version>
-        </dependency>
+		  <groupId>com.suprsend</groupId>
+		  <artifactId>suprsend-java-sdk</artifactId>
+		  <version>0.2.0</version>
+		</dependency>
     </dependencies>
     ```
-   ###### Note: We are working towards making the dependency available via Maven central. It will be live shortly.
    
 2. As a jar file for non maven projects:
+   Please download jar from following link:
+   `https://suprsend-java-sdk.s3.ap-south-1.amazonaws.com/jar/suprsend-java-sdk-0.2.0-jar-with-dependencies.jar`
+
+   `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.2.0-jar-with-dependencies.jar.
+
    a. Right click on your java project.
    b. Click on "Build Path".
    c. Click on "Add External JARs"
@@ -86,7 +82,8 @@ Response could be one of the following:
 # In case the call fails. You will receive a response with success=False
 {
     "success": False,
-    "status": 400,
+    "status": "fail",
+    "status_code": 400/500,
     "message": "error message",
 }
 ```

@@ -13,7 +13,8 @@ We're working towards creating SDK in other languages as well.
 ### Installation
 
 You can include the jar using following two ways:
-1. As a Maven dependency for maven projects
+1. As a Maven dependency for maven projects:
+
    suprsend-java-sdk is present as a maven dependency on maven central.
    Add following to your pom.xml to include the sdk:
    ```
@@ -27,6 +28,7 @@ You can include the jar using following two ways:
     ```
    
 2. As a jar file for non maven projects:
+
    Please download jar from following link:
    `https://suprsend-java-sdk.s3.ap-south-1.amazonaws.com/jar/suprsend-java-sdk-0.2.0-jar-with-dependencies.jar`
 

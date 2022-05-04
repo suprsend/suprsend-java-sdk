@@ -35,9 +35,13 @@ You can include the jar using following two ways:
    `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.2.0-jar-with-dependencies.jar.
 
    a. Right click on your java project.
+   
    b. Click on "Build Path".
+   
    c. Click on "Add External JARs"
+   
    d. Select the jar file you received from local machine.
+   
    e. Click "Apply and Close"
 
 ### Initialization

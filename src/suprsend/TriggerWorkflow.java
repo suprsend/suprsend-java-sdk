@@ -1,158 +1,125 @@
 package suprsend;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
+import java.io.IOException;
+import java.util.logging.Logger;
 import org.json.JSONObject;
+import org.everit.json.schema.ValidationException;
 
 /**
- * This class makes HTTP request to workflow backend.
+ * This class makes Dynamic Workflow URL call to SuprSend platform.
+ * 
  * @author Suprsend
  */
 class TriggerWorkflow {
+	private static final Logger logger = Logger.getLogger(TriggerWorkflow.class.getName());
+
 	Suprsend config;
 	JSONObject data;
 	String url;
-	
+
 	/**
 	 * Constructor to initialize necessary data
-	 * @param config
-	 * 		  object of class Suprsend
-	 * @param data
-	 * 		  JSON data to be sent to workflow backend
+	 * 
+	 * @param config object of class Suprsend
+	 * @param data   JSON data to be sent to workflow backend
 	 */
 	TriggerWorkflow(Suprsend config, JSONObject data) {
 		this.config = config;
 		this.data = data;
 		this.url = getUrl();
 	}
-	
+
 	/**
-	 * Workflow backend URL
-	 * @return
-	 * 		Formatted workflow backend URL
+	 * URL for Dynamic Workflow
+	 * 
+	 * @return Formatted workflow backend URL
 	 */
 	private String getUrl() {
 		String urlTemplate = "%s%s/trigger/";
-		String baseUrl = this.config.baseUrl;
-		String envKey = this.config.envKey;
-		Boolean includeSignatureParam = this.config.includeSignatureParam;
-		Boolean authEnabled = this.config.authEnabled;
-		if(includeSignatureParam) {
-			if(authEnabled) {
+		if (this.config.includeSignatureParam) {
+			if (this.config.authEnabled) {
 				urlTemplate = urlTemplate + "?verify=true";
-			}
-			else {
+			} else {
 				urlTemplate = urlTemplate + "?verify=false";
 			}
 		}
-		String urlFormatted = String.format(urlTemplate, baseUrl, envKey);
+		String urlFormatted = String.format(urlTemplate, this.config.baseUrl, this.config.workspaceKey);
 		return urlFormatted;
 	}
-	
+
 	/**
 	 * Headers required to trigger workflow request
-	 * @return
-	 * 		Headers as JSON object
+	 * 
+	 * @return Headers as JSON object
 	 */
 	private JSONObject getHeaders() {
-		String userAgent = this.config.userAgent;
-		ZoneId zone = ZoneId.of("UTC");
-		LocalDateTime currentDateTime = LocalDateTime.now(zone);
-		ZonedDateTime zonedCurrentDateTime = currentDateTime.atZone(zone);
-		DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss z");
-		JSONObject headers = new JSONObject();
-		headers.put("Content-Type", "application/json");
-		headers.put("User-Agent", userAgent);
-		headers.put("Date", dateTimeFormat.format(zonedCurrentDateTime));
-		return headers;
+		return new JSONObject()
+				.put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.config.userAgent)
+				.put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
 	}
-	
-	/**
-	 * Set HTTP headers in HTTP client object
-	 * @param httpClient
-	 * 		  HTTP client object
-	 * @param headers
-	 * 		  Headers in JSON format
-	 */
-	private void setMandatoryHeaders(HttpURLConnection httpClient, JSONObject headers) {
-		httpClient.setRequestProperty("Content-Type", headers.get("Content-Type").toString());
-		httpClient.setRequestProperty("User-Agent", headers.get("User-Agent").toString());
-		httpClient.setRequestProperty("Date", headers.get("Date").toString());
+
+	private JSONObject getSuperProperties() {
+		return new JSONObject()
+				.put("$ss_sdk_version", this.config.userAgent);
 	}
-	
+
 	/**
-	 * This method Execute workflow request
-	 * @return
-	 * 		Response from workflow backend
+	 * This method registers Dynamic workflow request with SuprSend platform.
+	 * 
+	 * @return Request acceptance status
 	 * @throws Exception
 	 */
-	public JSONObject executeWorkflow() throws Exception {
-		JSONObject signatureResult;
-		JSONObject response = new JSONObject();
+	protected JSONObject executeWorkflow() {
 		JSONObject headers = getHeaders();
-		Boolean authEnabled = (Boolean)this.config.authEnabled;
-		String contentText;
-		HttpURLConnection httpClient = (HttpURLConnection) new URL(this.url).openConnection();
-		httpClient.setRequestMethod("POST");
-		setMandatoryHeaders(httpClient, headers);
-		if (authEnabled) {
-			Signature signature = new Signature();
-			signatureResult = signature.getRequestSignature(this.url, "POST", this.data, headers, this.config.envSecret);
-			contentText = signatureResult.get("contentTxt").toString();
-			httpClient.setRequestProperty("Authorization", String.format("%s:%s", this.config.envKey, signatureResult.get("signature").toString()));
+		JSONObject response = new JSONObject();
+		try {
+			String contentText;
+			if (this.config.authEnabled) {
+				// Signature and Authorization Header
+				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", this.data, headers,
+						this.config.workspaceSecret);
+				contentText = sigResult.getString("contentTxt");
+				headers.put("Authorization",
+						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+			} else {
+				contentText = this.data.toString();
+			}
+			// --- Make HTTP POST request
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", this.url, headers,
+					contentText);
+			int statusCode = resp.statusCode;
+			String responseText = resp.responseText;
+			//
+			if (statusCode >= 200 && statusCode < 300) {
+				response.put("success", true)
+						.put("status", "success")
+						.put("status_code", statusCode)
+						.put("message", responseText);
+			} else {
+				response.put("success", false)
+						.put("status", "fail")
+						.put("status_code", statusCode)
+						.put("message", responseText);
+			}
+		} catch (SuprsendException | IOException e) {
+			response.put("success", false)
+					.put("status", "fail")
+					.put("status_code", 500)
+					.put("message", e.toString());
 		}
-		else {
-			contentText = this.data.toString();
-		}
-		httpClient.setDoOutput(true);
-		try(OutputStream stream = httpClient.getOutputStream()){
-			byte[] input = contentText.getBytes(StandardCharsets.UTF_8);
-			stream.write(input, 0, input.length);
-		}
-		int statusCode = httpClient.getResponseCode();
-		String responseText = httpClient.getResponseMessage();
-		Boolean success = false;
-		String status = "fail";
-		if(statusCode == 202) {
-			success = true;
-			status = "success";
-		}
-		response.put("success", success);
-		response.put("status", status);
-		response.put("status_code", statusCode);
-		response.put("message", responseText);
 		return response;
 	}
-	
+
 	/**
-	 * Validate data against the JSON schema 
-	 * @return
-	 * 		Validated data
+	 * Validate data against the JSON schema
+	 * 
+	 * @return Validated data
 	 * @throws SuprsendException
 	 */
-	public JSONObject validateData() throws SuprsendException {
-		JSONObject jsonSchema;
-		if(this.data.get("data") == null) {
-			this.data.put("data", new JSONObject());
-		}
-		RequestSchema schema = new RequestSchema();
-		jsonSchema = schema.getSchema("workflow");
-		Schema schemaValidator = SchemaLoader.load(jsonSchema);
-		try {
-			schemaValidator.validate(this.data);
-		} catch(ValidationException e) {
-			throw new ValidationException(schemaValidator, e.getMessage());
-		}
+	protected JSONObject validateData() throws SuprsendException, ValidationException {
+		this.data = Utils.validateWorkflowSchema(this.data);
+		this.data.put("properties", getSuperProperties());
 		return this.data;
 	}
 }

@@ -17,77 +17,65 @@ You can include the jar using following two ways:
 
    suprsend-java-sdk is present as a maven dependency on maven central.
    Add following to your pom.xml to include the sdk:
-   ```
-    <dependencies>
+   ```xml
+      <dependencies>
         <dependency>
-		  <groupId>com.suprsend</groupId>
-		  <artifactId>suprsend-java-sdk</artifactId>
-		  <version>0.2.0</version>
-		</dependency>
-    </dependencies>
+          <groupId>com.suprsend</groupId>
+          <artifactId>suprsend-java-sdk</artifactId>
+          <version>0.3.0</version>
+	    </dependency>
+      </dependencies>
     ```
-   
+
 2. As a jar file for non maven projects:
 
-   Please download jar from following link:
-   `https://suprsend-java-sdk.s3.ap-south-1.amazonaws.com/jar/suprsend-java-sdk-0.2.0-jar-with-dependencies.jar`
+   Please download jar from releases section.
+   `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.3.0-jar-with-dependencies.jar
 
-   `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.2.0-jar-with-dependencies.jar.
+   - Right click on your java project.
+   - Click on "Build Path".
+   - Click on "Add External JARs"
+   - Select the jar file you received from local machine.
+   - Click "Apply and Close"
 
-   a. Right click on your java project.
-   
-   b. Click on "Build Path".
-   
-   c. Click on "Add External JARs"
-   
-   d. Select the jar file you received from local machine.
-   
-   e. Click "Apply and Close"
-
-### Initialization
+### Usage
 Initialize the Suprsend library using the following:
 
 For initializing SDK, you need workspace key and workspace secret. You will get both the tokens from client dashboard.
 
-```
+```java
 import suprsend.Suprsend;
-Suprsend suprsend = new Suprsend("__env_key__", "__env_secret__");
+Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret");
 ```
 
-Alternatively we provide following constructors:
-
-i. Constructor which allows you to provide custom base URL:
-```
+To logs HTTP calls to Suprsend, pass debug=true as third parameter.
+```java
 import suprsend.Suprsend;
-Suprsend suprsend = new Suprsend("__env_key__", "__env_secret__", "Custom Base URL");
+Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret", true);
 ```
 
-ii. Constructor which allows you to view HTTP logs in your console:
-```
-import suprsend.Suprsend;
-Suprsend suprsend = new Suprsend("__env_key__", "__env_secret__", true);
-```
-
-### How the call is made to SuprSend?
+### Trigger Workflow
 Once you have the object initialized you can make a call to suprsend backend using following line:
 
-```
+```java
+// prepare workflow body
+// body = new JSONObject()
 JSONObject response = suprsend.triggerWorkflow(body);
 ```
 
 Response could be one of the following:
-```
+```json
 # If the call succeeds, response will looks like:
 {
-    "success": True,
-    "status":"success"
+    "success": true,
+    "status":"success",
     "status_code": 202,
     "message": "Accepted",
 }
 
 # In case the call fails. You will receive a response with success=False
 {
-    "success": False,
+    "success": false,
     "status": "fail",
     "status_code": 400/500,
     "message": "error message",
@@ -103,10 +91,21 @@ mobile: `919999999999`
 using template `purchase-made` and notification_category `transactional`
 
 Sample workflow body
-```
+```json
 {
+   "name":"Retail User Purchase",
    "template":"purchase-made",
    "notification_category":"transactional",
+   "users":[
+      {
+         "$sms":["+919999999999"],
+         "distinct_id":"__distinct_id__"
+      }
+   ],
+   "delivery": {
+       "smart": false,
+       "success": "seen"
+   },
    "data":{
       "event": {
 	    "logo": "https://ik.imagekit.io/l0quatz6utm/1639998025344-Screenshot 2021-12-20 at 4.13.24 PM.png",
@@ -116,20 +115,7 @@ Sample workflow body
 	    "first_name": "XYZ",
 	    "question_subject": "Arithmetic Progression"
 	  }
-   },
-   "delivery": {
-       "smart": False,
-       "success": "seen"
-   },
-   "name":"SMS",
-   "users":[
-      {
-         "$sms":[
-            "+919999999999"
-         ],
-         "distinct_id":"__distinct_id__"
-      }
-   ]
+   }
 }
 ```
 
@@ -137,9 +123,7 @@ Put the above code in a file named input.json
 
 Code to call Suprsend backend using SDK
 
-```
-package tests;
-
+```java
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -151,27 +135,28 @@ import org.json.JSONTokener;
 import suprsend.Suprsend;
 
 public class TestSuprsendSDK {
-	
-	private static Suprsend suprsend;
-	
-	private JSONObject loadBody(String fileName) throws FileNotFoundException {
-		JSONObject jsonObject;
-		String relativePath = String.format("%s/src/%s/resources/%s.json", System.getProperty("user.dir"), this.getClass().getPackage().getName(), fileName);
-		InputStream schemaStream = new FileInputStream(new File(relativePath));
-		jsonObject = new JSONObject(new JSONTokener(schemaStream));
-		return jsonObject;
-	}
-	
-	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		TestSuprsendSDK sdk = new TestSuprsendSDK();
-		JSONObject body = sdk.loadBody("input");
-		suprsend = new Suprsend("__env_key__", "__env_secret__");
-		JSONObject response = suprsend.triggerWorkflow(body);
-		System.out.println(response);
-	}
 
-}
+    private JSONObject loadBody(String fileName) throws FileNotFoundException {
+        JSONObject jsonObject;
+        String relativePath = String.format("%s/src/%s/resources/%s.json", System.getProperty("user.dir"),
+                this.getClass().getPackage().getName(), fileName);
+        InputStream schemaStream = new FileInputStream(new File(relativePath));
+        jsonObject = new JSONObject(new JSONTokener(schemaStream));
+        return jsonObject;
+    }
+
+    public static void main(String[] args) throws Exception {
+        TestSuprsendSDK sdk = new TestSuprsendSDK();
+        // Load workflow body json
+        JSONObject body = sdk.loadBody("input");
+        // SDK instance
+        Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret");
+        // Trigger workflow
+        JSONObject response = suprsend.triggerWorkflow(body);
+        System.out.println(response);
+    }
+
+}}
 ```
 
 #### Duration Format
@@ -245,278 +230,227 @@ then instead of adding user-channel-details in each workflow request, you can se
 profile once, and after that, in workflow trigger request you only need to pass the distinct_id of the user.
 All associated channels in User profile will be automatically picked when executing the workflow.
 
-You can set user channel details viz. email, sms, whatsapp, androidpush etc (using `user.append` method) as shown in the example below.
+You can set user channel details viz. email, sms, whatsapp, androidpush etc (using `user.add_*` methods) as shown in the example below.
 
-```
+```java
+
 import org.json.JSONObject;
 
 import suprsend.Suprsend;
-import suprsend.UserIdentity;
+import suprsend.Subscriber;
 
-public class TestUserIdentity {
-    public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		testSave();
-	}
+public class TestSubscribers {
+  public static void main(String[] args) throws Exception {
+    testSave();
+  }
 
-    public static void testSave() throws Exception {
-        String distinctID = "__distinct_id__";
-        Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-        UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
-        JSONObject obj = new JSONObject();
-        obj.put("$email", "example@example.com");
-		obj.put("$sms", "+919999999999");
-		obj.put("$whatsapp", "+919999999999");
-        user.append(obj);
-        JSONObject response = user.save();
-		System.out.println(response);
-    }
+  public static void testSave() throws Exception {
+    // SDK instance
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    // Subscriber Instance
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    // Add properties
+    user.addEmail("example@example.com");
+    user.addSms("+919999999999");
+    user.addWhatsapp("+919999999999");
+    // Save
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
 
-    public static void testAppendWebPush() throws Exception {
-		String disctinctID = "__disctint_id__";
-		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
-		JSONObject webpush = new JSONObject();
-		JSONObject keys = new JSONObject();
-		keys.put("p256dh", "__p256dh__");
-		keys.put("auth", "__auth_key__");
-		webpush.put("endpoint", "__end_point__");
-		webpush.put("expirationTime", "");
-		webpush.put("keys", keys);
-		
-		JSONObject obj = new JSONObject();
-		obj.put("$webpush", webpush);
-		obj.put("$pushvendor", "vapid");
-		
-		user.append(obj);
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
+  public static void testAddWebpush() throws Exception {
+    // SDK instance
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
 
-    public static void testAppendAndroidPush() throws Exception {
-		String disctinctID = "__disctint_id__";
-		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
-		
-		JSONObject obj = new JSONObject();
-		obj.put("$androidpush", "__android_push_key__");
-		obj.put("$pushvendor", "fcm");		
-		user.append(obj);
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
+    // Subscriber Instance
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+
+    // Webpush token json (VAPID)
+    JSONObject webpush = new JSONObject()
+        .put("endpoint", "__end_point__")
+        .put("expirationTime", "")
+        .put("keys", new JSONObject()
+            .put("p256dh", "__p256dh__")
+            .put("auth", "__auth_key__"));
+    //
+    user.addWebpush(webpush, "vapid");
+    // Save
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
+
+  public static void testAddAndroidpush() throws Exception {
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    // 
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    // 
+    user.addAndroidpush("__android_push_key__");
+    JSONObject res = user.save();
+    System.out.println(res);
+  }
 }
+
 ```
 
-# Response structure
-```
+#### Response structure
+```json
 {
-    "success": True, # if true, request was accepted.
+    "success": true, // if true, request was accepted.
     "status": "success",
-    "status_code": 202, # http status code
+    "status_code": 202, // http status code
     "message": "OK",
 }
 
 {
-    "success": False, # error will be present in message
+    "success": false, // error will be present in message
     "status": "fail",
-    "status_code": 500, # http status code
+    "status_code": 500, // http status code
     "message": "error message",
 }
 ```
 
-Apart from the append method which accepts JSONObject as an input you have 2 other options for append method as follows
+If you want to remove some channel details, use `user.remove_*` method.
 
-```
-user.append(String, JSONObject)
-user.append(String, String)
-```
-
-If you want to remove some channel details, use `user.remove` method.
-
-```
+```java
 import org.json.JSONObject;
 
 import suprsend.Suprsend;
-import suprsend.UserIdentity;
+import suprsend.Subscriber;
 
-public class TestUserIdentity {
-    public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		testRemove();
-	}
+public class TestSubscriber2 {
+  public static void main(String[] args) throws Exception {
+    testRemove();
+  }
 
-    public static void testRemove() throws Exception {
-        String distinctID = "__distinct_id__";
-        Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-        UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
-        JSONObject obj = new JSONObject();
-        obj.put("$whatsapp", "+919999999999");
-        user.remove(obj);
-        JSONObject response = user.save();
-		System.out.println(response);
-    }
+  public static void testRemove() throws Exception {
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    //
+    user.removeWhatsapp("+919999999999");
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
 
-    public static void testRemoveWebPush() throws Exception {
-		String disctinctID = "__disctint_id__";
-		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
-		JSONObject webpush = new JSONObject();
-		JSONObject keys = new JSONObject();
-		keys.put("p256dh", "__p256dh__");
-		keys.put("auth", "__auth_key__");
-		webpush.put("endpoint", "__end_point__");
-		webpush.put("expirationTime", "");
-		webpush.put("keys", keys);
-		
-		JSONObject obj = new JSONObject();
-		obj.put("$webpush", webpush);
-		obj.put("$pushvendor", "vapid");
-		
-		user.remove(obj);
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
+  public static void testRemoveWebpush() throws Exception {
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    // Webpush token json (VAPID)
+    JSONObject webpush = new JSONObject()
+        .put("endpoint", "__end_point__")
+        .put("expirationTime", "")
+        .put("keys", new JSONObject()
+            .put("p256dh", "__p256dh__")
+            .put("auth", "__auth_key__"));
+    //
+    user.removeWebpush(webpush);
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
 
-    public static void testRemoveAndroidPush() throws Exception {
-		String disctinctID = "__disctint_id__";
-		Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-		UserIdentity user = suprsendClient.user.newUserIdentity(disctinctID);
-		
-		JSONObject obj = new JSONObject();
-		obj.put("$androidpush", "__android_push_key__");
-		obj.put("$pushvendor", "fcm");		
-		user.remove(obj);
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
+  public static void testRemoveAndroidpush() throws Exception {
+    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    //
+    user.removeAndroidpush("__android_push_key__");
+    JSONObject res = user.save();
+    System.out.println(res);
+  }
 }
 ```
 
-Apart from the remove method which accepts JSONObject as an input you have 2 other options for remove method as follows
+Below are all the methods to add/remove channel details.
 
-```
-user.remove(String, JSONObject)
-user.remove(String, String)
-```
+```java
+String distinctID = "__distinct_id__";
+Subscriber user = suprsendClient.user.getInstance(distinctID);
+//
+user.addEmail("user@example.com");
+user.removeEmail("user@example.com");
 
-There are helper methods available to add/remove channel details.
+user.addSms("+919999999999");
+user.removeSms("+919999999999");
 
-```
-import org.json.JSONObject;
+user.addWhatsapp("+919999999999");
+user.removeWhatsapp("+919999999999");
 
-import suprsend.Suprsend;
-import suprsend.UserIdentity;
+// Add and remove Androidpush token.. By default token is assumed to be fcm.
+// If token being passed is from other vendor, pass the vendor as 2nd param.
+user.addAndroidpush("androidpush_fcm_token__");
+user.addAndroidpush("androidpush_xiaomi_token__", "xiaomi");
 
-public class TestUserIdentity {
-    public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		testAddHelperFunctions();
-        testRemoveHelperFunctions();
-	}
+user.removeAndroidpush("androidpush_fcm_token__");
+user.removeAndroidpush("androidpush_xiaomi_token__", "xiaomi");
 
-    public static void testAddHelperFunctions() throws Exception {
-		String distinctID = "__distinct_id__";
-        Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-        UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
+// Add and remove iospush token 
+user.addIospush("__iospush_apns_token__");
+user.removeIospush("__iospush_apns_token__");
 
-        JSONObject webpush = new JSONObject();
-		JSONObject keys = new JSONObject();
-		keys.put("p256dh", "__p256dh__");
-		keys.put("auth", "__auth_key__");
-		webpush.put("endpoint", "__end_point__");
-		webpush.put("expirationTime", "");
-		webpush.put("keys", keys);
-
-        user.addEmail("example@example.com");
-		user.addSMS("+919999999999");
-		user.addWhatsapp("+919999999999");
-        user.addAndroidPush("__android_push_token__", "__provider_name__");
-        user.addIOSPush("__iospush_token__", "__provider_name__");
-        user.addWebPush(webpush, "vapid");        
-
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
-	
-	public static void testRemoveHelperFunctions() throws Exception {
-		String distinctID = "__distinct_id__";
-        Suprsend suprsendClient = new Suprsend("__env_key__", "__env_secret__");
-        UserIdentity user = suprsendClient.user.newUserIdentity(distinctID);
-        
-        JSONObject webpush = new JSONObject();
-		JSONObject keys = new JSONObject();
-		keys.put("p256dh", "__p256dh__");
-		keys.put("auth", "__auth_key__");
-		webpush.put("endpoint", "__end_point__");
-		webpush.put("expirationTime", "");
-		webpush.put("keys", keys);
-
-		user.removeEmail("example@example.com");
-		user.removeSMS("+919999999999");
-		user.removeWhatsapp("+919999999999");
-        user.removeAndroidPush("__android_push_token__", "__provider_name__");
-        user.removeIOSPush("__iospush_token__", "__provider_name__");
-        user.removeWebPush(webpush, "vapid");
-
-		JSONObject response = user.save();
-		System.out.println(response);
-	}
-}
+// Add and remove webpush token 
+user.addWebpush(webpushToken);
+user.removeWebpush(webpushToken);
 ```
 
-Note: After calling `append`/`remove`/`add_*`/`remove_*` methods, don't forget to call `user.save()`.
+Note: After calling `add_*`/`remove_*` methods, don't forget to call `user.save()`.
 
 Once channels details are set at User profile, you only have to mention the user's distinctID
 while triggering workflow. Associated channels will automatically be picked up from user-profile e.g.
 
 Sample workflow after setting user profile:
 
-```
+```json
 {
-   "template":"Name of registered template",
-   "notification_category":"transactional",
-   "data":{
-      "event": {
-	    "logo": "https://ik.imagekit.io/l0quatz6utm/1639998025344-Screenshot 2021-12-20 at 4.13.24 PM.png",
-	    "link1": "https://www.suprsend.com",
-	    "solution": "https://www.doubtnut.com",
-	    "last_name": "ABC",
-	    "first_name": "XYZ",
-	    "question_subject": "Arithmetic Progression"
-	  }
-   },
-   "name":"SMS",
-   "users":[
-      {
-         "distinct_id":"__distinct_id__"
-      }
-   ]
+  "name":"SMS",
+  "template":"Name of registered template",
+  "notification_category":"transactional",
+  "users":[
+    {
+        "distinct_id":"__distinct_id__"
+    }
+  ],
+  "data":{
+    "event": {
+    "logo": "https://ik.imagekit.io/l0quatz6utm/1639998025344-Screenshot 2021-12-20 at 4.13.24 PM.png",
+    "link1": "https://www.suprsend.com",
+    "solution": "https://www.doubtnut.com",
+    "last_name": "ABC",
+    "first_name": "XYZ",
+    "question_subject": "Arithmetic Progression"
+  }
+  }
 }
-``` 
+```
 
 ### Track and Send Event
 You can track and send events to SuprSend platform by using `suprsend.track` method.
 Event: `event_name`, tracked wrt a user: `distinct_id`, with event-attributes: `properties`
 
-```
-# Method Signature
+```java
+// Method Signature
 public JSONObject track(String distinctID, String eventName, JSONObject properties) throws SuprsendException {}
 ```
 
-```
-# Response structure
+```json
+// Response structure
 {
-    "success": True, # if true, request was accepted.
+    "success": true, // if true, request was accepted.
     "status": "success",
-    "status_code": 202, # http status code
+    "status_code": 202, // http status code
     "message": "OK",
 }
 
 {
-    "success": False, # error will be present in message
+    "success": false, // error will be present in message
     "status": "fail",
-    "status_code": 500, # http status code
+    "status_code": 500, // http status code
     "message": "error message",
 }
 ```

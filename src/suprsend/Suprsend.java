@@ -1,181 +1,165 @@
 package suprsend;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Base64;
 
 import org.everit.json.schema.ValidationException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * This class is the entry point to suprsend-java-sdk. It Suprsend Java SDK
- * allows you to trigger workflow which have been configured in suprsend system
+ * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK
+ * allows you to programmatically interact with SuprSend Platform.
  * 
  * @author Suprsend
  */
 public class Suprsend {
-	String envKey, envSecret, baseUrl;
-	String sdkVersion = Constants.version;
-	String userAgent = String.format("suprsend/%s;java/%s", this.sdkVersion, System.getProperty("java.version"));
-	Boolean includeSignatureParam = true;
-	Boolean authEnabled = true;
-	Boolean isUAT = false;
-	Boolean debug = false;
-	final String defaultUrl = "https://hub.suprsend.com/";
-	final String defaultUatUrl = "https://collector-staging.suprsend.workers.dev/";
-	private BufferedReader reader;
-	public UserIdentityFactory user;
-	public EventCollector eventCollector;
+	protected String workspaceKey, workspaceSecret, baseUrl;
+	protected String userAgent = String.format(
+			"suprsend/%s;java/%s",
+			Version.VERSION, System.getProperty("java.version"));
+	protected boolean debug = false;
+	protected boolean includeSignatureParam = true;
+	protected boolean authEnabled = true;
+	//
+	public SubscriberFactory user;
+	private EventCollector eventCollector;
 
-	/**
-	 * This constructor will help you initialize the Suprsend SDK with env key and
-	 * secret
-	 * 
-	 * @param envKey    Environment key provided by Suprsend
-	 * @param envSecret Environment secret key provided by Suprsend
-	 * @throws SuprsendException Custom exception thrown by SDK
-	 */
-	public Suprsend(String envKey, String envSecret) throws SuprsendException {
-		this.envKey = envKey;
-		this.envSecret = envSecret;
-		this.baseUrl = getUrl(null, this.isUAT);
-		validate();
+	private void initHelpers() {
 		this.eventCollector = new EventCollector(this);
-		this.user = new UserIdentityFactory(this);
+		this.user = new SubscriberFactory(this);
 	}
 
 	/**
-	 * This constructor will help you initialize the Suprsend SDK with env key and
-	 * secret. It also allows the capability of passing custom base URL
+	 * constructor to initialize SDK with workspace-key and secret
 	 * 
-	 * @param envKey    Environment key provided by Suprsend
-	 * @param envSecret Environment secret key provided by Suprsend
-	 * @param baseUrl   Custom base URL
+	 * @param workspaceKey    workspace_key provided by SuprSend
+	 * @param workspaceSecret workspace_secret provided by SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String envKey, String envSecret, String baseUrl) throws SuprsendException {
-		this.envKey = envKey;
-		this.envSecret = envSecret;
-		this.baseUrl = getUrl(baseUrl, this.isUAT);
+	public Suprsend(String workspaceKey, String workspaceSecret) throws SuprsendException {
+		this.workspaceKey = workspaceKey;
+		this.workspaceSecret = workspaceSecret;
+		this.baseUrl = getUrl(null, false);
+		//
+		cleanup();
 		validate();
-		this.eventCollector = new EventCollector(this);
-		this.user = new UserIdentityFactory(this);
+		initHelpers();
 	}
 
 	/**
-	 * This constructor will help you initialize the Suprsend SDK with env key and
-	 * secret. It also allows the capability of passing custom base URL
+	 * constructor to initialize SDK with workspace-key and secret.
+	 * It also allows the capability of passing custom base URL
 	 * 
-	 * @param envKey    Environment key provided by Suprsend
-	 * @param envSecret Environment secret key provided by Suprsend
-	 * @param debug     Custom base URL
+	 * @param workspaceKey    workspace_key provided by SuprSend
+	 * @param workspaceSecret workspace_secret provided by SuprSend
+	 * @param baseUrl         custom base-url instead of suprsend platform url
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String envKey, String envSecret, Boolean debug) throws SuprsendException {
-		this.envKey = envKey;
-		this.envSecret = envSecret;
-		this.baseUrl = getUrl(baseUrl, this.isUAT);
+	public Suprsend(String workspaceKey, String workspaceSecret, String baseUrl) throws SuprsendException {
+		this.workspaceKey = workspaceKey;
+		this.workspaceSecret = workspaceSecret;
+		this.baseUrl = getUrl(baseUrl, false);
+		cleanup();
+		validate();
+		initHelpers();
+	}
+
+	/**
+	 * constructor to initialize SDK with workspace-key and secret.
+	 * It also allows the capability to print debug logs.
+	 * If set to true will print the HTTP request logs sent to Suprsend platform
+	 * 
+	 * @param workspaceKey    workspace_key provided by SuprSend
+	 * @param workspaceSecret workspace_secret provided by SuprSend
+	 * @param debug           print logs of http-request to SuprSend
+	 * @throws SuprsendException Custom exception thrown by SDK
+	 */
+	public Suprsend(String workspaceKey, String workspaceSecret, boolean debug) throws SuprsendException {
+		this.workspaceKey = workspaceKey;
+		this.workspaceSecret = workspaceSecret;
+		this.baseUrl = getUrl(null, false);
+		//
 		this.debug = debug;
-		if (this.debug == true) {
-			new RequestLogs();
-		}
+		//
+		cleanup();
 		validate();
-		this.eventCollector = new EventCollector(this);
-		this.user = new UserIdentityFactory(this);
+		initHelpers();
 	}
-	
+
 	/**
-	 * This constructor will help you initialize the Suprsend SDK with certain
-	 * inputs
 	 * 
-	 * @param envKey    Environment key provided by Suprsend
-	 * @param envSecret Environment secret key provided by Suprsend
-	 * @param kwargs    Extra arguments to be passed which include any of the
-	 *                  follows: authEnabled, includeSignatureParam, isUAT
+	 * @param workspaceKey    workspace_key provided by SuprSend
+	 * @param workspaceSecret workspace_secret provided by SuprSend
+	 * @param baseUrl         custom base-url instead of suprsend platform url
+	 * @param debug           print logs of http-request to SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String envKey, String envSecret, JSONObject kwargs)
+	public Suprsend(String workspaceKey, String workspaceSecret, String baseUrl, boolean debug)
 			throws SuprsendException {
 
-		this.envKey = envKey;
-		this.envSecret = envSecret;
-		if (kwargs.has("isUAT") && (Boolean) kwargs.get("isUAT") == true) {
-			this.isUAT = kwargs.getBoolean("isUAT");
-		}
-		this.baseUrl = getUrl(null, this.isUAT);
-		this.authEnabled = ((kwargs.has("authEnabled") == false || kwargs.get("authEnabled") == null) ? false
-				: (Boolean) kwargs.get("authEnabled"));
-		this.includeSignatureParam = ((kwargs.has("includeSignatureParam") == false
-				|| kwargs.get("includeSignatureParam") == null) ? false
-						: (Boolean) kwargs.get("includeSignatureParam"));
+		this.workspaceKey = workspaceKey;
+		this.workspaceSecret = workspaceSecret;
+		this.baseUrl = getUrl(baseUrl, false);
+		//
+		this.debug = debug;
+		//
+		cleanup();
 		validate();
-		this.eventCollector = new EventCollector(this);
-		this.user = new UserIdentityFactory(this);
+		initHelpers();
 	}
 
 	/**
-	 * This constructor will help you initialize the Suprsend SDK with certain
-	 * inputs
 	 * 
-	 * @param envKey    Environment key provided by Suprsend
-	 * @param envSecret Environment secret key provided by Suprsend
-	 * @param baseUrl   Base URl to Suprsend workflow system. Pass null to use
-	 *                  default URL
-	 * @param debug     If set to true will print the HTTP logs for the requests
-	 *                  that will be sent to Suprsend backend
-	 * @param kwargs    Extra arguments to be passed which include any of the
-	 *                  follows: authEnabled, includeSignatureParam, isUAT
+	 * @param workspaceKey    workspace_key provided by SuprSend
+	 * @param workspaceSecret workspace_secret provided by SuprSend
+	 * @param baseUrl         custom base-url instead of suprsend platform url
+	 * @param debug           print logs of http-request to SuprSend
+	 * @param kwargs          extra parameters for SuprSend internal purpose
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String envKey, String envSecret, String baseUrl, Boolean debug, JSONObject kwargs)
+	public Suprsend(String workspaceKey, String workspaceSecret, String baseUrl, boolean debug, JSONObject kwargs)
 			throws SuprsendException {
 
-		this.envKey = envKey;
-		this.envSecret = envSecret;
-		if (kwargs.has("isUAT") && (Boolean) kwargs.get("isUAT") == true) {
-			this.isUAT = kwargs.getBoolean("isUAT");
-		}
-		this.baseUrl = getUrl(baseUrl, this.isUAT);
-		this.authEnabled = ((kwargs.has("authEnabled") == false || kwargs.get("authEnabled") == null) ? false
-				: (Boolean) kwargs.get("authEnabled"));
-		this.includeSignatureParam = ((kwargs.has("includeSignatureParam") == false
-				|| kwargs.get("includeSignatureParam") == null) ? false
-						: (Boolean) kwargs.get("includeSignatureParam"));
+		this.workspaceKey = workspaceKey;
+		this.workspaceSecret = workspaceSecret;
+		//
+		boolean isUAT = kwargs.optBoolean("isUAT");
+		this.baseUrl = getUrl(baseUrl, isUAT);
+		//
 		this.debug = debug;
-		if (this.debug == true) {
-			new RequestLogs();
-		}
+		//
+		cleanup();
 		validate();
-		this.eventCollector = new EventCollector(this);
-		this.user = new UserIdentityFactory(this);
+		initHelpers();
+	}
+
+	private void cleanup() {
+		if (this.workspaceKey != null) {
+			this.workspaceKey = this.workspaceKey.trim();
+		}
+		if (this.workspaceSecret != null) {
+			this.workspaceSecret = this.workspaceSecret.trim();
+		}
+		if (this.baseUrl != null) {
+			this.baseUrl = this.baseUrl.trim();
+		}
 	}
 
 	/**
-	 * Get Suprsend backend URL
-	 * 
-	 * @param baseUrl Base URL to be used if passed by client
-	 * @param kwargs  Extra parameter which contains isUAT. This parameter defines
-	 *                the environment to be used
-	 * @return Base URL which will be used to trigger workflow
+	 * Get base url to send requests/events to
 	 */
-	private String getUrl(String baseUrl, Boolean isUAT) {
-		// Trim URL to remove any spaces
-		if (baseUrl != null) {
+	private String getUrl(String baseUrl, boolean isUAT) {
+		if (baseUrl != null && !baseUrl.trim().isEmpty()) {
+			// Trim URL to remove any spaces
 			baseUrl = baseUrl.trim();
 		} else {
-			// If base URL is null then set default URL
-			if (isUAT == true) {
-				baseUrl = defaultUatUrl;
-			} else {
-				baseUrl = defaultUrl;
-			}
+			// set default URL in case custom base url not passed
+			baseUrl = isUAT == true ? Constants.DEFAULT_UAT_URL : Constants.DEFAULT_URL;
 			baseUrl = baseUrl.trim();
 		}
-		if (baseUrl.substring(baseUrl.length() - 1).equals("/") == false) {
+		if (!"/".equals(baseUrl.substring(baseUrl.length() - 1))) {
 			baseUrl = baseUrl + "/";
 		}
 		return baseUrl;
@@ -187,51 +171,50 @@ public class Suprsend {
 	 * @throws SuprsendException Throw custom exception with relevant message.
 	 */
 	private void validate() throws SuprsendException {
-		if (this.envKey == null) {
-			throw new SuprsendException("Missing value for envKey");
+		if (this.workspaceKey == null || this.workspaceKey.isEmpty()) {
+			throw new SuprsendException("Missing value for workspaceKey");
 		}
-		if (this.envSecret == null) {
-			throw new SuprsendException("Missing value for envSecret");
+		if (this.workspaceSecret == null || this.workspaceSecret.isEmpty()) {
+			throw new SuprsendException("Missing value for workspaceSecret");
 		}
-		if (this.baseUrl == null) {
+		if (this.baseUrl == null || this.baseUrl.isEmpty()) {
 			throw new SuprsendException("Missing value for baseUrl");
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public JSONObject addAttachment(JSONObject body, String filePath) throws Exception {
 		// if data key not present, add it and set value={}.
-		Boolean isPresent = body.has("data");
-		if (isPresent == false || body.get("data") == null) {
+		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
 		}
-		JSONObject attachment = getAttachmentJSONForFile(filePath);
-		JSONObject data = (JSONObject) body.get("data");
-		if (data.has("$attachments") == false || data.get("$attachments") == null) {
-			data.put("$attachments", new ArrayList<>());
+		JSONObject data = body.getJSONObject("data");
+		if (data.optJSONArray("$attachments") == null) {
+			data.put("$attachments", new JSONArray());
 		}
-		ArrayList<JSONObject> attachments = (ArrayList<JSONObject>) data.get("$attachments");
-		attachments.add(attachment);
+		JSONArray attachments = data.getJSONArray("$attachments");
+		JSONObject attachment = getAttachmentJSONForFile(filePath);
+		attachments.put(attachment);
 		return body;
 	}
 
 	private JSONObject getAttachmentJSONForFile(String filePath) throws Exception {
-		JSONObject response = new JSONObject();
-		String st;
-		String fileName;
+		// Handle ~ in path
+		filePath = filePath.replaceFirst("^~", System.getProperty("user.home"));
+		//
 		File file = new File(filePath);
-		reader = new BufferedReader(new FileReader(file));
-		while ((st = reader.readLine()) != null) {
-			fileName = file.getName();
-			String mimeType = Files.probeContentType(file.toPath());
-			// Base encode string
-			String encodedString = Base64.getEncoder().encodeToString(st.getBytes());
-			response.put("fileName", fileName);
-			response.put("contentType", mimeType);
-			response.put("data", encodedString);
+		if (!file.exists()) {
+			throw new SuprsendException(String.format("file not found: %s", filePath));
 		}
-
-		return response;
+		String fileName = file.getName();
+		String mimeType = Files.probeContentType(file.toPath());
+		//
+		byte[] data = Files.readAllBytes(file.toPath());
+		String encodedString = Base64.getEncoder().encodeToString(data);
+		//
+		return new JSONObject()
+				.put("fileName", fileName)
+				.put("contentType", mimeType)
+				.put("data", encodedString);
 	}
 
 	/**
@@ -239,33 +222,32 @@ public class Suprsend {
 	 * 
 	 * @param data Data that needs to be passed
 	 * @return Trigger workflow response. 202 if successfully triggered
-	 * @throws ValidationException
-	 * @throws IOException
-	 * @throws SuprsendException
-	 * @throws Exception
+	 * @throws ValidationException if payload schema validation fails
+	 * @throws SuprsendException   SuprsendException
 	 */
-	public JSONObject triggerWorkflow(JSONObject data)
-			throws ValidationException, IOException, SuprsendException, Exception {
+	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, ValidationException {
 		TriggerWorkflow workFlow = new TriggerWorkflow(this, data);
 		workFlow.validateData();
 		return workFlow.executeWorkflow();
 	}
-	
+
 	/**
 	 * You can track and send events to SuprSend platform by using track method.
-	 * @param distinctID
-	 * @param eventName
-	 * @param properties
+	 * 
+	 * @param distinctID uniquely Identifiable User id
+	 * @param eventName  event name to track
+	 * @param properties event properties
 	 * @return
-	 * {
-	       "success": True,
-	       "status": "success",
-	       "status_code": resp.status_code,
-	       "message": resp.text,
-	   }
-	 * @throws SuprsendException
+	 *         {
+	 *         "success": True,
+	 *         "status": "success",
+	 *         "status_code": resp.status_code,
+	 *         "message": resp.text,
+	 *         }
+	 * @throws SuprsendException SuprsendException
 	 */
-	public JSONObject track(String distinctID, String eventName, JSONObject properties) throws SuprsendException {
+	public JSONObject track(String distinctID, String eventName, JSONObject properties)
+			throws SuprsendException, ValidationException {
 		return this.eventCollector.collect(distinctID, eventName, properties);
 	}
 }

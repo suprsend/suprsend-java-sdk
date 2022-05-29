@@ -1,195 +1,148 @@
 package suprsend;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
+import java.util.logging.Logger;
 import org.json.JSONObject;
+import org.everit.json.schema.ValidationException;
 
 public class EventCollector {
-	String url;
-	Suprsend config;
-	public static List<String> RESERVED_EVENT_NAMES = Arrays.asList("$identify", "$notification_delivered",
-			"$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", 
-			"$user_logout");
-	
-	public EventCollector(Suprsend config) {
+	private static final Logger logger = Logger.getLogger(EventCollector.class.getName());
+
+	private Suprsend config;
+	private String url;
+	private JSONObject commonHeaders;
+	private JSONObject superProps;
+
+	public static List<String> RESERVED_EVENT_NAMES = Arrays.asList(
+			"$identify",
+			"$notification_delivered", "$notification_dismiss", "$notification_clicked",
+			"$app_launched", "$user_login", "$user_logout");
+
+	EventCollector(Suprsend config) {
 		this.config = config;
 		this.url = getUrl();
+		this.commonHeaders = getCommonHeaders();
+		this.superProps = getSuperProperties();
 	}
-	
+
 	private String getUrl() {
 		String urlTemplate = "%sevent/";
 		if (this.config.includeSignatureParam) {
 			if (this.config.authEnabled) {
 				urlTemplate = urlTemplate + "?verify=true";
-			}
-			else {
+			} else {
 				urlTemplate = urlTemplate + "?verify=false";
 			}
 		}
-		String urlFormatted = String.format(urlTemplate, this.config.baseUrl);
-		return urlFormatted;
+		return String.format(urlTemplate, this.config.baseUrl);
 	}
-	
+
+	private JSONObject getCommonHeaders() {
+		return new JSONObject()
+				.put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.config.userAgent);
+	}
+
+	private JSONObject getSuperProperties() {
+		return new JSONObject()
+				.put("$ss_sdk_version", this.config.userAgent);
+	}
+
+	private JSONObject dynamicHeaders() {
+		return new JSONObject()
+				.put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+	}
+
 	/**
 	 * Headers required to trigger workflow request
-	 * @return
-	 * 		Headers as JSON object
+	 * 
+	 * @return Headers as JSON object
 	 */
-	private JSONObject getHeaders() {
-		String userAgent = this.config.userAgent;
-		JSONObject headers = new JSONObject();
-		ZoneId zone = ZoneId.of("UTC");
-		LocalDateTime currentDateTime = LocalDateTime.now(zone);
-		ZonedDateTime zonedCurrentDateTime = currentDateTime.atZone(zone);
-		DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss z");
-		headers.put("Content-Type", "application/json; charset=utf-8");
-		headers.put("User-Agent", userAgent);
-		headers.put("Date", dateTimeFormat.format(zonedCurrentDateTime));
-		return headers;
+	private JSONObject getMergedHeaders() {
+		JSONObject dynHeaders = dynamicHeaders();
+		JSONObject merged = Utils.mergeJSONObjects(this.commonHeaders, dynHeaders);
+		return merged;
 	}
-	
-	private JSONObject getSuperProperties() {
-		JSONObject response = new JSONObject();
-		response.put("$ss_sdk_version", this.config.userAgent);
-		return response;
-	}
-	
+
 	private void checkEventPrefix(String eventName) throws SuprsendException {
 		if (EventCollector.RESERVED_EVENT_NAMES.contains(eventName) == false) {
-			String prefixThreeChars = eventName.substring(0, 3).toLowerCase();
-			if (prefixThreeChars.startsWith("$") || prefixThreeChars == "ss_") {
+			String eLower = eventName.toLowerCase();
+			if (eLower.startsWith("$") ||
+					(eLower.length() >= 3 && "ss_".equals(eLower.substring(0, 3)))) {
 				throw new SuprsendException("eventName starting with [$,ss_] are reserved");
 			}
 		}
 	}
-	
+
 	private String validateEventName(String eventName) throws SuprsendException {
-		String strippedEventName = eventName.strip();
-		checkEventPrefix(strippedEventName);
+		if (eventName == null || eventName.trim().isEmpty()) {
+			throw new SuprsendException("eventName must be passed");
+		}
+		eventName = eventName.trim();
+		checkEventPrefix(eventName);
 		return eventName;
 	}
-	
-	/**
-	 * Set HTTP headers in HTTP client object
-	 * @param httpClient
-	 * 		  HTTP client object
-	 * @param headers
-	 * 		  Headers in JSON format
-	 */
-	private void setMandatoryHeaders(HttpURLConnection httpClient, JSONObject headers) {
-		httpClient.setRequestProperty("Content-Type", headers.get("Content-Type").toString());
-		httpClient.setRequestProperty("User-Agent", headers.get("User-Agent").toString());
-		httpClient.setRequestProperty("Date", headers.get("Date").toString());
-	}
-	
-	/**
-	 * Validate data against the event JSON schema 
-	 * @return
-	 * 		Validated data
-	 * @throws SuprsendException
-	 */
-	public JSONObject validateEventSchema(JSONObject data) throws SuprsendException {
-		JSONObject jsonSchema;
-		if(data.get("properties") == null) {
-			data.put("properties", new JSONObject());
-		}
-		RequestSchema schema = new RequestSchema();
-		jsonSchema = schema.getSchema("event");
-		Schema schemaValidator = SchemaLoader.load(jsonSchema);
-		try {
-			schemaValidator.validate(data);
-		} catch(ValidationException e) {
-			throw new ValidationException(schemaValidator, e.getMessage());
-		}
-		return data;
-	}
-	
-	public JSONObject collect(String distinctID, String eventName, JSONObject properties) throws SuprsendException {
-		JSONObject event, superProps;
-		UUID uuid = UUID.randomUUID();
-		
-		eventName = validateEventName(eventName);
 
-		superProps = getSuperProperties();
-		superProps.keys().forEachRemaining(key -> {
-			properties.append(key, superProps.getString(key));
-		});
-		
-		event = new JSONObject();
-		event.put("$insert_id", uuid.toString());
-		event.put("$time", Instant.now().getEpochSecond() * 1000);
-		event.put("event", eventName);
-		event.put("env", this.config.envKey);
-		event.put("distinct_id", distinctID);
-		event.put("properties", properties);
-		
-		JSONObject validatedEvent = validateEventSchema(event);
-		
+	public JSONObject collect(String distinctID, String eventName, JSONObject properties)
+			throws SuprsendException, ValidationException {
+		eventName = validateEventName(eventName);
+		//
+		JSONObject merged = Utils.mergeJSONObjects(properties, this.superProps);
+		//
+		JSONObject event = new JSONObject()
+				.put("$insert_id", UUID.randomUUID().toString())
+				.put("$time", Instant.now().getEpochSecond() * 1000)
+				.put("event", eventName)
+				.put("env", this.config.workspaceKey)
+				.put("distinct_id", distinctID)
+				.put("properties", merged);
+		JSONObject validatedEvent = Utils.validateEventSchema(event);
+		//
 		return send(validatedEvent);
 	}
-	
-	public JSONObject send(JSONObject event) {
-		JSONObject headers, signatureResult, response;
-		HttpURLConnection httpClient;
-		String contentText;
-		
-		response = new JSONObject();
+
+	private JSONObject send(JSONObject event) {
+		JSONObject headers = getMergedHeaders();
+		JSONObject response = new JSONObject();
 		try {
-			headers = getHeaders();
-			httpClient = (HttpURLConnection) new URL(this.url).openConnection();
-			httpClient.setRequestMethod("POST");
-			setMandatoryHeaders(httpClient, headers);
-			if(this.config.authEnabled) {
-				Signature signature = new Signature();
-				signatureResult = signature.getRequestSignature(this.url, "POST", event, headers, this.config.envSecret);
-				contentText = signatureResult.get("contentTxt").toString();
-				httpClient.setRequestProperty("Authorization", String.format("%s:%s", this.config.envKey, signatureResult.get("signature").toString()));
-			}
-			else {
+			String contentText;
+			if (this.config.authEnabled) {
+				// Signature and Authorization Header
+				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", event, headers,
+						this.config.workspaceSecret);
+				contentText = sigResult.getString("contentTxt");
+				headers.put("Authorization",
+						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+			} else {
 				contentText = event.toString();
 			}
-			httpClient.setDoOutput(true);
-			try(OutputStream stream = httpClient.getOutputStream()){
-				byte[] input = contentText.getBytes(StandardCharsets.UTF_8);
-				stream.write(input, 0, input.length);
+			// --- Make HTTP POST request
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", this.url, headers,
+					contentText);
+			int statusCode = resp.statusCode;
+			String responseText = resp.responseText;
+			//
+			if (statusCode >= 200 && statusCode < 300) {
+				response.put("success", true)
+						.put("status", "success")
+						.put("status_code", statusCode)
+						.put("message", responseText);
+			} else {
+				response.put("success", false)
+						.put("status", "fail")
+						.put("status_code", statusCode)
+						.put("message", responseText);
 			}
-			int statusCode = httpClient.getResponseCode();
-			String responseText = httpClient.getResponseMessage();
-			if (statusCode == 202) {
-				response.put("success", true);
-				response.put("status", "success");
-				response.put("status_code", statusCode);
-				response.put("message", responseText);
-			}
-			else {
-				response.put("success", false);
-				response.put("status", "fail");
-				response.put("status_code", statusCode);
-				response.put("message", responseText);
-			}
+		} catch (SuprsendException | IOException e) {
+			response.put("success", false)
+					.put("status", "fail")
+					.put("status_code", 500)
+					.put("message", e.toString());
 		}
-		catch (SuprsendException | IOException e) {
-			response.put("success", false);
-			response.put("status", "fail");
-			response.put("status_code", 500);
-			response.put("message", e.toString());
-		}
-		
 		return response;
 	}
 }

@@ -6,6 +6,54 @@
   <groupId>com.suprsend</groupId>
   <artifactId>suprsend-java-sdk</artifactId>
   <version>0.3.0</version>
+  <packaging>jar</packaging>
+
+  <!-- Project Information -->
+  <name>Suprsend Java SDK</name>
+  <description>This SDK allows Java projects to integrate with Suprsend platform</description>
+  <url>https://github.com/suprsend/${projectpath}</url>
+  <developers>
+    <developer>
+      <name>SuprSend Team</name>
+      <email>developers@suprsend.com</email>
+      <organization>SuprSend</organization>
+      <organizationUrl>https://www.suprsend.com</organizationUrl>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+    </license>
+  </licenses>
+  <!-- -->
+
+  <!-- Environment Settings -->
+  <scm>
+    <connection>scm:git:git://github.com/suprsend/${projectpath}.git</connection>
+    <developerConnection>scm:git:ssh://github.com/suprsend/${projectpath}.git</developerConnection>
+    <url>https://github.com/suprsend/${projectpath}</url>
+  </scm>
+  <!-- -->
+  
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <properties>
+    <projectpath>suprsend-java-sdk</projectpath>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.github.erosb</groupId>
@@ -18,42 +66,7 @@
       <version>1.15</version>
     </dependency>
   </dependencies>
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-  <properties>
-    <projectpath>suprsend-java-sdk</projectpath>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
-  <!-- -->
   
-  <!-- Project Information -->
-  <name>Suprsend Java SDK</name>
-  <description>This SDK allows Java projects to integrate with Suprsend platform</description>
-  <organization>
-    <name>SuprSend</name>
-    <url>https://www.suprsend.com</url>
-  </organization>
-  <developers>
-    <developer>
-      <name>SuprSend Team</name>
-    </developer>
-  </developers>
-  <licenses>
-    <license>
-      <name>MIT License</name>
-			<url>http://www.opensource.org/licenses/mit-license.php</url>
-			<distribution>repo</distribution>
-    </license>
-  </licenses>
   <!-- -->
   
   <!-- Build Settings -->
@@ -68,6 +81,46 @@
     </resources>
     <!-- plugins-->
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.0</version>
@@ -96,46 +149,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>1.6.7</version>
@@ -148,12 +161,6 @@
       </plugin>
     </plugins>
   </build>
-  <!-- -->
-  
-  <!-- Environment Settings -->
-  <scm>
-    <url>https://github.com/suprsend/${projectpath}</url>
-  </scm>
   <!-- -->
 
 </project>

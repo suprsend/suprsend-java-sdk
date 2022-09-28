@@ -7,8 +7,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * This class takes care of loading the JSON schema which will
- * be used to validate the data sent by client.
+ * This class takes care of loading the JSON schema which will be used to
+ * validate the data sent by client.
  * 
  * @author Suprsend
  */

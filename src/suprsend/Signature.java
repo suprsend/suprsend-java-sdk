@@ -66,8 +66,13 @@ class Signature {
 		}
 		String requestURI = getURI(url);
 		// Create string to sign
-		String stringToSign = String.format("%s\n%s\n%s\n%s\n%s", httpVerb, contentMD5,
-				headers.get("Content-Type").toString(), headers.get("Date").toString(), requestURI);
+		String stringToSign = String.format(
+			"%s\n%s\n%s\n%s\n%s",
+			httpVerb,
+			contentMD5,
+			headers.get("Content-Type").toString(),
+			headers.get("Date").toString(),
+			requestURI);
 		//
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);
@@ -103,8 +108,13 @@ class Signature {
 		}
 		String requestURI = getURI(url);
 		// Create string to sign
-		String stringToSign = String.format("%s\n%s\n%s\n%s\n%s", httpVerb, contentMD5,
-				headers.get("Content-Type").toString(), headers.get("Date").toString(), requestURI);
+		String stringToSign = String.format(
+			"%s\n%s\n%s\n%s\n%s",
+			httpVerb,
+			contentMD5,
+			headers.get("Content-Type").toString(),
+			headers.get("Date").toString(),
+			requestURI);
 		//
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);

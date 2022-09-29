@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 import org.json.JSONObject;
-import org.everit.json.schema.ValidationException;
 
 /**
  * This class makes Dynamic Workflow URL call to SuprSend platform.
@@ -65,11 +64,10 @@ class WorkflowTrigger {
 	 * 
 	 * @return Request acceptance status
 	 * @throws SuprsendException
-	 * @throws ValidationException
 	 * @throws UnsupportedEncodingException
 	 */
 	protected JSONObject trigger(Workflow workflow)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		JSONObject o = workflow.getFinalJson(config, false);
 		JSONObject validatedBody = o.getJSONObject("event");
 		int apparentSize = o.getInt("apparent_size");

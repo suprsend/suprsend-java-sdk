@@ -586,8 +586,8 @@ class SubscriberInternalHelper {
 			this.errors.add(String.format("[%s] %s", caller, msg));
 			isError = true;
 		} else {
-			String userId = value.getString("user_id");
-			String email = value.getString("email");
+			String userId = value.optString("user_id");
+			String email = value.optString("email");
 			if (userId != null && !userId.trim().isEmpty()) {
 				userId = userId.trim();
 				JSONObject res = validateSlackUserId(userId, caller);

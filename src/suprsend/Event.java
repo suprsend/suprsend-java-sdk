@@ -57,14 +57,14 @@ public class Event {
 		if (Event.RESERVED_EVENT_NAMES.contains(eventName) == false) {
 			String eLower = eventName.toLowerCase();
 			if (eLower.startsWith("$") || (eLower.length() >= 3 && "ss_".equals(eLower.substring(0, 3)))) {
-				throw new SuprsendException("eventName starting with [$,ss_] are reserved");
+				throw new SuprsendException("event_name starting with [$,ss_] are reserved");
 			}
 		}
 	}
 
 	private void validateEventName() throws SuprsendException {
 		if (this.eventName == null || this.eventName.trim().isEmpty()) {
-			throw new SuprsendException("eventName must be passed");
+			throw new SuprsendException("event_name must be passed");
 		}
 		this.eventName = this.eventName.trim();
 		checkEventPrefix(this.eventName);

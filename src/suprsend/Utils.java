@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
 
 public class Utils {
 
@@ -164,17 +163,16 @@ public class Utils {
 	 * @return Validated data
 	 * @throws SuprsendException if schema not found.
 	 */
-	public static JSONObject validateWorkflowSchema(JSONObject body) throws SuprsendException, ValidationException {
-		JSONObject jsonSchema;
+	public static JSONObject validateWorkflowSchema(JSONObject body) throws SuprsendException {
 		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
 		}
-		jsonSchema = RequestSchema.getSchema("workflow");
-		Schema schemaValidator = SchemaLoader.load(jsonSchema);
+		Schema schemaValidator = RequestSchema.getSchemaValidator("workflow");
 		try {
 			schemaValidator.validate(body);
 		} catch (ValidationException e) {
-			throw e;
+			String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
+			throw new SuprsendException(msg, e);
 		}
 		return body;
 	}
@@ -186,16 +184,16 @@ public class Utils {
 	 * @return Validated data
 	 * @throws SuprsendException if schema not found.
 	 */
-	public static JSONObject validateEventSchema(JSONObject data) throws SuprsendException, ValidationException {
+	public static JSONObject validateEventSchema(JSONObject data) throws SuprsendException {
 		if (data.opt("properties") == null) {
 			data.put("properties", new JSONObject());
 		}
-		JSONObject jsonSchema = RequestSchema.getSchema("event");
-		Schema schemaValidator = SchemaLoader.load(jsonSchema);
+		Schema schemaValidator = RequestSchema.getSchemaValidator("event");
 		try {
 			schemaValidator.validate(data);
 		} catch (ValidationException e) {
-			throw e;
+			String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
+			throw new SuprsendException(msg, e);
 		}
 		return data;
 	}

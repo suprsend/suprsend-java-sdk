@@ -4,7 +4,6 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
-import org.everit.json.schema.ValidationException;
 
 public class Workflow {
 	private static final Logger logger = Logger.getLogger(Workflow.class.getName());
@@ -59,7 +58,7 @@ public class Workflow {
 	}
 
 	protected JSONObject getFinalJson(Suprsend config, boolean isPartOfBulk)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		// add idempotency key in body if present
 		if (null != idempotencyKey) {
 			this.body.put("$idempotency_key", idempotencyKey);

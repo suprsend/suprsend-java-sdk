@@ -22,7 +22,7 @@ You can include the jar using following two ways:
         <dependency>
           <groupId>com.suprsend</groupId>
           <artifactId>suprsend-java-sdk</artifactId>
-          <version>0.3.0</version>
+          <version>0.4.0</version>
 	    </dependency>
       </dependencies>
     ```
@@ -30,7 +30,7 @@ You can include the jar using following two ways:
 2. As a jar file for non maven projects:
 
    Please download jar from releases section.
-   `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.3.0-jar-with-dependencies.jar
+   `suprsend-java-sdk` is available as a JAR with following name - suprsend-java-sdk-0.4.0-jar-with-dependencies.jar
 
    - Right click on your java project.
    - Click on "Build Path".
@@ -45,22 +45,24 @@ For initializing SDK, you need workspace key and workspace secret. You will get 
 
 ```java
 import suprsend.Suprsend;
-Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret");
+Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
 ```
 
 To logs HTTP calls to Suprsend, pass debug=true as third parameter.
 ```java
 import suprsend.Suprsend;
-Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret", true);
+Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret", true);
 ```
 
 ### Trigger Workflow
 Once you have the object initialized you can make a call to suprsend backend using following line:
 
 ```java
+import suprsend.Workflow;
 // prepare workflow body
 // body = new JSONObject()
-JSONObject response = suprsend.triggerWorkflow(body);
+Workflow wf = new Workflow(body)
+JSONObject response = suprClient.triggerWorkflow(wf);
 ```
 
 Response could be one of the following:
@@ -133,6 +135,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import suprsend.Suprsend;
+import suprsend.Workflow;
 
 public class TestSuprsendSDK {
 
@@ -150,9 +153,10 @@ public class TestSuprsendSDK {
         // Load workflow body json
         JSONObject body = sdk.loadBody("input");
         // SDK instance
-        Suprsend suprsend = new Suprsend("workspace_key", "workspace_secret");
+        Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
         // Trigger workflow
-        JSONObject response = suprsend.triggerWorkflow(body);
+        Workflow wf = new Workflow(body)
+        JSONObject response = suprClient.triggerWorkflow(wf);
         System.out.println(response);
     }
 
@@ -224,13 +228,90 @@ If delivery instruction is not provided, then default value is
 }
 ```
 
-### Set channels in User Profile
-If you regularly trigger a workflow for users on some pre-decided channels,
-then instead of adding user-channel-details in each workflow request, you can set those channel-details in user
-profile once, and after that, in workflow trigger request you only need to pass the distinct_id of the user.
-All associated channels in User profile will be automatically picked when executing the workflow.
+### Set channels in User Profile 
+You can add/remove channel details viz. email, sms, whatsapp, androidpush etc. from user's profile (using `user.add*`/
+`user.remove*`/`user.unset` methods)  as shown in the example below.
 
-You can set user channel details viz. email, sms, whatsapp, androidpush etc (using `user.add_*` methods) as shown in the example below.
+* First Instantiate a user object
+```java
+import suprsend.Subscriber;
+
+String distinctId = "__uniq_user_id__"  // Unique id of user in your application
+//Instantiate User profile
+Subscriber user = suprClient.user.get_instance(distinctId)
+```
+* To add channel details to this user (viz. email, sms, whatsapp, androidpush, iospush etc) use user.add* method(s) as shown in the example below.
+
+```java
+// Add channel details to user-instance. Call relevant add_* methods -->
+
+user.addEmail("user@example.com") // - To add Email
+
+user.addSms("+919999999999") // - To add SMS
+
+user.addWhatsapp("+919999999999") // - To add Whatsapp
+
+user.addAndroidpush("__android_push_fcm_token__") // - by default, token is assumed to be fcm-token
+
+// You can set the optional provider value [fcm/xiaomi/oppo] if its not a fcm-token
+user.addAndroidpush("__android_push_xiaomi_token__", provider="xiaomi")
+
+user.addIospush("__iospush_token__")
+
+user.addSlackEmail("user@example.com")  // - To add Slack using email
+user.addSlackUserid("U03XXXXXXXX")  // - To add Slack if slack member_id is known
+
+// After setting the channel details on user-instance, call save()
+JSONObject response = user.save()
+System.out.println(response);
+
+```
+* Similarly, If you want to remove certain channel details from user, you can call user.remove* method as shown in the example below.
+
+```java
+// Remove channel helper methods
+user.removeEmail("user@example.com")
+user.removeSms("+919999999999")
+user.removeWhatsapp("+919999999999")
+user.removeAndroidpush("__android_push_fcm_token__")
+user.removeAndroidpush("__android_push_xiaomi_token__", provider="xiaomi")
+user.removeIospush("__iospush_token__")
+
+user.removeSlackEmail("user@example.com")
+user.removeSlackUserid("U03XXXXXXXX")
+
+// save
+JSONObject response = user.save()
+System.out.println(response);
+
+```
+
+* If you need to delete/unset all emails (or any other channel) of a user, you can call unset method on the user instance. The method accepts the channel key/s (a single key or list of keys)
+
+```java
+// --- To delete all emails associated with user
+user.unset("$email")
+JSONObject response = user.save()
+System.out.println(response);
+
+// what value to pass to unset channels
+// for email:                $email
+// for whatsapp:             $whatsapp
+// for SMS:                  $sms
+// for androidpush tokens:   $androidpush
+// for iospush tokens:       $iospush
+// for webpush tokens:       $webpush
+// for slack:                $slack
+
+// --- multiple channels can also be deleted in one call by passing argument as a list
+user.unset(["$email", "$sms", "$whatsapp"])
+JSONObject response = user.save()
+
+```
+* Note: After calling `add*`/`remove*`/`unset` methods, don't forget to call `user.save()`. On call of save(), SDK sends the request to SuprSend platform to update the User-Profile.
+
+
+#### Profile Update Examples
 
 ```java
 
@@ -246,10 +327,10 @@ public class TestSubscribers {
 
   public static void testSave() throws Exception {
     // SDK instance
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
     // Subscriber Instance
     String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    Subscriber user = suprClient.user.getInstance(distinctID);
     // Add properties
     user.addEmail("example@example.com");
     user.addSms("+919999999999");
@@ -261,11 +342,11 @@ public class TestSubscribers {
 
   public static void testAddWebpush() throws Exception {
     // SDK instance
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
 
     // Subscriber Instance
     String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    Subscriber user = suprClient.user.getInstance(distinctID);
 
     // Webpush token json (VAPID)
     JSONObject webpush = new JSONObject()
@@ -282,12 +363,53 @@ public class TestSubscribers {
   }
 
   public static void testAddAndroidpush() throws Exception {
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
     // 
     String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
+    Subscriber user = suprClient.user.getInstance(distinctID);
     // 
-    user.addAndroidpush("__android_push_key__");
+    user.addAndroidpush("__android_push_key__", "fcm");
+    JSONObject res = user.save();
+    System.out.println(res);
+  }
+
+
+  public static void testRemove() throws Exception {
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprClient.user.getInstance(distinctID);
+    //
+    user.removeWhatsapp("+919999999999");
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
+
+  public static void testRemoveWebpush() throws Exception {
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprClient.user.getInstance(distinctID);
+    // Webpush token json (VAPID)
+    JSONObject webpush = new JSONObject()
+        .put("endpoint", "__end_point__")
+        .put("expirationTime", "")
+        .put("keys", new JSONObject()
+            .put("p256dh", "__p256dh__")
+            .put("auth", "__auth_key__"));
+    //
+    user.removeWebpush(webpush);
+    JSONObject response = user.save();
+    System.out.println(response);
+  }
+
+  public static void testRemoveAndroidpush() throws Exception {
+    Suprsend suprClient = new Suprsend("workspace_key", "workspace_secret");
+    //
+    String distinctID = "__distinct_id__";
+    Subscriber user = suprClient.user.getInstance(distinctID);
+    //
+    user.removeAndroidpush("__android_push_key__");
     JSONObject res = user.save();
     System.out.println(res);
   }
@@ -311,95 +433,6 @@ public class TestSubscribers {
     "message": "error message",
 }
 ```
-
-If you want to remove some channel details, use `user.remove_*` method.
-
-```java
-import org.json.JSONObject;
-
-import suprsend.Suprsend;
-import suprsend.Subscriber;
-
-public class TestSubscriber2 {
-  public static void main(String[] args) throws Exception {
-    testRemove();
-  }
-
-  public static void testRemove() throws Exception {
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
-    //
-    String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
-    //
-    user.removeWhatsapp("+919999999999");
-    JSONObject response = user.save();
-    System.out.println(response);
-  }
-
-  public static void testRemoveWebpush() throws Exception {
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
-    //
-    String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
-    // Webpush token json (VAPID)
-    JSONObject webpush = new JSONObject()
-        .put("endpoint", "__end_point__")
-        .put("expirationTime", "")
-        .put("keys", new JSONObject()
-            .put("p256dh", "__p256dh__")
-            .put("auth", "__auth_key__"));
-    //
-    user.removeWebpush(webpush);
-    JSONObject response = user.save();
-    System.out.println(response);
-  }
-
-  public static void testRemoveAndroidpush() throws Exception {
-    Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
-    //
-    String distinctID = "__distinct_id__";
-    Subscriber user = suprsendClient.user.getInstance(distinctID);
-    //
-    user.removeAndroidpush("__android_push_key__");
-    JSONObject res = user.save();
-    System.out.println(res);
-  }
-}
-```
-
-Below are all the methods to add/remove channel details.
-
-```java
-String distinctID = "__distinct_id__";
-Subscriber user = suprsendClient.user.getInstance(distinctID);
-//
-user.addEmail("user@example.com");
-user.removeEmail("user@example.com");
-
-user.addSms("+919999999999");
-user.removeSms("+919999999999");
-
-user.addWhatsapp("+919999999999");
-user.removeWhatsapp("+919999999999");
-
-// Add and remove Androidpush token.. By default token is assumed to be fcm.
-// If token being passed is from other vendor, pass the vendor as 2nd param.
-user.addAndroidpush("androidpush_fcm_token__");
-user.addAndroidpush("androidpush_xiaomi_token__", "xiaomi");
-
-user.removeAndroidpush("androidpush_fcm_token__");
-user.removeAndroidpush("androidpush_xiaomi_token__", "xiaomi");
-
-// Add and remove iospush token 
-user.addIospush("__iospush_apns_token__");
-user.removeIospush("__iospush_apns_token__");
-
-// Add and remove webpush token 
-user.addWebpush(webpushToken);
-user.removeWebpush(webpushToken);
-```
-
-Note: After calling `add_*`/`remove_*` methods, don't forget to call `user.save()`.
 
 Once channels details are set at User profile, you only have to mention the user's distinctID
 while triggering workflow. Associated channels will automatically be picked up from user-profile e.g.
@@ -430,12 +463,26 @@ Sample workflow after setting user profile:
 ```
 
 ### Track and Send Event
-You can track and send events to SuprSend platform by using `suprsend.track` method.
-Event: `event_name`, tracked wrt a user: `distinct_id`, with event-attributes: `properties`
+You can track and send events to SuprSend platform by using `suprsend.track_event` method.
+An event is composed of an `eventName`, tracked wrt a user: `distinctId`, with event-attributes: `properties`
+and optional `idempotencyKey`
 
 ```java
-// Method Signature
-public JSONObject track(String distinctID, String eventName, JSONObject properties) throws SuprsendException {}
+import org.json.JSONObject;
+import suprsend.Event;
+
+// Example
+String distinctId = "__uniq_user_id__"; // Mandatory, Unique id of user in your application
+String eventName = "__event_name__";   // Mandatory, name of the event you're tracking
+JSONObject properties = new JSONObject(); // default=null, a json object representing event-attributes
+String idempotencyKey = "__uuid__"
+
+Event event = new Event(distinctId, eventName, properties);
+Event event = new Event(distinctId, eventName, properties, idempotencyKey); // Add idempotency-key
+
+// Send event
+JSONObject res = suprClient.track_event(event);
+System.out.println(res);
 ```
 
 ```json

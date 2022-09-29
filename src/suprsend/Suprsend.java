@@ -1,7 +1,6 @@
 package suprsend;
 
 import java.io.UnsupportedEncodingException;
-import org.everit.json.schema.ValidationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -202,12 +201,11 @@ public class Suprsend {
 	 * 
 	 * @param data Data that needs to be passed
 	 * @return Trigger workflow response. 202 if successfully triggered
-	 * @throws ValidationException          if payload schema validation fails
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException
 	 */
 	public JSONObject triggerWorkflow(JSONObject data)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		Workflow wfIns = new Workflow(data, null);
 		return this.workflowTrigger.trigger(wfIns);
 	}
@@ -217,12 +215,11 @@ public class Suprsend {
 	 * 
 	 * @param data Data that needs to be passed
 	 * @return Trigger workflow response. 202 if successfully triggered
-	 * @throws ValidationException          if payload schema validation fails
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException
 	 */
 	public JSONObject triggerWorkflow(Workflow wf)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		return this.workflowTrigger.trigger(wf);
 	}
 
@@ -239,7 +236,7 @@ public class Suprsend {
 	 * @throws UnsupportedEncodingException
 	 */
 	public JSONObject track(String distinctID, String eventName, JSONObject properties)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctID, eventName, properties, null);
 		return this.eventCollector.collect(event);
 	}
@@ -250,11 +247,10 @@ public class Suprsend {
 	 * @param event
 	 * @return
 	 * @throws SuprsendException
-	 * @throws ValidationException
 	 * @throws UnsupportedEncodingException
 	 */
 	public JSONObject trackEvent(Event event)
-			throws SuprsendException, ValidationException, UnsupportedEncodingException {
+			throws SuprsendException, UnsupportedEncodingException {
 		return this.eventCollector.collect(event);
 	}
 }

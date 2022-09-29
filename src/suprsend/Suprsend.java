@@ -202,7 +202,7 @@ public class Suprsend {
 	 * @param data Data that needs to be passed
 	 * @return Trigger workflow response. 202 if successfully triggered
 	 * @throws SuprsendException            SuprsendException
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	public JSONObject triggerWorkflow(JSONObject data)
 			throws SuprsendException, UnsupportedEncodingException {
@@ -213,10 +213,10 @@ public class Suprsend {
 	/**
 	 * Method which needs to be called to trigger workflow
 	 * 
-	 * @param data Data that needs to be passed
+	 * @param wf instance of Workflow class
 	 * @return Trigger workflow response. 202 if successfully triggered
 	 * @throws SuprsendException            SuprsendException
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	public JSONObject triggerWorkflow(Workflow wf)
 			throws SuprsendException, UnsupportedEncodingException {
@@ -233,7 +233,7 @@ public class Suprsend {
 	 * @return { "success": True, "status": "success", "status_code":
 	 *         resp.status_code, "message": resp.text, }
 	 * @throws SuprsendException            SuprsendException
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	public JSONObject track(String distinctID, String eventName, JSONObject properties)
 			throws SuprsendException, UnsupportedEncodingException {
@@ -242,12 +242,13 @@ public class Suprsend {
 	}
 
 	/**
-	 * You can track and send events to SuprSend platform by using track method.
+	 * You can track and send events to SuprSend platform by using trackEvent method.
 	 * 
-	 * @param event
-	 * @return
-	 * @throws SuprsendException
-	 * @throws UnsupportedEncodingException
+	 * @param event instance of Event class
+	 * @return { "success": True, "status": "success", "status_code":
+	 *         resp.status_code, "message": resp.text, }
+	 * @throws SuprsendException SuprsendException
+	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	public JSONObject trackEvent(Event event)
 			throws SuprsendException, UnsupportedEncodingException {

@@ -157,9 +157,9 @@ public class Utils {
 	}
 
 	/**
-	 * Validate data against the event JSON schema
+	 * Validate data against the workflow JSON schema
 	 * 
-	 * @param data event payload
+	 * @param body worflow payload
 	 * @return Validated data
 	 * @throws SuprsendException if schema not found.
 	 */

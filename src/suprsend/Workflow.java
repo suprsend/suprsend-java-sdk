@@ -13,10 +13,9 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body
-	 * @throws SuprsendException
+	 * @param body json body of workflow
 	 */
-	public Workflow(JSONObject body) throws SuprsendException {
+	public Workflow(JSONObject body) {
 		if (null == body) {
 			body = new JSONObject();
 		}
@@ -25,11 +24,11 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body
-	 * @param idempotencyKey
-	 * @throws SuprsendException
+	 * @param body json body of workflow
+	 * @param idempotencyKey idempotency-key for workflow request
 	 */
-	public Workflow(JSONObject body, String idempotencyKey) throws SuprsendException {
+	public Workflow(JSONObject body, String idempotencyKey) {
+
 		if (null == body) {
 			body = new JSONObject();
 		}
@@ -41,8 +40,8 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param filePath
-	 * @throws Exception
+	 * @param filePath local path of attachment
+	 * @throws Exception error while reading file path
 	 */
 	public void addAttachment(String filePath) throws Exception {
 		if (this.body.opt("data") == null) {

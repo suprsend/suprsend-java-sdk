@@ -28,6 +28,7 @@ public class Workflow {
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey) {
+
 		if (null == body) {
 			body = new JSONObject();
 		}

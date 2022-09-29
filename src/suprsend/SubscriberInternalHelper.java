@@ -17,24 +17,20 @@ class SubscriberInternalHelper {
 	public static final String IDENT_KEY_IOSPUSH = "$iospush";
 	public static final String IDENT_KEY_WHATSAPP = "$whatsapp";
 	public static final String IDENT_KEY_WEBPUSH = "$webpush";
+	public static final String IDENT_KEY_SLACK = "$slack";
 
-	public static final List<String> IDENT_KEYS_ALL = Arrays.asList(
-			IDENT_KEY_EMAIL, IDENT_KEY_SMS, IDENT_KEY_ANDROIDPUSH,
-			IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH);
+	public static final List<String> IDENT_KEYS_ALL = Arrays.asList(IDENT_KEY_EMAIL, IDENT_KEY_SMS,
+			IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK);
 
 	public static final String KEY_PUSHVENDOR = "$pushvendor";
 
-	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList(
-			"$messenger", "$inbox",
-			KEY_PUSHVENDOR, "$device_id",
-			"$insert_id", "$time",
-			"$set", "$set_once", "$add", "$append", "$remove", "$unset",
-			"$identify", "$anon_id", "$identified_id",
-			"$notification_delivered", "$notification_dismiss", "$notification_clicked");
+	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_PUSHVENDOR,
+			"$device_id", "$insert_id", "$time", "$set", "$set_once", "$add", "$append", "$remove", "$unset",
+			"$identify", "$anon_id", "$identified_id", "$notification_delivered", "$notification_dismiss",
+			"$notification_clicked");
 
 	public static final List<String> SUPER_PROPERTY_KEYS = Arrays.asList("$app_version_string", "$app_build_number",
-			"$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version",
-			"$insert_id", "$time");
+			"$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
 
 	public static final List<String> ALL_RESERVED_KEYS = getAllReservedKeys();
 
@@ -50,14 +46,14 @@ class SubscriberInternalHelper {
 	private static final String MOBILE_REGEX = "^\\+[0-9\\s]+";
 
 	// --------------
-	private String distinctID, worspaceKey;
+	private String distinctID, workspaceKey;
 	private JSONObject dictAppend, dictRemove;
 	private int appendCount, removeCount, unsetCount;
 	private List<String> listUnset, errors, info;
 
-	SubscriberInternalHelper(String distinctID, String worspaceKey) {
+	SubscriberInternalHelper(String distinctID, String workspaceKey) {
 		this.distinctID = distinctID;
-		this.worspaceKey = worspaceKey;
+		this.workspaceKey = workspaceKey;
 		//
 		this.dictAppend = new JSONObject();
 		this.appendCount = 0;
@@ -103,7 +99,7 @@ class SubscriberInternalHelper {
 			JSONObject event = new JSONObject()
 					.put("$insert_id", UUID.randomUUID().toString())
 					.put("$time", Instant.now().getEpochSecond() * 1000)
-					.put("env", this.worspaceKey)
+					.put("env", this.workspaceKey)
 					.put("distinct_id", this.distinctID);
 
 			if (this.dictAppend.length() > 0) {
@@ -133,16 +129,13 @@ class SubscriberInternalHelper {
 		} else {
 			key = key.trim();
 		}
-		return new JSONObject()
-				.put("key", key)
-				.put("is_valid", !isError);
+		return new JSONObject().put("key", key).put("is_valid", !isError);
 	}
 
 	private boolean validateKeyPrefix(String key, String caller) {
 		if (ALL_RESERVED_KEYS.contains(key) == false) {
 			String kLower = key.toLowerCase();
-			if (kLower.startsWith("$") ||
-					(kLower.length() >= 3 && "ss_".equals(kLower.substring(0, 3)))) {
+			if (kLower.startsWith("$") || (kLower.length() >= 3 && "ss_".equals(kLower.substring(0, 3)))) {
 				this.info.add(
 						String.format("[%s] skipping key: %s, key starting with [$, ss_] are reserved", caller, key));
 				return false;
@@ -263,6 +256,8 @@ class SubscriberInternalHelper {
 			if (this.dictAppend.optString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.getString(KEY_PUSHVENDOR));
 			}
+		} else if (IDENT_KEY_SLACK.equals(key)) {
+			addSlack(value, caller);
 		}
 	}
 
@@ -296,6 +291,8 @@ class SubscriberInternalHelper {
 			if (this.dictRemove.optString(KEY_PUSHVENDOR).isEmpty() == false) {
 				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.getString(KEY_PUSHVENDOR));
 			}
+		} else if (IDENT_KEY_SLACK.equals(key)) {
+			removeSlack(value, caller);
 		}
 	}
 
@@ -310,9 +307,7 @@ class SubscriberInternalHelper {
 		} else {
 			value = value.trim();
 		}
-		return new JSONObject()
-				.put("value", value)
-				.put("is_valid", !isError);
+		return new JSONObject().put("value", value).put("is_valid", !isError);
 	}
 
 	// ------------------------------- Email
@@ -335,15 +330,13 @@ class SubscriberInternalHelper {
 				isError = true;
 			} else {
 				if (email.length() < minLength || email.length() > maxLength) {
-					this.errors.add(String.format("[%s] invalid value %s. must be 6 <= len(email) <= 127", caller,
-							email, msg));
+					this.errors.add(
+							String.format("[%s] invalid value %s. must be 6 <= len(email) <= 127", caller, email, msg));
 					isError = true;
 				}
 			}
 		}
-		return new JSONObject()
-				.put("email", email)
-				.put("is_valid", !isError);
+		return new JSONObject().put("email", email).put("is_valid", !isError);
 	}
 
 	protected void addEmail(String value, String caller) {
@@ -383,15 +376,13 @@ class SubscriberInternalHelper {
 				isError = true;
 			} else {
 				if (mobileNo.length() < minLength) {
-					this.errors.add(String.format("[%s] invalid value %s. len(mobile_no) must be >= 8", caller,
-							mobileNo, msg));
+					this.errors.add(
+							String.format("[%s] invalid value %s. len(mobile_no) must be >= 8", caller, mobileNo, msg));
 					isError = true;
 				}
 			}
 		}
-		return new JSONObject()
-				.put("mobile", mobileNo)
-				.put("is_valid", !isError);
+		return new JSONObject().put("mobile", mobileNo).put("is_valid", !isError);
 	}
 
 	// ------------------------------- SMS
@@ -456,10 +447,7 @@ class SubscriberInternalHelper {
 				value = res.getString("value");
 			}
 		}
-		return new JSONObject()
-				.put("value", value)
-				.put("provider", provider)
-				.put("is_valid", !isError);
+		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
 
 	protected void addAndroidpush(String value, String provider, String caller) {
@@ -504,10 +492,7 @@ class SubscriberInternalHelper {
 				value = res.getString("value");
 			}
 		}
-		return new JSONObject()
-				.put("value", value)
-				.put("provider", provider)
-				.put("is_valid", !isError);
+		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
 
 	protected void addIospush(String value, String provider, String caller) {
@@ -549,10 +534,7 @@ class SubscriberInternalHelper {
 				isError = true;
 			}
 		}
-		JSONObject response = new JSONObject()
-				.put("value", value)
-				.put("provider", provider)
-				.put("is_valid", !isError);
+		JSONObject response = new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 		return response;
 	}
 
@@ -575,5 +557,81 @@ class SubscriberInternalHelper {
 		this.dictRemove.put(IDENT_KEY_WEBPUSH, res.getJSONObject("value"));
 		this.dictRemove.put(KEY_PUSHVENDOR, res.getString("provider"));
 	}
-	// ------------------------
+
+	// ------------------------ Slack
+
+	private JSONObject validateSlackUserId(String userId, String caller) {
+		boolean isError = false;
+		JSONObject res = checkIdentValString(userId, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			isError = true;
+		} else {
+			userId = userId.toUpperCase();
+			if (!(userId.startsWith("U") || userId.startsWith("W"))) {
+				this.errors.add(String.format("[%s] invalid value %s. Slack user/member_id starts with a U or W",
+						caller, userId));
+				isError = true;
+				return new JSONObject().put("user_id", userId).put("is_valid", !isError);
+			}
+		}
+		return new JSONObject().put("user_id", userId).put("is_valid", !isError);
+	}
+
+	private JSONObject checkSlackDict(JSONObject value, String caller) {
+		String msg = "value must be a valid dict/json with one of these keys: [email, user_id]";
+
+		boolean isError = false;
+		if (value == null || value.isEmpty()) {
+			this.errors.add(String.format("[%s] %s", caller, msg));
+			isError = true;
+		} else {
+			String userId = value.optString("user_id");
+			String email = value.optString("email");
+			if (userId != null && !userId.trim().isEmpty()) {
+				userId = userId.trim();
+				JSONObject res = validateSlackUserId(userId, caller);
+				boolean isValid = res.getBoolean("is_valid");
+				if (!isValid) {
+					isError = true;
+				} else {
+					userId = res.getString("user_id");
+					value = new JSONObject().put("user_id", userId);
+				}
+			} else if (email != null && !email.trim().isEmpty()) {
+				email = email.trim();
+				JSONObject res = validateEmail(email, caller);
+				boolean isValid = res.getBoolean("is_valid");
+				if (!isValid) {
+					isError = true;
+				} else {
+					email = res.getString("email");
+					value = new JSONObject().put("email", email);
+				}
+			} else {
+				this.errors.add(String.format("[%s] %s", caller, msg));
+				isError = true;
+			}
+		}
+		JSONObject response = new JSONObject().put("value", value).put("is_valid", !isError);
+		return response;
+	}
+
+	protected void addSlack(JSONObject value, String caller) {
+		JSONObject res = checkSlackDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictAppend.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
+	}
+
+	protected void removeSlack(JSONObject value, String caller) {
+		JSONObject res = checkSlackDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictRemove.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
+	}
 }

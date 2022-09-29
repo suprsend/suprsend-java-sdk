@@ -30,9 +30,8 @@ public class RequestLogs {
 	protected static void logHttpCall(Logger logger, String method, String url, JSONObject headers, String payload) {
 		logger.log(Level.INFO,
 				String.format(
-						"HTTP Request -------------------------------\n" +
-								"METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" +
-								"-------------------------------",
+						"HTTP Request -------------------------------\n"
+								+ "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" + "-------------------------------",
 						"POST", url, headers.toString(), payload));
 	}
 
@@ -45,8 +44,8 @@ public class RequestLogs {
 		}
 	}
 
-	protected static SuprsendResponse makeHttpCall(Logger logger, boolean debug,
-			String method, String url, JSONObject headers, String payload) throws IOException {
+	protected static SuprsendResponse makeHttpCall(Logger logger, boolean debug, String method, String url,
+			JSONObject headers, String payload) throws IOException {
 		//
 		if (debug) {
 			logHttpCall(logger, method, url, headers, payload);

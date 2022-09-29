@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import suprsend.Suprsend;
+import suprsend.Workflow;
+
 
 public class TestSuprsendSDK {
 
@@ -35,9 +37,20 @@ public class TestSuprsendSDK {
 	}
 
 	public static void main(String[] args) throws Exception {
-		JSONObject body = getBody();
 		suprsend = new Suprsend("workspace_key", "workspace_secret");
-		JSONObject response = suprsend.triggerWorkflow(body);
+		JSONObject body = getBody();
+		Workflow wf = new Workflow(body);
+		JSONObject response = suprsend.triggerWorkflow(wf);
+		System.out.println(response);
+	}
+
+	public static void testWithIdempotencyKey(String[] args) throws Exception {
+		suprsend = new Suprsend("workspace_key", "workspace_secret");
+		JSONObject body = getBody();
+		String idempotencyKey = "__uniq_id_like_uuid__";
+		// 
+		Workflow wf = new Workflow(body, idempotencyKey);
+		JSONObject response = suprsend.triggerWorkflow(wf);
 		System.out.println(response);
 	}
 

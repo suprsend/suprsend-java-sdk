@@ -1,31 +1,28 @@
 package suprsend;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 import org.json.JSONObject;
-import org.everit.json.schema.ValidationException;
 
 /**
  * This class makes Dynamic Workflow URL call to SuprSend platform.
  * 
  * @author Suprsend
  */
-class TriggerWorkflow {
-	private static final Logger logger = Logger.getLogger(TriggerWorkflow.class.getName());
+class WorkflowTrigger {
+	private static final Logger logger = Logger.getLogger(WorkflowTrigger.class.getName());
 
 	Suprsend config;
-	JSONObject data;
 	String url;
 
 	/**
 	 * Constructor to initialize necessary data
 	 * 
 	 * @param config object of class Suprsend
-	 * @param data   JSON data to be sent to workflow backend
 	 */
-	TriggerWorkflow(Suprsend config, JSONObject data) {
+	WorkflowTrigger(Suprsend config) {
 		this.config = config;
-		this.data = data;
 		this.url = getUrl();
 	}
 
@@ -53,37 +50,44 @@ class TriggerWorkflow {
 	 * @return Headers as JSON object
 	 */
 	private JSONObject getHeaders() {
-		return new JSONObject()
-				.put("Content-Type", "application/json; charset=utf-8")
+		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
 				.put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
 	}
 
 	private JSONObject getSuperProperties() {
-		return new JSONObject()
-				.put("$ss_sdk_version", this.config.userAgent);
+		return new JSONObject().put("$ss_sdk_version", this.config.userAgent);
 	}
 
 	/**
 	 * This method registers Dynamic workflow request with SuprSend platform.
 	 * 
 	 * @return Request acceptance status
-	 * @throws Exception
+	 * @throws SuprsendException
+	 * @throws UnsupportedEncodingException
 	 */
-	protected JSONObject executeWorkflow() {
+	protected JSONObject trigger(Workflow workflow)
+			throws SuprsendException, UnsupportedEncodingException {
+		JSONObject o = workflow.getFinalJson(config, false);
+		JSONObject validatedBody = o.getJSONObject("event");
+		int apparentSize = o.getInt("apparent_size");
+		return send(validatedBody);
+	}
+
+	protected JSONObject send(JSONObject workflowBody) {
 		JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
 		try {
 			String contentText;
 			if (this.config.authEnabled) {
 				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", this.data, headers,
+				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", workflowBody, headers,
 						this.config.workspaceSecret);
 				contentText = sigResult.getString("contentTxt");
 				headers.put("Authorization",
 						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
 			} else {
-				contentText = this.data.toString();
+				contentText = workflowBody.toString();
 			}
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", this.url, headers,
@@ -109,17 +113,5 @@ class TriggerWorkflow {
 					.put("message", e.toString());
 		}
 		return response;
-	}
-
-	/**
-	 * Validate data against the JSON schema
-	 * 
-	 * @return Validated data
-	 * @throws SuprsendException
-	 */
-	protected JSONObject validateData() throws SuprsendException, ValidationException {
-		this.data = Utils.validateWorkflowSchema(this.data);
-		this.data.put("properties", getSuperProperties());
-		return this.data;
 	}
 }

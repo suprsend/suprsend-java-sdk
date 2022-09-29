@@ -1,32 +1,29 @@
 package suprsend;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Base64;
-
-import org.everit.json.schema.ValidationException;
+import java.io.UnsupportedEncodingException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK
- * allows you to programmatically interact with SuprSend Platform.
+ * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK allows
+ * you to programmatically interact with SuprSend Platform.
  * 
  * @author Suprsend
  */
 public class Suprsend {
 	protected String workspaceKey, workspaceSecret, baseUrl;
-	protected String userAgent = String.format(
-			"suprsend/%s;java/%s",
-			Version.VERSION, System.getProperty("java.version"));
+	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
+			System.getProperty("java.version"));
 	protected boolean debug = false;
 	protected boolean includeSignatureParam = true;
 	protected boolean authEnabled = true;
 	//
 	public SubscriberFactory user;
 	private EventCollector eventCollector;
+	private WorkflowTrigger workflowTrigger;
 
 	private void initHelpers() {
+		this.workflowTrigger = new WorkflowTrigger(this);
 		this.eventCollector = new EventCollector(this);
 		this.user = new SubscriberFactory(this);
 	}
@@ -49,8 +46,8 @@ public class Suprsend {
 	}
 
 	/**
-	 * constructor to initialize SDK with workspace-key and secret.
-	 * It also allows the capability of passing custom base URL
+	 * constructor to initialize SDK with workspace-key and secret. It also allows
+	 * the capability of passing custom base URL
 	 * 
 	 * @param workspaceKey    workspace_key provided by SuprSend
 	 * @param workspaceSecret workspace_secret provided by SuprSend
@@ -67,9 +64,9 @@ public class Suprsend {
 	}
 
 	/**
-	 * constructor to initialize SDK with workspace-key and secret.
-	 * It also allows the capability to print debug logs.
-	 * If set to true will print the HTTP request logs sent to Suprsend platform
+	 * constructor to initialize SDK with workspace-key and secret. It also allows
+	 * the capability to print debug logs. If set to true will print the HTTP
+	 * request logs sent to Suprsend platform
 	 * 
 	 * @param workspaceKey    workspace_key provided by SuprSend
 	 * @param workspaceSecret workspace_secret provided by SuprSend
@@ -187,34 +184,30 @@ public class Suprsend {
 		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
 		}
+		//
+		JSONObject attachment = Attachment.getAttachmentJSONForFile(filePath);
+		// add the attachment to body->data->$attachments
 		JSONObject data = body.getJSONObject("data");
 		if (data.optJSONArray("$attachments") == null) {
 			data.put("$attachments", new JSONArray());
 		}
 		JSONArray attachments = data.getJSONArray("$attachments");
-		JSONObject attachment = getAttachmentJSONForFile(filePath);
 		attachments.put(attachment);
 		return body;
 	}
 
-	private JSONObject getAttachmentJSONForFile(String filePath) throws Exception {
-		// Handle ~ in path
-		filePath = filePath.replaceFirst("^~", System.getProperty("user.home"));
-		//
-		File file = new File(filePath);
-		if (!file.exists()) {
-			throw new SuprsendException(String.format("file not found: %s", filePath));
-		}
-		String fileName = file.getName();
-		String mimeType = Files.probeContentType(file.toPath());
-		//
-		byte[] data = Files.readAllBytes(file.toPath());
-		String encodedString = Base64.getEncoder().encodeToString(data);
-		//
-		return new JSONObject()
-				.put("fileName", fileName)
-				.put("contentType", mimeType)
-				.put("data", encodedString);
+	/**
+	 * @deprecated Method which needs to be called to trigger workflow
+	 * 
+	 * @param data Data that needs to be passed
+	 * @return Trigger workflow response. 202 if successfully triggered
+	 * @throws SuprsendException            SuprsendException
+	 * @throws UnsupportedEncodingException
+	 */
+	public JSONObject triggerWorkflow(JSONObject data)
+			throws SuprsendException, UnsupportedEncodingException {
+		Workflow wfIns = new Workflow(data, null);
+		return this.workflowTrigger.trigger(wfIns);
 	}
 
 	/**
@@ -222,32 +215,42 @@ public class Suprsend {
 	 * 
 	 * @param data Data that needs to be passed
 	 * @return Trigger workflow response. 202 if successfully triggered
-	 * @throws ValidationException if payload schema validation fails
-	 * @throws SuprsendException   SuprsendException
+	 * @throws SuprsendException            SuprsendException
+	 * @throws UnsupportedEncodingException
 	 */
-	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, ValidationException {
-		TriggerWorkflow workFlow = new TriggerWorkflow(this, data);
-		workFlow.validateData();
-		return workFlow.executeWorkflow();
+	public JSONObject triggerWorkflow(Workflow wf)
+			throws SuprsendException, UnsupportedEncodingException {
+		return this.workflowTrigger.trigger(wf);
+	}
+
+	/**
+	 * @deprecated You can track and send events to SuprSend platform by using track
+	 *             method.
+	 * 
+	 * @param distinctID uniquely Identifiable User id
+	 * @param eventName  event name to track
+	 * @param properties event properties
+	 * @return { "success": True, "status": "success", "status_code":
+	 *         resp.status_code, "message": resp.text, }
+	 * @throws SuprsendException            SuprsendException
+	 * @throws UnsupportedEncodingException
+	 */
+	public JSONObject track(String distinctID, String eventName, JSONObject properties)
+			throws SuprsendException, UnsupportedEncodingException {
+		Event event = new Event(distinctID, eventName, properties, null);
+		return this.eventCollector.collect(event);
 	}
 
 	/**
 	 * You can track and send events to SuprSend platform by using track method.
 	 * 
-	 * @param distinctID uniquely Identifiable User id
-	 * @param eventName  event name to track
-	 * @param properties event properties
+	 * @param event
 	 * @return
-	 *         {
-	 *         "success": True,
-	 *         "status": "success",
-	 *         "status_code": resp.status_code,
-	 *         "message": resp.text,
-	 *         }
-	 * @throws SuprsendException SuprsendException
+	 * @throws SuprsendException
+	 * @throws UnsupportedEncodingException
 	 */
-	public JSONObject track(String distinctID, String eventName, JSONObject properties)
-			throws SuprsendException, ValidationException {
-		return this.eventCollector.collect(distinctID, eventName, properties);
+	public JSONObject trackEvent(Event event)
+			throws SuprsendException, UnsupportedEncodingException {
+		return this.eventCollector.collect(event);
 	}
 }

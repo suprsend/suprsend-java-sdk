@@ -1,6 +1,7 @@
 package suprsend;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,15 +53,13 @@ public class Subscriber {
 	 * @return Headers as JSON object
 	 */
 	private JSONObject getHeaders() {
-		return new JSONObject()
-				.put("Content-Type", "application/json; charset=utf-8")
+		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
 				.put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
 	}
 
 	private JSONObject getSuperProperties() {
-		return new JSONObject()
-				.put("$ss_sdk_version", this.config.userAgent);
+		return new JSONObject().put("$ss_sdk_version", this.config.userAgent);
 	}
 
 	public List<String> getWarnings() {
@@ -72,46 +71,75 @@ public class Subscriber {
 	}
 
 	public List<JSONObject> getEvents() {
+		// Don't mutate the original array. Make a copy of events.TODO
 		List<JSONObject> allEvents = this.events;
 		for (JSONObject e : allEvents) {
 			e.put("properties", this.superProperties);
 		}
-		if (this.appendCount > 0) {
+		// Add $identify event by default, if new properties get added
+		if (allEvents.size() == 0 || this.appendCount > 0) {
 			JSONObject userIdentifyEvent = new JSONObject()
 					.put("$insert_id", UUID.randomUUID().toString())
 					.put("$time", Instant.now().getEpochSecond() * 1000)
 					.put("env", this.config.workspaceKey)
 					.put("event", "$identify")
 					.put("properties", Utils.mergeJSONObjects(
-							new JSONObject()
-									.put("$anon_id", this.distinctID)
-									.put("$identified_id", this.distinctID),
-							getSuperProperties()));
-			//
-			allEvents.add(userIdentifyEvent);
+							// # Don't add $anon_id to properties,
+							new JSONObject().put("$identified_id", this.distinctID),
+							getSuperProperties()
+							)
+						);
+			// Add $identify event at the 0th index, so that $identify runs before
+			// $append/$remove/$reset
+			allEvents.add(0, userIdentifyEvent);
 		}
 		return allEvents;
 	}
 
-	private void validateBody() throws SuprsendException {
+	private JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
+		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
+		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
+			String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
+					Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+			throw new SuprsendException(errMsg);
+		}
+		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
+	}
+
+	private ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
+		ArrayList<String> warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
-			System.out.println(String.format("WARNING: %s", String.join("\n", this.info)));
+			String msg = String.format("[distinct_id: %s] %s", this.distinctID, String.join("\n", this.info));
+			warningsList.add(msg);
+			// print on console as well
+			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
-			throw new SuprsendException(String.format("ERROR: %s", String.join("\n", this.errors)));
+			String msg = String.format("[distinct_id: %s] %s", this.distinctID, String.join("\n", this.errors));
+			warningsList.add(msg);
+			String errMsg = String.format("ERROR: %s", msg);
+			if (isPartOfBulk) {
+				// print on console in case of bulk-api
+				System.out.println(errMsg);
+			} else {
+				// raise error in case of single api
+				throw new SuprsendException(errMsg);
+			}
 		}
-		if (this.events.isEmpty()) {
-			throw new SuprsendException("ERROR: no user properties have been edited. "
-					+ "Use user.append/remove/unset method to update user properties");
-		}
+		//
+		return warningsList;
 	}
 
 	public JSONObject save() {
 		JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
 		try {
-			validateBody();
+			validateBody(false);
 			List<JSONObject> allEvents = getEvents();
+			// # --- validate event size
+			for (JSONObject ev : allEvents) {
+				JSONObject o = validateEventSize(ev);
+			}
 			//
 			String contentText;
 			if (this.config.authEnabled) {
@@ -288,7 +316,7 @@ public class Subscriber {
 
 	public void addAndroidpush(String value) {
 		String caller = "add_androidpush";
-		this.helper.addAndroidpush(value, "fcm", caller);
+		this.helper.addAndroidpush(value, null, caller);
 		collectEvent();
 	}
 
@@ -300,7 +328,7 @@ public class Subscriber {
 
 	public void removeAndroidpush(String value) {
 		String caller = "remove_androidpush";
-		this.helper.removeAndroidpush(value, "fcm", caller);
+		this.helper.removeAndroidpush(value, null, caller);
 		collectEvent();
 	}
 
@@ -313,7 +341,7 @@ public class Subscriber {
 	// =========================================================== Iospush
 	public void addIospush(String value) {
 		String caller = "add_iospush";
-		this.helper.addIospush(value, "apns", caller);
+		this.helper.addIospush(value, null, caller);
 		collectEvent();
 	}
 
@@ -325,7 +353,7 @@ public class Subscriber {
 
 	public void removeIospush(String value) {
 		String caller = "remove_iospush";
-		this.helper.removeIospush(value, "apns", caller);
+		this.helper.removeIospush(value, null, caller);
 		collectEvent();
 	}
 
@@ -338,7 +366,7 @@ public class Subscriber {
 	// =========================================================== Webpush
 	public void addWebpush(JSONObject value) {
 		String caller = "add_webpush";
-		this.helper.addWebpush(value, "vapid", caller);
+		this.helper.addWebpush(value, null, caller);
 		collectEvent();
 	}
 
@@ -350,7 +378,7 @@ public class Subscriber {
 
 	public void removeWebpush(JSONObject value) {
 		String caller = "remove_webpush";
-		this.helper.removeWebpush(value, "vapid", caller);
+		this.helper.removeWebpush(value, null, caller);
 		collectEvent();
 	}
 
@@ -359,4 +387,31 @@ public class Subscriber {
 		this.helper.removeWebpush(value, provider, caller);
 		collectEvent();
 	}
+
+	// =========================================================== Slack
+
+	public void addSlackEmail(String value) {
+		String caller = "add_slack_email";
+		this.helper.addSlack(new JSONObject().put("email", value), caller);
+		collectEvent();
+	}
+
+	public void removeSlackEmail(String value) {
+		String caller = "remove_slack_email";
+		this.helper.removeSlack(new JSONObject().put("email", value), caller);
+		collectEvent();
+	}
+
+	public void addSlackUserid(String value) {
+		String caller = "add_slack_userid";
+		this.helper.addSlack(new JSONObject().put("user_id", value), caller);
+		collectEvent();
+	}
+
+	public void removeSlackUserid(String value) {
+		String caller = "remove_slack_userid";
+		this.helper.removeSlack(new JSONObject().put("user_id", value), caller);
+		collectEvent();
+	}
+
 }

@@ -16,8 +16,7 @@ import org.json.JSONObject;
 
 /**
  * This class creates signature of the payload of HTTP request to SuprSend
- * platform.
- * Signature is required to detect tempering of the request.
+ * platform. Signature is required to detect tempering of the request.
  * 
  * @author Suprsend
  *
@@ -68,19 +67,17 @@ class Signature {
 		String requestURI = getURI(url);
 		// Create string to sign
 		String stringToSign = String.format(
-				"%s\n%s\n%s\n%s\n%s",
-				httpVerb,
-				contentMD5,
-				headers.get("Content-Type").toString(),
-				headers.get("Date").toString(),
-				requestURI);
+			"%s\n%s\n%s\n%s\n%s",
+			httpVerb,
+			contentMD5,
+			headers.get("Content-Type").toString(),
+			headers.get("Date").toString(),
+			requestURI);
 		//
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);
 		//
-		JSONObject result = new JSONObject()
-				.put("contentTxt", contentTxt)
-				.put("signature", signature);
+		JSONObject result = new JSONObject().put("contentTxt", contentTxt).put("signature", signature);
 		return result;
 	}
 
@@ -97,8 +94,7 @@ class Signature {
 	 * @throws SuprsendException if error occurs while creating signature
 	 */
 	public static JSONObject getRequestSignature(String url, String httpVerb, List<JSONObject> content,
-			JSONObject headers,
-			String secret) throws SuprsendException {
+			JSONObject headers, String secret) throws SuprsendException {
 		//
 		Mac sha256mac = getSha256macInstance(secret);
 		//
@@ -113,19 +109,17 @@ class Signature {
 		String requestURI = getURI(url);
 		// Create string to sign
 		String stringToSign = String.format(
-				"%s\n%s\n%s\n%s\n%s",
-				httpVerb,
-				contentMD5,
-				headers.get("Content-Type").toString(),
-				headers.get("Date").toString(),
-				requestURI);
+			"%s\n%s\n%s\n%s\n%s",
+			httpVerb,
+			contentMD5,
+			headers.get("Content-Type").toString(),
+			headers.get("Date").toString(),
+			requestURI);
 		//
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);
 		//
-		JSONObject result = new JSONObject()
-				.put("contentTxt", contentTxt)
-				.put("signature", signature);
+		JSONObject result = new JSONObject().put("contentTxt", contentTxt).put("signature", signature);
 		return result;
 	}
 

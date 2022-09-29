@@ -47,3 +47,6 @@ target/
 
 # Visual Studio Code
 .vscode
+
+# Test scripts
+src/test/TestManual*

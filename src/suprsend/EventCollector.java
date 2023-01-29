@@ -65,7 +65,7 @@ public class EventCollector {
 			String contentText;
 			if (this.config.authEnabled) {
 				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", event, headers,
+				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", event.toString(), headers,
 						this.config.workspaceSecret);
 				contentText = sigResult.getString("contentTxt");
 				headers.put("Authorization",

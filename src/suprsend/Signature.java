@@ -51,18 +51,16 @@ class Signature {
 	 *         signature.
 	 * @throws SuprsendException if error occurs while creating signature
 	 */
-	public static JSONObject getRequestSignature(String url, String httpVerb, JSONObject content, JSONObject headers,
+	public static JSONObject getRequestSignature(String url, String httpVerb, String content, JSONObject headers,
 			String secret) throws SuprsendException {
 		//
 		Mac sha256mac = getSha256macInstance(secret);
 		//
-		String contentTxt = "";
 		String contentMD5 = "";
 		// In case of GET request, there is no payload body,
 		// so assume contentTxt and contentMD5 to be empty.
 		if (!"GET".equals(httpVerb)) {
-			contentTxt = content.toString();
-			contentMD5 = getMD5(contentTxt);
+			contentMD5 = getMD5(content);
 		}
 		String requestURI = getURI(url);
 		// Create string to sign
@@ -77,7 +75,7 @@ class Signature {
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);
 		//
-		JSONObject result = new JSONObject().put("contentTxt", contentTxt).put("signature", signature);
+		JSONObject result = new JSONObject().put("contentTxt", content).put("signature", signature);
 		return result;
 	}
 

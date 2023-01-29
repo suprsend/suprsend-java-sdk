@@ -81,7 +81,7 @@ class WorkflowTrigger {
 			String contentText;
 			if (this.config.authEnabled) {
 				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", workflowBody, headers,
+				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", workflowBody.toString(), headers,
 						this.config.workspaceSecret);
 				contentText = sigResult.getString("contentTxt");
 				headers.put("Authorization",

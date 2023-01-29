@@ -36,4 +36,10 @@ public final class Constants {
 	// In TZ Format: "%a, %d %b %Y %H:%M:%S %Z"
 	public static final String HEADER_DATE_FMT = "EEE, d MMM yyyy HH:mm:ss z";
 
+	public static final int CHUNK_APPARENT_SIZE_IN_BYTES = 800 * 1024; // 800 * 1024
+	public static final String CHUNK_APPARENT_SIZE_IN_BYTES_READABLE = "800KB";
+	public static final int MAX_RECORDS_IN_CHUNK = 1;
+
+	public static final int SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES = 100 * 1024 ;// 100 * 1024
+	public static final String SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE = "100KB";
 }

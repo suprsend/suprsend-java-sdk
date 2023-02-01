@@ -6,27 +6,29 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-class BulkSubscribersChunk {
-    private static final Logger logger = Logger.getLogger(BulkSubscribersChunk.class.getName());
-    private final Suprsend config;
+public class BulkWorkflowsChunk {
+
+    private static final Logger logger = Logger.getLogger(BulkWorkflowsChunk.class.getName());
+    private Suprsend config;
     private JSONArray __chunk = new JSONArray();
     int __running_size = 0;
     JSONObject response = new JSONObject();
 
-    BulkSubscribersChunk(Suprsend config) {
+    public BulkWorkflowsChunk(Suprsend config) {
         this.config = config;
     }
 
     private String getUrl() {
-        String urlTemplate = "%sevent/";
+        String urlTemplate = "%s%s/trigger/";
         if (this.config.includeSignatureParam) {
+            //Todo : niks confirm
             if (this.config.authEnabled) {
                 urlTemplate = urlTemplate + "?verify=true";
             } else {
                 urlTemplate = urlTemplate + "?verify=false";
             }
         }
-        return String.format(urlTemplate, this.config.baseUrl);
+        return String.format(urlTemplate, this.config.baseUrl, this.config.workspaceKey);
     }
 
     private JSONObject getCommonHeaders() {
@@ -39,13 +41,13 @@ class BulkSubscribersChunk {
         return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
     }
 
-    private JSONObject getMergedHeaders() {
-        return Utils.mergeJSONObjects(getCommonHeaders(), dynamicHeaders());
-    }
-
     public void addEventToChunk(JSONObject event, int eventSize) {
         __running_size += eventSize;
         __chunk.put(event);
+    }
+
+    private JSONObject getMergedHeaders() {
+        return Utils.mergeJSONObjects(getCommonHeaders(), dynamicHeaders());
     }
 
     public boolean checkLimitReached() {
@@ -63,9 +65,9 @@ class BulkSubscribersChunk {
         if (checkLimitReached()) {
             return false;
         }
-        if (eventSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException("Event properties too big - " + eventSize + " Bytes" +
-                    "must not cross " + Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+        if (eventSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
+            throw new SuprsendException("workflow body too big - " + eventSize + " Bytes" +
+                    "must not cross " + Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
         }
         if (__running_size + eventSize > Constants.CHUNK_APPARENT_SIZE_IN_BYTES) {
             return false;
@@ -99,22 +101,46 @@ class BulkSubscribersChunk {
             String responseText = resp.responseText;
             //
             if (statusCode >= 200 && statusCode < 300) {
-                response.put("success", true)
-                        .put("status", "success")
+                response.put("status", "success")
                         .put("status_code", statusCode)
-                        .put("message", responseText);
+                        .put("total", __chunk.length())
+                        .put("success", __chunk.length())
+                        .put("failure", 0)
+                        .put("failed_records", new JSONArray());
             } else {
-                response.put("success", false)
-                        .put("status", "fail")
+
+                JSONArray failedRecordsJa = getFailedRecordsJA(statusCode, responseText);
+                response.put("status", "fail")
                         .put("status_code", statusCode)
-                        .put("message", responseText);
+                        .put("total", __chunk.length())
+                        .put("success", 0)
+                        .put("failure", __chunk.length())
+                        .put("failed_records", failedRecordsJa);
             }
         } catch (SuprsendException | IOException e) {
-            response.put("success", false)
-                    .put("status", "fail")
+            JSONArray failedRecordsJa = getFailedRecordsJA(500, e.toString());
+            response.put("status", "fail")
                     .put("status_code", 500)
-                    .put("message", e.toString());
+                    .put("total", __chunk.length())
+                    .put("success", 0)
+                    .put("failure", __chunk.length())
+                    .put("failed_records", failedRecordsJa);
         }
 
     }
+
+    private JSONArray getFailedRecordsJA(int statusCode, String responseText) {
+        JSONArray failedRecordsJa = new JSONArray();
+        for (int ci = 0; ci < __chunk.length(); ci++) {
+            JSONObject chJo = __chunk.getJSONObject(ci);
+            JSONObject newChJO = new JSONObject();
+            newChJO.put("record", chJo);
+            newChJO.put("error", responseText);
+            newChJO.put("code", statusCode);
+            failedRecordsJa.put(newChJO);
+        }
+        return failedRecordsJa;
+    }
+
+
 }

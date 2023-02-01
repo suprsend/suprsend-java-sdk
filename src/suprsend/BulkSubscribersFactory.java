@@ -1,13 +1,13 @@
 package suprsend;
 
-class BulkSubscribersFactory{
+class BulkSubscribersFactory {
     private final Suprsend config;
 
-    public BulkSubscribersFactory(Suprsend config){
+    public BulkSubscribersFactory(Suprsend config) {
         this.config = config;
     }
 
-    public BulkSubscribers getInstance(){
+    public BulkSubscribers getInstance() {
         return new BulkSubscribers(config);
     }
 

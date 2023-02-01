@@ -22,6 +22,8 @@ public class Suprsend {
 	private EventCollector eventCollector;
 	private WorkflowTrigger workflowTrigger;
 
+	public BulkEventsFactory bulkEventsFactory = new BulkEventsFactory(this);
+
 	private void initHelpers() {
 		this.workflowTrigger = new WorkflowTrigger(this);
 		this.eventCollector = new EventCollector(this);

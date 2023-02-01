@@ -1,6 +1,6 @@
 package suprsend;
 
-class BulkEventsFactory {
+public class BulkEventsFactory {
     private Suprsend config;
 
     public BulkEventsFactory(Suprsend config) {

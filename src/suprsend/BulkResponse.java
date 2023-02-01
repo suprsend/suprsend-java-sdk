@@ -4,10 +4,10 @@ import org.json.JSONObject;
 
 public class BulkResponse {
 
-    String status;
-    int total = 0;
-    int success = 0;
-    int failure = 0;
+    public String status;
+    public int total = 0;
+    public int success = 0;
+    public int failure = 0;
 
     void mergeChunkResponse(JSONObject responseJO) {
         if (responseJO == null)
@@ -28,5 +28,15 @@ public class BulkResponse {
         total += responseJO.optInt("total", 0);
         success += responseJO.optInt("success", 0);
         failure += responseJO.optInt("failure", 0);
+    }
+
+    @Override
+    public String toString() {
+        return "BulkResponse{" +
+                "status='" + status + '\'' +
+                ", total=" + total +
+                ", success=" + success +
+                ", failure=" + failure +
+                '}';
     }
 }

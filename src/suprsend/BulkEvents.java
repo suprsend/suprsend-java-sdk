@@ -40,7 +40,7 @@ public class BulkEvents {
         for (int i = 0; i < eventsJA.length(); i++) {
             JSONObject event = eventsJA.getJSONObject(i);
             int apparentSize = event.getInt("apparent_size");
-            boolean isAdded = currChunk.tryToAddIntoChunk(event, apparentSize);
+            boolean isAdded = currChunk.tryToAddIntoChunk(event.getJSONObject("event"), apparentSize);
             if (!isAdded) {
                 chunkify(start + i);
                 break;
@@ -48,6 +48,11 @@ public class BulkEvents {
         }
     }
 
+    public void append(Event event) throws SuprsendException {
+        ArrayList<Event> events = new ArrayList<Event>();
+        events.add(event);
+        append(events);
+    }
     public void append(List<Event> events) throws SuprsendException {
         if (events.isEmpty()) {
             System.out.println("events list empty. must pass one or more events");

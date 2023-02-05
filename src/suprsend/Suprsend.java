@@ -23,6 +23,8 @@ public class Suprsend {
 	private WorkflowTrigger workflowTrigger;
 
 	public BulkEventsFactory bulkEventsFactory = new BulkEventsFactory(this);
+	public BulkSubscribersFactory bulkSubscribersFactory = new BulkSubscribersFactory(this);
+	public BulkWorkflowsFactory bulkWorkflowsFactory = new BulkWorkflowsFactory(this);
 
 	private void initHelpers() {
 		this.workflowTrigger = new WorkflowTrigger(this);

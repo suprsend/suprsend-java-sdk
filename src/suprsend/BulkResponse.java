@@ -2,12 +2,15 @@ package suprsend;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class BulkResponse {
 
     public String status;
     public int total = 0;
     public int success = 0;
     public int failure = 0;
+    public ArrayList<String> warnings = new ArrayList<String>();
 
     void mergeChunkResponse(JSONObject responseJO) {
         if (responseJO == null)

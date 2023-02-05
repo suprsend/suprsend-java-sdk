@@ -48,22 +48,16 @@ public class BulkEvents {
         }
     }
 
-    public void append(Event event) throws SuprsendException {
-        ArrayList<Event> events = new ArrayList<Event>();
-        events.add(event);
-        append(events);
-    }
-    public void append(List<Event> events) throws SuprsendException {
-        if (events.isEmpty()) {
-            System.out.println("events list empty. must pass one or more events");
-            return;
+    public void append(List<Event> objList) throws SuprsendException {
+        if (objList.isEmpty()) {
+            throw new SuprsendException("events list empty. must pass one or more events");
         }
-        for (Event e : events) {
-            if (e == null) {
+        for (Event obj : objList) {
+            if (obj == null) {
                 throw new SuprsendException("null/empty element found in bulk instance");
             }
-            //Todo : niks Clone events
-            _events.addAll(events);
+            // TODO - test Clone events
+            _events.add(obj);
         }
     }
 

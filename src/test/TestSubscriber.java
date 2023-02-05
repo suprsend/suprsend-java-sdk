@@ -1,9 +1,14 @@
 package test;
 
-import java.util.Arrays;
 import org.json.JSONObject;
-import suprsend.Suprsend;
+import suprsend.BulkResponse;
+import suprsend.BulkSubscribers;
 import suprsend.Subscriber;
+import suprsend.Suprsend;
+import suprsend.SuprsendException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class TestSubscriber {
 
@@ -13,7 +18,7 @@ public class TestSubscriber {
 
 	public static void testSave() throws Exception {
 		// SDK instance
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		// Subscriber Instance
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -27,7 +32,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddWebpush() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -44,7 +49,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveWebpush() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -58,7 +63,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddAndroidpush() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -69,7 +74,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveAndroidpush() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -80,7 +85,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemove() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -91,7 +96,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddHelperFunctions() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -104,7 +109,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveHelperFunctions() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -117,7 +122,7 @@ public class TestSubscriber {
 	}
 
 	public static void testUnsetKey() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -129,7 +134,7 @@ public class TestSubscriber {
 	}
 
 	public static void testUnsetKeyMulti() throws Exception {
-		Suprsend suprsendClient = new Suprsend("workspace_key", "workspace_secret");
+		Suprsend suprsendClient = new TestHelper().getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -139,4 +144,20 @@ public class TestSubscriber {
 		System.out.println(res);
 	}
 
+	public static void testBulkSubscriber() throws Exception {
+		BulkSubscribers bulkSubscribers = new TestHelper().getInstance().bulkSubscribersFactory.getInstance();
+		ArrayList<Subscriber> subscriberList = new ArrayList<Subscriber>();
+		for (int i = 0; i < 3; i++) {
+			subscriberList.add(getSubscriber());
+		}
+		bulkSubscribers.append(subscriberList);
+		BulkResponse response = bulkSubscribers.save();
+		System.out.println(response);
+	}
+
+	private static Subscriber getSubscriber() throws SuprsendException {
+		Subscriber user = new TestHelper().getInstance().user.getInstance("123");
+		user.removeSms("+919999999999");
+		return user;
+	}
 }

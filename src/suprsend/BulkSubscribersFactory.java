@@ -1,6 +1,6 @@
 package suprsend;
 
-class BulkSubscribersFactory {
+public class BulkSubscribersFactory {
     private final Suprsend config;
 
     public BulkSubscribersFactory(Suprsend config) {

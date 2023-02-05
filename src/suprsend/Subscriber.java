@@ -96,7 +96,7 @@ public class Subscriber {
 		return allEvents;
 	}
 
-	private JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
+	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
 		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
 		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 			String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
@@ -106,7 +106,7 @@ public class Subscriber {
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
 	}
 
-	private ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
+	public ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
 		ArrayList<String> warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctID, String.join("\n", this.info));

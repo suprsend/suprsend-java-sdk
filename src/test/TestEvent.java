@@ -1,7 +1,12 @@
 package test;
 
 import org.json.JSONObject;
-import suprsend.*;
+import suprsend.BulkEvents;
+import suprsend.BulkResponse;
+import suprsend.Event;
+import suprsend.SuprsendException;
+
+import java.util.ArrayList;
 
 
 public class TestEvent {
@@ -19,9 +24,11 @@ public class TestEvent {
 
     public static void sendEventBulk() throws Exception {
         BulkEvents bulkEvents = new TestHelper().getInstance().bulkEventsFactory.getInstance();
+        ArrayList<Event> eventsList = new ArrayList<Event>();
         for (int i = 0; i < 3; i++) {
-            bulkEvents.append(getEvent());
+            eventsList.add(getEvent());
         }
+        bulkEvents.append(eventsList);
         BulkResponse response = bulkEvents.trigger();
         System.out.println(response);
     }

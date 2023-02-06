@@ -71,6 +71,7 @@ class BulkEventsChunk {
             return false;
         }
         if (!Constants.ALLOW_ATTACHMENTS_IN_BULK_API) {
+            // TODO - test attachments
             event.getJSONObject("properties").remove("$attachments");
         }
         addEventToChunk(event, eventSize);

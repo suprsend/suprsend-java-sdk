@@ -14,11 +14,22 @@ public class TestSubscriber {
 
 	public static void main(String[] args) throws Exception {
 		// Call the relevant function to test after adding valid values.
+		testSave();
+		testAddWebpush();
+		testRemoveWebpush();
+		testAddAndroidpush();
+		testRemoveAndroidpush();
+		testRemove();
+		testAddHelperFunctions();
+		testRemoveHelperFunctions();
+		testUnsetKey();
+		testUnsetKeyMulti();
+		testBulkSubscriber();
 	}
 
 	public static void testSave() throws Exception {
 		// SDK instance
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		// Subscriber Instance
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -32,7 +43,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddWebpush() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -49,7 +60,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveWebpush() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -63,7 +74,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddAndroidpush() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -74,7 +85,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveAndroidpush() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -85,7 +96,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemove() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -96,7 +107,7 @@ public class TestSubscriber {
 	}
 
 	public static void testAddHelperFunctions() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -109,7 +120,7 @@ public class TestSubscriber {
 	}
 
 	public static void testRemoveHelperFunctions() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -122,7 +133,7 @@ public class TestSubscriber {
 	}
 
 	public static void testUnsetKey() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -134,7 +145,7 @@ public class TestSubscriber {
 	}
 
 	public static void testUnsetKeyMulti() throws Exception {
-		Suprsend suprsendClient = new TestHelper().getInstance();
+		Suprsend suprsendClient = TestHelper.getInstance();
 		//
 		String distinctID = "__distinct_id__";
 		Subscriber user = suprsendClient.user.getInstance(distinctID);
@@ -145,7 +156,7 @@ public class TestSubscriber {
 	}
 
 	public static void testBulkSubscriber() throws Exception {
-		BulkSubscribers bulkSubscribers = new TestHelper().getInstance().bulkSubscribersFactory.getInstance();
+		BulkSubscribers bulkSubscribers = TestHelper.getInstance().bulkSubscribersFactory.getInstance();
 		ArrayList<Subscriber> subscriberList = new ArrayList<Subscriber>();
 		for (int i = 0; i < 3; i++) {
 			subscriberList.add(getSubscriber());
@@ -156,7 +167,7 @@ public class TestSubscriber {
 	}
 
 	private static Subscriber getSubscriber() throws SuprsendException {
-		Subscriber user = new TestHelper().getInstance().user.getInstance("123");
+		Subscriber user = TestHelper.getInstance().user.getInstance("123");
 		user.removeSms("+919999999999");
 		return user;
 	}

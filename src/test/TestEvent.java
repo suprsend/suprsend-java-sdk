@@ -13,17 +13,17 @@ public class TestEvent {
 
     public static void main(String[] args) throws Exception {
         sendEvent();
-        sendEventBulk();
         sendEventWithIdempotencyKey();
+        sendEventBulk();
     }
 
     public static void sendEvent() throws Exception {
-        JSONObject response = new TestHelper().getInstance().trackEvent(getEvent());
+        JSONObject response = TestHelper.getInstance().trackEvent(getEvent());
         System.out.println(response);
     }
 
     public static void sendEventBulk() throws Exception {
-        BulkEvents bulkEvents = new TestHelper().getInstance().bulkEventsFactory.getInstance();
+        BulkEvents bulkEvents = TestHelper.getInstance().bulkEventsFactory.getInstance();
         ArrayList<Event> eventsList = new ArrayList<Event>();
         for (int i = 0; i < 3; i++) {
             eventsList.add(getEvent());
@@ -35,7 +35,7 @@ public class TestEvent {
 
     public static void sendEventWithIdempotencyKey() throws Exception {
         String idempotencyKey = "__uniq_id_like_uuid__";
-        JSONObject response = new TestHelper().getInstance().trackEvent(getEvent(idempotencyKey));
+        JSONObject response = TestHelper.getInstance().trackEvent(getEvent(idempotencyKey));
         System.out.println(response);
     }
 
@@ -45,6 +45,6 @@ public class TestEvent {
 
     private static Event getEvent(String idempotencyKey) throws SuprsendException {
         JSONObject eventProps = new JSONObject().put("k1", "v1");
-        return new Event("__distinct_id__", "EVENT_NAME", eventProps,idempotencyKey);
+        return new Event("__distinct_id__", "EVENT_NAME", eventProps, idempotencyKey);
     }
 }

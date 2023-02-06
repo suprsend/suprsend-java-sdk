@@ -49,7 +49,7 @@ public class BulkWorkflows {
         for (int i = 0; i < workflowsJA.length(); i++) {
             JSONObject event = workflowsJA.getJSONObject(i);
             int apparentSize = event.getInt("apparent_size");
-            boolean isAdded = currChunk.tryToAddIntoChunk(event, apparentSize);
+            boolean isAdded = currChunk.tryToAddIntoChunk(event.getJSONObject("event"), apparentSize);
             if (!isAdded) {
                 chunkify(start + i);
                 break;

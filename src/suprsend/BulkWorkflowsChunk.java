@@ -73,7 +73,7 @@ public class BulkWorkflowsChunk {
             return false;
         }
         if (!Constants.ALLOW_ATTACHMENTS_IN_BULK_API) {
-            event.getJSONObject("properties").remove("$attachments");
+            event.remove("$attachments");
         }
         addEventToChunk(event, eventSize);
         return true;

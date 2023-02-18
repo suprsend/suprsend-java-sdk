@@ -16,11 +16,6 @@ public class Suprsend {
 	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
 			System.getProperty("java.version"));
 	protected boolean debug = false;
-	//TODO - remove variable
-	protected boolean includeSignatureParam = true;
-	//TODO - remove variable
-	protected boolean authEnabled = true;
-	//
 	public SubscriberFactory user;
 	private EventCollector eventCollector;
 	private WorkflowTrigger workflowTrigger;

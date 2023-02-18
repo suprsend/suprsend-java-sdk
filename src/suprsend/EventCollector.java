@@ -20,13 +20,6 @@ public class EventCollector {
 
 	private String getUrl() {
 		String urlTemplate = "%sevent/";
-		if (this.config.includeSignatureParam) {
-			if (this.config.authEnabled) {
-				urlTemplate = urlTemplate + "?verify=true";
-			} else {
-				urlTemplate = urlTemplate + "?verify=false";
-			}
-		}
 		return String.format(urlTemplate, this.config.baseUrl);
 	}
 
@@ -63,16 +56,12 @@ public class EventCollector {
 		JSONObject response = new JSONObject();
 		try {
 			String contentText;
-			if (this.config.authEnabled) {
-				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, event.toString(), headers,
-						this.config.workspaceSecret);
-				contentText = sigResult.getString("contentTxt");
-				headers.put("Authorization",
-						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-			} else {
-				contentText = event.toString();
-			}
+			// Signature and Authorization Header
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, event.toString(), headers,
+					this.config.workspaceSecret);
+			contentText = sigResult.getString("contentTxt");
+			headers.put("Authorization",
+					String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);

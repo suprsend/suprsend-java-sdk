@@ -33,13 +33,6 @@ class WorkflowTrigger {
 	 */
 	private String getUrl() {
 		String urlTemplate = "%s%s/trigger/";
-		if (this.config.includeSignatureParam) {
-			if (this.config.authEnabled) {
-				urlTemplate = urlTemplate + "?verify=true";
-			} else {
-				urlTemplate = urlTemplate + "?verify=false";
-			}
-		}
 		String urlFormatted = String.format(urlTemplate, this.config.baseUrl, this.config.workspaceKey);
 		return urlFormatted;
 	}
@@ -79,16 +72,12 @@ class WorkflowTrigger {
 		JSONObject response = new JSONObject();
 		try {
 			String contentText;
-			if (this.config.authEnabled) {
-				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, workflowBody.toString(), headers,
-						this.config.workspaceSecret);
-				contentText = sigResult.getString("contentTxt");
-				headers.put("Authorization",
-						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-			} else {
-				contentText = workflowBody.toString();
-			}
+			// Signature and Authorization Header
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, workflowBody.toString(), headers,
+					this.config.workspaceSecret);
+			contentText = sigResult.getString("contentTxt");
+			headers.put("Authorization",
+					String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);

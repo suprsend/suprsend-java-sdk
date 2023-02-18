@@ -19,13 +19,6 @@ class BulkSubscribersChunk {
 
     private String getUrl() {
         String urlTemplate = "%sevent/";
-        if (this.config.includeSignatureParam) {
-            if (this.config.authEnabled) {
-                urlTemplate = urlTemplate + "?verify=true";
-            } else {
-                urlTemplate = urlTemplate + "?verify=false";
-            }
-        }
         return String.format(urlTemplate, this.config.baseUrl);
     }
 
@@ -82,16 +75,12 @@ class BulkSubscribersChunk {
 
         try {
             String contentText;
-            if (this.config.authEnabled) {
-                // Signature and Authorization Header
-                JSONObject sigResult = Signature.getRequestSignature(getUrl(), HttpMethod.POST, __chunk.toString(), headers,
-                        this.config.workspaceSecret);
-                contentText = sigResult.getString("contentTxt");
-                headers.put("Authorization",
-                        String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-            } else {
-                contentText = __chunk.toString();
-            }
+            // Signature and Authorization Header
+            JSONObject sigResult = Signature.getRequestSignature(getUrl(), HttpMethod.POST, __chunk.toString(), headers,
+                    this.config.workspaceSecret);
+            contentText = sigResult.getString("contentTxt");
+            headers.put("Authorization",
+                    String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
             // --- Make HTTP POST request
             SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getUrl(), headers,
                     contentText);

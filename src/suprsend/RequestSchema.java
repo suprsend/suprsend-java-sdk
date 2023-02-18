@@ -1,12 +1,12 @@
 package suprsend;
 
-import java.io.InputStream;
-
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import java.io.InputStream;
 
 /**
  * This class takes care of loading the JSON schema which will be used to

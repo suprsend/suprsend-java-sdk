@@ -1,9 +1,10 @@
 package suprsend;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 
 /**
  * This class makes Dynamic Workflow URL call to SuprSend platform.

@@ -1,10 +1,10 @@
 package suprsend;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Base64;
-
-import org.json.JSONObject;
 
 /**
  * Extracts file content from filePath and prepares desired attachment structure

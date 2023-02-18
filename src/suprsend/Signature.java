@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.List;
 
 /**
  * This class creates signature of the payload of HTTP request to SuprSend

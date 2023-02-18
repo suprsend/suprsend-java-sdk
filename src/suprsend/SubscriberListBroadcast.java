@@ -2,12 +2,9 @@ package suprsend;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class SubscriberListBroadcast {
 

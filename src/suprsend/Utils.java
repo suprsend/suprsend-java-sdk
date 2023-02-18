@@ -228,6 +228,11 @@ public class Utils {
                 .put("User-Agent", config.userAgent);
     }
 
+	public static int getApparentBodySize(JSONObject body)
+			throws UnsupportedEncodingException {
+		return body.toString().getBytes("utf-8").length;
+	}
+
     private static JSONObject dynamicHeaders() {
         return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
     }

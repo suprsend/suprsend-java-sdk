@@ -56,7 +56,7 @@ public class BulkEvents {
             if (obj == null) {
                 throw new SuprsendException("null/empty element found in bulk instance");
             }
-            // TODO - test Clone events
+            // TODO - test Clone events - pending
             _events.add(obj);
         }
     }

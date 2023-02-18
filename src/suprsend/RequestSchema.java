@@ -18,23 +18,28 @@ class RequestSchema {
 	protected static JSONObject JSON_SCHEMA;
 	protected static Schema workflowSchemaValidator;
 	protected static Schema eventSchemaValidator;
+	protected static Schema listBroadcastSchemaValidator;
 
 	protected static Schema getSchemaValidator(String schemaName) throws SuprsendException {
 		if (schemaName == "workflow") {
 			if (null == workflowSchemaValidator) {
 				JSONObject jsonSchema = RequestSchema.getSchema("workflow");
-				Schema schemaValidator = SchemaLoader.load(jsonSchema);
-				workflowSchemaValidator = schemaValidator;
+				workflowSchemaValidator = SchemaLoader.load(jsonSchema);
 			}
 			return workflowSchemaValidator;
 
 		} else if  (schemaName == "event") {
 			if (null == eventSchemaValidator) {
 				JSONObject jsonSchema = RequestSchema.getSchema("event");
-				Schema schemaValidator = SchemaLoader.load(jsonSchema);
-				eventSchemaValidator = schemaValidator;
+				eventSchemaValidator = SchemaLoader.load(jsonSchema);
 			}
 			return eventSchemaValidator;
+		} else if  (schemaName == "list_broadcast") {
+			if (null == listBroadcastSchemaValidator) {
+				JSONObject jsonSchema = RequestSchema.getSchema("list_broadcast");
+				listBroadcastSchemaValidator = SchemaLoader.load(jsonSchema);
+			}
+			return listBroadcastSchemaValidator;
 		} else {
 			return null;
 		}

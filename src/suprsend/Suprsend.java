@@ -1,8 +1,9 @@
 package suprsend;
 
-import java.io.UnsupportedEncodingException;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 
 /**
  * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK allows
@@ -15,16 +16,19 @@ public class Suprsend {
 	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
 			System.getProperty("java.version"));
 	protected boolean debug = false;
+	//TODO - remove variable
 	protected boolean includeSignatureParam = true;
+	//TODO - remove variable
 	protected boolean authEnabled = true;
 	//
 	public SubscriberFactory user;
 	private EventCollector eventCollector;
 	private WorkflowTrigger workflowTrigger;
 
+	public BulkWorkflowsFactory bulkWorkflowsFactory = new BulkWorkflowsFactory(this);
 	public BulkEventsFactory bulkEventsFactory = new BulkEventsFactory(this);
 	public BulkSubscribersFactory bulkSubscribersFactory = new BulkSubscribersFactory(this);
-	public BulkWorkflowsFactory bulkWorkflowsFactory = new BulkWorkflowsFactory(this);
+	public SubscriberListsApi  subscriberListsApi = new SubscriberListsApi(this);
 
 	private void initHelpers() {
 		this.workflowTrigger = new WorkflowTrigger(this);
@@ -258,4 +262,5 @@ public class Suprsend {
 			throws SuprsendException, UnsupportedEncodingException {
 		return this.eventCollector.collect(event);
 	}
+
 }

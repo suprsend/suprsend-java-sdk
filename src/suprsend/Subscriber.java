@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+//TODO - Move to latest version
 public class Subscriber {
 	private static final Logger logger = Logger.getLogger(Subscriber.class.getName());
 
@@ -144,7 +145,7 @@ public class Subscriber {
 			String contentText;
 			if (this.config.authEnabled) {
 				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", allEvents, headers,
+				JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, allEvents.toString(), headers,
 						this.config.workspaceSecret);
 				contentText = sigResult.getString("contentTxt");
 				headers.put("Authorization",
@@ -153,7 +154,7 @@ public class Subscriber {
 				contentText = this.events.toString();
 			}
 			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", this.url, headers,
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;

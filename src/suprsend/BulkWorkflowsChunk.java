@@ -21,7 +21,7 @@ public class BulkWorkflowsChunk {
     private String getUrl() {
         String urlTemplate = "%s%s/trigger/";
         if (this.config.includeSignatureParam) {
-            //Todo : niks confirm
+            //Todo : remove verify check from all apis and suprsend instance
             if (this.config.authEnabled) {
                 urlTemplate = urlTemplate + "?verify=true";
             } else {
@@ -86,7 +86,7 @@ public class BulkWorkflowsChunk {
             String contentText;
             if (this.config.authEnabled) {
                 // Signature and Authorization Header
-                JSONObject sigResult = Signature.getRequestSignature(getUrl(), "POST", __chunk.toString(), headers,
+                JSONObject sigResult = Signature.getRequestSignature(getUrl(), HttpMethod.POST, __chunk.toString(), headers,
                         this.config.workspaceSecret);
                 contentText = sigResult.getString("contentTxt");
                 headers.put("Authorization",
@@ -95,7 +95,7 @@ public class BulkWorkflowsChunk {
                 contentText = __chunk.toString();
             }
             // --- Make HTTP POST request
-            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", getUrl(), headers,
+            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getUrl(), headers,
                     contentText);
             int statusCode = resp.statusCode;
             String responseText = resp.responseText;

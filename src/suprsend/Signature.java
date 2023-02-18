@@ -1,5 +1,10 @@
 package suprsend;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -8,16 +13,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.json.JSONObject;
-
 /**
  * This class creates signature of the payload of HTTP request to SuprSend
  * platform. Signature is required to detect tempering of the request.
- * 
+ *
  * @author Suprsend
  *
  */
@@ -39,11 +38,15 @@ class Signature {
 		return sha256mac;
 	}
 
+	public static JSONObject getRequestSignature(String url, HttpMethod httpMethod, JSONObject headers,
+												 String secret) throws SuprsendException {
+		return getRequestSignature(url,httpMethod,"",headers,secret);
+	}
 	/**
 	 * Get request signature
-	 * 
+	 *
 	 * @param url      Workflow backend URL
-	 * @param httpVerb HTTP method
+	 * @param httpMethod HTTP method
 	 * @param content  Raw content
 	 * @param headers  Raw headers
 	 * @param secret   Workspace secret key given to client by Suprsend
@@ -51,7 +54,7 @@ class Signature {
 	 *         signature.
 	 * @throws SuprsendException if error occurs while creating signature
 	 */
-	public static JSONObject getRequestSignature(String url, String httpVerb, String content, JSONObject headers,
+	public static JSONObject getRequestSignature(String url, HttpMethod httpMethod, String content, JSONObject headers,
 			String secret) throws SuprsendException {
 		//
 		Mac sha256mac = getSha256macInstance(secret);
@@ -59,14 +62,14 @@ class Signature {
 		String contentMD5 = "";
 		// In case of GET request, there is no payload body,
 		// so assume contentTxt and contentMD5 to be empty.
-		if (!"GET".equals(httpVerb)) {
+		if (httpMethod!= HttpMethod.GET) {
 			contentMD5 = getMD5(content);
 		}
 		String requestURI = getURI(url);
 		// Create string to sign
 		String stringToSign = String.format(
 			"%s\n%s\n%s\n%s\n%s",
-			httpVerb,
+			httpMethod.name(),
 			contentMD5,
 			headers.get("Content-Type").toString(),
 			headers.get("Date").toString(),
@@ -75,66 +78,22 @@ class Signature {
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);
 		//
-		JSONObject result = new JSONObject().put("contentTxt", content).put("signature", signature);
-		return result;
-	}
-
-	/**
-	 * Get request signature
-	 * 
-	 * @param url      Workflow backend URL
-	 * @param httpVerb HTTP method
-	 * @param content  Raw content as list of dictionary
-	 * @param headers  Raw headers
-	 * @param secret   Workspace secret given to client by Suprsend
-	 * @return JSON object which contains raw content in string format and
-	 *         signature.
-	 * @throws SuprsendException if error occurs while creating signature
-	 */
-	public static JSONObject getRequestSignature(String url, String httpVerb, List<JSONObject> content,
-			JSONObject headers, String secret) throws SuprsendException {
-		//
-		Mac sha256mac = getSha256macInstance(secret);
-		//
-		String contentTxt = "";
-		String contentMD5 = "";
-		// In case of GET request, there is no payload body,
-		// so assume contentTxt and contentMD5 to be empty.
-		if (!"GET".equals(httpVerb)) {
-			contentTxt = content.toString();
-			contentMD5 = getMD5(contentTxt);
-		}
-		String requestURI = getURI(url);
-		// Create string to sign
-		String stringToSign = String.format(
-			"%s\n%s\n%s\n%s\n%s",
-			httpVerb,
-			contentMD5,
-			headers.get("Content-Type").toString(),
-			headers.get("Date").toString(),
-			requestURI);
-		//
-		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
-		String signature = Base64.getEncoder().encodeToString(macData);
-		//
-		JSONObject result = new JSONObject().put("contentTxt", contentTxt).put("signature", signature);
-		return result;
+		return new JSONObject().put("contentTxt", content).put("signature", signature);
 	}
 
 	/**
 	 * Get MD5 hash digest for body
-	 * 
+	 *
 	 * @param input String format of JSON body.
 	 * @return MD5 hash digest of passed input.
 	 */
 	private static String getMD5(String input) {
-		String md5hex = DigestUtils.md5Hex(input);
-		return md5hex;
+		return DigestUtils.md5Hex(input);
 	}
 
 	/**
 	 * URI with passed query string
-	 * 
+	 *
 	 * @param url Passed URL
 	 * @return URI
 	 * @throws SuprsendException
@@ -153,4 +112,8 @@ class Signature {
 		}
 		return requestURI;
 	}
+}
+
+enum HttpMethod {
+	POST, GET
 }

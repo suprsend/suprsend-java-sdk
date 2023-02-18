@@ -11,7 +11,6 @@ public class TestHelper {
 
     public static Suprsend getInstance() throws SuprsendException {
         JSONObject kwargs = new JSONObject();
-        kwargs.put("isUAT", true);
         return new Suprsend(workspaceKey, workspaceSecret, "", true, kwargs);
     }
 

@@ -1,14 +1,16 @@
 package suprsend;
 
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
 
 public class Utils {
 
@@ -198,4 +200,35 @@ public class Utils {
 		return data;
 	}
 
+    public static JSONObject validateListBroadcastBodySchema(JSONObject body) throws SuprsendException {
+        if (body.opt("data") == null) {
+            body.put("data", new JSONObject());
+        }
+        Schema schemaValidator = RequestSchema.getSchemaValidator("list_broadcast");
+        try {
+            schemaValidator.validate(body);
+        } catch (ValidationException e) {
+            String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
+            throw new SuprsendException(msg, e);
+        }
+        return body;
+    }
+
+    static JSONObject getMergedHeaders(Suprsend config) {
+        return mergeJSONObjects(getCommonHeaders(config), dynamicHeaders());
+    }
+
+    static String urlEncode(String value) throws UnsupportedEncodingException {
+        return URLEncoder.encode(value, "utf-8");
+    }
+
+    private static JSONObject getCommonHeaders(Suprsend config) {
+        return new JSONObject()
+                .put("Content-Type", "application/json; charset=utf-8")
+                .put("User-Agent", config.userAgent);
+    }
+
+    private static JSONObject dynamicHeaders() {
+        return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+    }
 }

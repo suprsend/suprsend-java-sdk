@@ -85,7 +85,7 @@ class BulkEventsChunk {
             String contentText;
             if (this.config.authEnabled) {
                 // Signature and Authorization Header
-                JSONObject sigResult = Signature.getRequestSignature(getUrl(), "POST", __chunk.toString(), headers,
+                JSONObject sigResult = Signature.getRequestSignature(getUrl(), HttpMethod.POST, __chunk.toString(), headers,
                         this.config.workspaceSecret);
                 contentText = sigResult.getString("contentTxt");
                 headers.put("Authorization",
@@ -94,7 +94,7 @@ class BulkEventsChunk {
                 contentText = __chunk.toString();
             }
             // --- Make HTTP POST request
-            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", getUrl(), headers,
+            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getUrl(), headers,
                     contentText);
             int statusCode = resp.statusCode;
             String responseText = resp.responseText;

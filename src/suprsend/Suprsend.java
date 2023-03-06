@@ -14,10 +14,9 @@ import java.io.UnsupportedEncodingException;
  */
 public class Suprsend {
 	protected String apiKey, apiSecret, baseUrl;
-	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
-			System.getProperty("java.version"));
+	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION, System.getProperty("java.version"));
 	protected boolean debug = false;
-	// 
+	//
 	public SubscriberFactory user;
 	private EventCollector eventCollector;
 	private WorkflowTrigger workflowTrigger;
@@ -88,8 +87,7 @@ public class Suprsend {
 	 * @param debug           print logs of http-request to SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug)
-			throws SuprsendException {
+	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug) throws SuprsendException {
 		this(apiKey, apiSecret, baseUrl, debug, new JSONObject());
 	}
 
@@ -102,8 +100,7 @@ public class Suprsend {
 	 * @param kwargs          extra parameters for SuprSend internal purpose
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, JSONObject kwargs)
-			throws SuprsendException {
+	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, JSONObject kwargs) throws SuprsendException {
 
 		this.apiKey = apiKey;
 		this.apiSecret = apiSecret;
@@ -202,8 +199,7 @@ public class Suprsend {
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	@Deprecated
-	public JSONObject triggerWorkflow(JSONObject data)
-			throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, UnsupportedEncodingException {
 		Workflow wfIns = new Workflow(data, null, null);
 		return this.workflowTrigger.trigger(wfIns);
 	}
@@ -216,8 +212,7 @@ public class Suprsend {
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	public JSONObject triggerWorkflow(Workflow wf)
-			throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject triggerWorkflow(Workflow wf) throws SuprsendException, UnsupportedEncodingException {
 		return this.workflowTrigger.trigger(wf);
 	}
 
@@ -234,8 +229,7 @@ public class Suprsend {
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	@Deprecated
-	public JSONObject track(String distinctId, String eventName, JSONObject properties)
-			throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctId, eventName, properties, null, null);
 		return this.eventCollector.collect(event);
 	}
@@ -249,8 +243,7 @@ public class Suprsend {
 	 * @throws SuprsendException SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	public JSONObject trackEvent(Event event)
-			throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject trackEvent(Event event) throws SuprsendException, UnsupportedEncodingException {
 		return this.eventCollector.collect(event);
 	}
 

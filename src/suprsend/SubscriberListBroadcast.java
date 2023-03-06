@@ -48,8 +48,8 @@ public class SubscriberListBroadcast {
         int apparentSize = Utils.getApparentListBroadcastBodySize(this.body);
         if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
             throw new SuprsendException(
-                String.format("SubscriberListBroadcast body too big - %d Bytes, must not cross %s",
-                apparentSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
+                    String.format("SubscriberListBroadcast body too big - %d Bytes, must not cross %s",
+                            apparentSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }
         return new JSONObject().put("event", this.body).put("apparent_size", apparentSize);
     }

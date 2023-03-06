@@ -12,18 +12,18 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
-public class TestWorkFlow {
+public class TestWorkflow {
 
     public static void main(String[] args) throws Exception {
-        testWorkFlow();
+        testWorkflow();
         testWorkflowWithIdempotencyKey();
-        testWorkFlowBulk();
+        testWorkflowBulk();
     }
 
-    private static void testWorkFlow() throws SuprsendException, UnsupportedEncodingException {
+    private static void testWorkflow() throws SuprsendException, UnsupportedEncodingException {
         Suprsend suprClient = TestHelper.getClientInstance();
         // payload
-        JSONObject body = getWorkFlowBody();
+        JSONObject body = getWorkflowBody();
         Workflow wf = new Workflow(body);
         // 
         JSONObject resp = suprClient.triggerWorkflow(wf);
@@ -34,7 +34,7 @@ public class TestWorkFlow {
     public static void testWorkflowWithIdempotencyKey() throws SuprsendException, IOException {
         Suprsend suprClient = TestHelper.getClientInstance();
         // payload
-        JSONObject body = getWorkFlowBody();
+        JSONObject body = getWorkflowBody();
         String idempotencyKey = "__uniq_id_like_uuid__";
         String brandId = "default";
         Workflow wf = new Workflow(body, idempotencyKey, brandId);
@@ -46,23 +46,28 @@ public class TestWorkFlow {
         System.out.println(resp);
     }
 
-    private static void testWorkFlowBulk() throws SuprsendException, UnsupportedEncodingException {
+    private static void testWorkflowBulk() throws SuprsendException, IOException {
         Suprsend suprClient = TestHelper.getClientInstance();
         // payload
         BulkWorkflows bulkIns = suprClient.bulkWorkflows.newInstance();
         for (int i = 0; i < 3; i++) {
-            bulkIns.append(getWorkFlow());
+            bulkIns.append(getWorkflow());
         }
         BulkResponse resp = bulkIns.trigger();
         System.out.println(resp);
     }
 
-    private static Workflow getWorkFlow() {
-        JSONObject body = getWorkFlowBody();
-        return new Workflow(body);
+    private static Workflow getWorkflow() throws SuprsendException, IOException {
+        JSONObject body = getWorkflowBody();
+        Workflow wf = new Workflow(body);
+        // String filePath = "https://lightning.network/lightning-network-paper.pdf";
+        // String filePath = "~/Downloads/gfs-sosp2003.pdf"; 
+        // wf.addAttachment(filePath, "MyFile.pdf", true);
+        // wf.addAttachment(filePath, "MyFile2.pdf", true);
+        return wf;
     }
 
-    private static JSONObject getWorkFlowBody() {
+    private static JSONObject getWorkflowBody() {
         JSONObject body = new JSONObject()
                 .put("name", "Booking Confirmed")
                 .put("template", "template-booking")

@@ -41,7 +41,7 @@ public class Subscriber {
 	 */
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent)
+		        .put("User-Agent", this.config.userAgent)
 				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
@@ -71,8 +71,8 @@ public class Subscriber {
 	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
 		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
 		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
-					Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+		    String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
+		            Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new SuprsendException(errMsg);
 		}
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
@@ -112,7 +112,7 @@ public class Subscriber {
 			JSONObject ev = validateEventSize(eventTemp);
 			// 
 			JSONObject validatedEvent = ev.getJSONObject("event");
-			int apparentSize = ev.getInt("apparent_size");
+			// int apparentSize = ev.getInt("apparent_size");
 			//
 			// Signature and Authorization Header
 			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, validatedEvent.toString(), headers,
@@ -128,20 +128,20 @@ public class Subscriber {
 			//
 			if (statusCode >= 200 && statusCode < 300) {
 				response.put("success", true)
-						.put("status", "success")
-						.put("status_code", statusCode)
-						.put("message", responseText);
+				.put("status", "success")
+				.put("status_code", statusCode)
+				.put("message", responseText);
 			} else {
 				response.put("success", false)
-						.put("status", "fail")
-						.put("status_code", statusCode)
-						.put("message", responseText);
+				.put("status", "fail")
+				.put("status_code", statusCode)
+				.put("message", responseText);
 			}
 		} catch (SuprsendException | IOException e) {
 			response.put("success", false)
-					.put("status", "fail")
-					.put("status_code", 500)
-					.put("message", e.toString());
+			.put("status", "fail")
+			.put("status_code", 500)
+			.put("message", e.toString());
 		}
 		return response;
 	}

@@ -20,7 +20,7 @@ public class BrandsApi {
 
     private JSONObject getHeaders() {
 		return new JSONObject()
-                .put("Content-Type", "application/json; charset=utf-8")
+		        .put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
                 .put("Date", Utils.getCurrentDateTimeHeader());
 	}
@@ -61,7 +61,7 @@ public class BrandsApi {
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
+        headers.put("Authorization", 
                 String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
@@ -113,13 +113,13 @@ public class BrandsApi {
         JSONObject headers = getHeaders();
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, 
-                                                            brandPayload.toString(), headers, this.config.apiSecret);
+                brandPayload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
                 String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, 
-                                    url, headers, contentText);
+                url, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }

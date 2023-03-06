@@ -94,8 +94,8 @@ public class Workflow {
 		// Check body size
 		int apparentSize = Utils.getApparentWorkflowBodySize(body, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
-					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+		    String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
+		            Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new SuprsendException(errMsg);
 		}
 		return new JSONObject().put("event", validatedBody).put("apparent_size", apparentSize);

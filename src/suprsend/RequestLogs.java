@@ -30,19 +30,18 @@ class RequestLogs {
 
 	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
 		logger.log(Level.INFO,
-				String.format(
-						"HTTP Request \n------------------------------->>\n"
-								+ "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" + "------------------------------->>",
-						httpMethod.name(), url, headers.toString(), payload));
+		        String.format("HTTP Request \n------------------------------->>\n"
+		                + "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n"
+		                + "------------------------------->>",
+		                httpMethod.name(), url, headers.toString(), payload));
 	}
 
 	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText){
 		logger.log(Level.INFO,
-				String.format(
-						"HTTP Response \n<<-------------------------------\n"
-								+ "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n" + "<<-------------------------------",
+		        String.format("HTTP Response \n<<-------------------------------\n"
+		                + "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n"
+		                + "<<-------------------------------",
 						statusCode, contentType, responseText));
-
 	}
 
 	private static void setMandatoryHeaders(HttpURLConnection httpConn, JSONObject headers) {

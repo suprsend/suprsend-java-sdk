@@ -25,7 +25,7 @@ public class SubscriberListsApi {
 
     private JSONObject getHeaders() {
 		return new JSONObject()
-                .put("Content-Type", "application/json; charset=utf-8")
+		        .put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
                 .put("Date", Utils.getCurrentDateTimeHeader());
 	}
@@ -47,14 +47,14 @@ public class SubscriberListsApi {
         // 
         JSONObject headers = getHeaders();
         // Signature and Authorization-header
-        JSONObject sigResult = Signature.getRequestSignature(this.subscriberListUrl, HttpMethod.POST, 
-                                                            payload.toString(), headers, this.config.apiSecret);
+        JSONObject sigResult = Signature.getRequestSignature(this.subscriberListUrl, HttpMethod.POST,
+                payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
                 String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         //
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, 
-                                    this.subscriberListUrl, headers, contentText);
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST,
+                this.subscriberListUrl, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
@@ -97,11 +97,9 @@ public class SubscriberListsApi {
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
-                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
-        // 
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
-                contentText);
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        //
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
@@ -120,11 +118,9 @@ public class SubscriberListsApi {
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
-                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
-        // 
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
-                contentText);
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        //
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers, contentText);
         if(resp.statusCode>=400){
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
@@ -142,11 +138,9 @@ public class SubscriberListsApi {
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
-                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         // 
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
-                contentText);
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
@@ -164,11 +158,9 @@ public class SubscriberListsApi {
         // Signature and Authorization-header
         JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
-                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         // 
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
-                contentText);
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
@@ -189,30 +181,28 @@ public class SubscriberListsApi {
             // Signature and Authorization-header
             JSONObject sigResult = Signature.getRequestSignature(this.broadcastUrl, HttpMethod.POST,broadcastBody.toString(), headers, this.config.apiSecret);
             String contentText = sigResult.getString("contentTxt");
-            headers.put("Authorization",
-                    String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+            headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
             // 
-            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.broadcastUrl, headers, 
-                    contentText);
+            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.broadcastUrl, headers, contentText);
             int statusCode = resp.statusCode;
             String responseText = resp.responseText;
             //
             if (statusCode >= 200 && statusCode < 300) {
                 response.put("success", true)
-                        .put("status", "success")
-                        .put("status_code", statusCode)
-                        .put("message", responseText);
+                .put("status", "success")
+                .put("status_code", statusCode)
+                .put("message", responseText);
             } else {
                 response.put("success", false)
-                        .put("status", "fail")
-                        .put("status_code", statusCode)
-                        .put("message", responseText);
+                .put("status", "fail")
+                .put("status_code", statusCode)
+                .put("message", responseText);
             }
         } catch (SuprsendException | IOException e) {
             response.put("success", false)
-                    .put("status", "fail")
-                    .put("status_code", 500)
-                    .put("message", e.toString());
+            .put("status", "fail")
+            .put("status_code", 500)
+            .put("message", e.toString());
         }
         return response;
     }

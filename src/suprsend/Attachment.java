@@ -10,7 +10,7 @@ import java.util.Base64;
 import java.util.List;
 
 /**
- * Extracts file content from filePath and prepares desired attachment structure
+ * Creates attachment structure to be included in event/workflow
  */
 public class Attachment {
 	private static List<String> urlSchemes = Arrays.asList("https://", "http://");
@@ -54,11 +54,11 @@ public class Attachment {
 
 	private static JSONObject getAttachmentJSONForUrl(String fileUrl, String fileName, boolean ignoreIfError) {
 		return new JSONObject()
-		.put("filename", fileName)
-		.put("contentType", JSONObject.NULL)
-		.put("data", JSONObject.NULL)
-		.put("url", fileUrl)
-		.put("ignore_if_error", ignoreIfError);
+		        .put("filename", fileName)
+        		.put("contentType", JSONObject.NULL)
+        		.put("data", JSONObject.NULL)
+        		.put("url", fileUrl)
+        		.put("ignore_if_error", ignoreIfError);
 	}
 
 	private static JSONObject getAttachmentJSONForFile(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException{
@@ -76,11 +76,11 @@ public class Attachment {
 		String b64EncodedStr = Base64.getEncoder().encodeToString(fileBytes);
 		//
 		return new JSONObject()
-		.put("filename", finalFileName)
-		.put("contentType", mimeType)
-		.put("data", b64EncodedStr)
-		.put("url", JSONObject.NULL)
-		.put("ignore_if_error", ignoreIfError);
+		        .put("filename", finalFileName)
+        		.put("contentType", mimeType)
+        		.put("data", b64EncodedStr)
+        		.put("url", JSONObject.NULL)
+        		.put("ignore_if_error", ignoreIfError);
 	}
 	
 }

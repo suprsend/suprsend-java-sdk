@@ -1,23 +1,24 @@
 package suprsend;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
-
-import org.json.JSONObject;
+import java.util.stream.Collectors;
 
 /**
  * Initialize HTTP request logs when debug is sent as true
  * 
  * @author Suprsend
  */
-public class RequestLogs {
+class RequestLogs {
 	// static {
 	// ConsoleHandler handler = new ConsoleHandler();
 	// handler.setLevel(Level.FINE);
@@ -27,12 +28,20 @@ public class RequestLogs {
 	// log.setLevel(Level.FINE);
 	// }
 
-	protected static void logHttpCall(Logger logger, String method, String url, JSONObject headers, String payload) {
+	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
 		logger.log(Level.INFO,
-				String.format(
-						"HTTP Request -------------------------------\n"
-								+ "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" + "-------------------------------",
-						"POST", url, headers.toString(), payload));
+		        String.format("HTTP Request \n------------------------------->>\n"
+		                + "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n"
+		                + "------------------------------->>",
+		                httpMethod.name(), url, headers.toString(), payload));
+	}
+
+	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText){
+		logger.log(Level.INFO,
+		        String.format("HTTP Response \n<<-------------------------------\n"
+		                + "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n"
+		                + "<<-------------------------------",
+						statusCode, contentType, responseText));
 	}
 
 	private static void setMandatoryHeaders(HttpURLConnection httpConn, JSONObject headers) {
@@ -44,35 +53,38 @@ public class RequestLogs {
 		}
 	}
 
-	protected static SuprsendResponse makeHttpCall(Logger logger, boolean debug, String method, String url,
-			JSONObject headers, String payload) throws IOException {
-		//
+	static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
+										JSONObject headers, String payload) throws IOException {
 		if (debug) {
-			logHttpCall(logger, method, url, headers, payload);
+			logHttpCall(logger, httpMethod, url, headers, payload);
 		}
 		// --- Make HTTP POST request
 		HttpURLConnection httpConn = (HttpURLConnection) new URL(url).openConnection();
-		httpConn.setRequestMethod("POST");
+		httpConn.setRequestMethod(httpMethod.name());
 		setMandatoryHeaders(httpConn, headers);
-		httpConn.setDoOutput(true);
-		//
-		byte[] input = payload.getBytes(StandardCharsets.UTF_8);
-		try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
-			dos.write(input);
+		if (httpMethod != HttpMethod.GET) {
+			httpConn.setDoOutput(true);
+			byte[] input = payload.getBytes(StandardCharsets.UTF_8);
+			try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
+				dos.write(input);
+			}
 		}
 		//
 		int statusCode = httpConn.getResponseCode();
-		String responseText = httpConn.getResponseMessage();
-		return new SuprsendResponse(statusCode, responseText);
-	}
-}
-
-class SuprsendResponse {
-	int statusCode;
-	String responseText;
-
-	SuprsendResponse(int statusCode, String responseText) {
-		this.statusCode = statusCode;
-		this.responseText = responseText;
+		BufferedReader br = null;
+		if (statusCode >= 400) {
+			br = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()));
+		} else {
+			br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+		}
+		String respText = br.lines().collect(Collectors.joining());
+		String contentType = httpConn.getContentType();
+		if (debug) {
+			logHttpResponse(logger, statusCode, contentType, respText);
+		}
+		//
+		SuprsendResponse response = new SuprsendResponse(statusCode, respText, contentType);
+		response.parseResponse();
+		return response;
 	}
 }

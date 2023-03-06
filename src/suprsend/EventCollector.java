@@ -1,43 +1,20 @@
 package suprsend;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 
-public class EventCollector {
+class EventCollector {
 	private static final Logger logger = Logger.getLogger(EventCollector.class.getName());
 
 	private Suprsend config;
 	private String url;
-	private JSONObject commonHeaders;
 
 	EventCollector(Suprsend config) {
 		this.config = config;
-		this.url = getUrl();
-		this.commonHeaders = getCommonHeaders();
-	}
-
-	private String getUrl() {
-		String urlTemplate = "%sevent/";
-		if (this.config.includeSignatureParam) {
-			if (this.config.authEnabled) {
-				urlTemplate = urlTemplate + "?verify=true";
-			} else {
-				urlTemplate = urlTemplate + "?verify=false";
-			}
-		}
-		return String.format(urlTemplate, this.config.baseUrl);
-	}
-
-	private JSONObject getCommonHeaders() {
-		return new JSONObject()
-				.put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent);
-	}
-
-	private JSONObject dynamicHeaders() {
-		return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+		this.url = String.format("%sevent/", this.config.baseUrl);
 	}
 
 	/**
@@ -45,56 +22,51 @@ public class EventCollector {
 	 * 
 	 * @return Headers as JSON object
 	 */
-	private JSONObject getMergedHeaders() {
-		JSONObject dynHeaders = dynamicHeaders();
-		JSONObject merged = Utils.mergeJSONObjects(this.commonHeaders, dynHeaders);
-		return merged;
+	private JSONObject getHeaders() {
+		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
+		        .put("User-Agent", this.config.userAgent)
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
-	public JSONObject collect(Event event) throws SuprsendException, UnsupportedEncodingException {
+	JSONObject collect(Event event) throws SuprsendException, UnsupportedEncodingException {
 		JSONObject finalJson = event.getFinalJson(config, false);
 		JSONObject eventDict = finalJson.getJSONObject("event");
-		int eventSize = finalJson.getInt("apparent_size");
+		// int eventSize = finalJson.getInt("apparent_size");
 		return send(eventDict);
 	}
 
 	private JSONObject send(JSONObject event) {
-		JSONObject headers = getMergedHeaders();
+		JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
 		try {
-			String contentText;
-			if (this.config.authEnabled) {
-				// Signature and Authorization Header
-				JSONObject sigResult = Signature.getRequestSignature(this.url, "POST", event, headers,
-						this.config.workspaceSecret);
-				contentText = sigResult.getString("contentTxt");
-				headers.put("Authorization",
-						String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-			} else {
-				contentText = event.toString();
-			}
+			// Signature and Authorization Header
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, event.toString(), headers,
+			        this.config.apiSecret);
+			String contentText = sigResult.getString("contentTxt");
+			headers.put("Authorization",
+					String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, "POST", this.url, headers,
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
 				response.put("success", true)
-						.put("status", "success")
-						.put("status_code", statusCode)
-						.put("message", responseText);
+				.put("status", "success")
+				.put("status_code", statusCode)
+				.put("message", responseText);
 			} else {
 				response.put("success", false)
-						.put("status", "fail")
-						.put("status_code", statusCode)
-						.put("message", responseText);
+				.put("status", "fail")
+				.put("status_code", statusCode)
+				.put("message", responseText);
 			}
 		} catch (SuprsendException | IOException e) {
 			response.put("success", false)
-					.put("status", "fail")
-					.put("status_code", 500)
-					.put("message", e.toString());
+			.put("status", "fail")
+			.put("status_code", 500)
+			.put("message", e.toString());
 		}
 		return response;
 	}

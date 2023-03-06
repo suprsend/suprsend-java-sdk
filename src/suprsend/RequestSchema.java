@@ -15,12 +15,12 @@ import java.io.InputStream;
  * @author Suprsend
  */
 class RequestSchema {
-	protected static JSONObject JSON_SCHEMA;
-	protected static Schema workflowSchemaValidator;
-	protected static Schema eventSchemaValidator;
-	protected static Schema listBroadcastSchemaValidator;
+	static JSONObject JSON_SCHEMA;
+	static Schema workflowSchemaValidator;
+	static Schema eventSchemaValidator;
+	static Schema listBroadcastSchemaValidator;
 
-	protected static Schema getSchemaValidator(String schemaName) throws SuprsendException {
+	static Schema getSchemaValidator(String schemaName) throws SuprsendException {
 		if (schemaName == "workflow") {
 			if (null == workflowSchemaValidator) {
 				JSONObject jsonSchema = RequestSchema.getSchema("workflow");
@@ -28,18 +28,20 @@ class RequestSchema {
 			}
 			return workflowSchemaValidator;
 
-		} else if  (schemaName == "event") {
+		} else if (schemaName == "event") {
 			if (null == eventSchemaValidator) {
 				JSONObject jsonSchema = RequestSchema.getSchema("event");
 				eventSchemaValidator = SchemaLoader.load(jsonSchema);
 			}
 			return eventSchemaValidator;
-		} else if  (schemaName == "list_broadcast") {
+
+		} else if (schemaName == "list_broadcast") {
 			if (null == listBroadcastSchemaValidator) {
 				JSONObject jsonSchema = RequestSchema.getSchema("list_broadcast");
 				listBroadcastSchemaValidator = SchemaLoader.load(jsonSchema);
 			}
 			return listBroadcastSchemaValidator;
+
 		} else {
 			return null;
 		}
@@ -52,11 +54,11 @@ class RequestSchema {
 	 * @return JSON object of the loaded schema
 	 * @throws SuprsendException Throw custom exception
 	 */
-	protected static JSONObject getSchema(String schemaName) throws SuprsendException {
+	private static JSONObject getSchema(String schemaName) throws SuprsendException {
 		if (JSON_SCHEMA == null) {
 			JSON_SCHEMA = new JSONObject();
 		}
-		JSONObject schemaBody = (JSONObject) JSON_SCHEMA.opt(schemaName);
+		JSONObject schemaBody = JSON_SCHEMA.optJSONObject(schemaName);
 		if (schemaBody == null) {
 			schemaBody = loadJSONSchema(schemaName);
 			if (schemaBody == null) {

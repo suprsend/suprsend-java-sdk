@@ -11,36 +11,29 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-//TODO - Move to latest version
 public class Subscriber {
 	private static final Logger logger = Logger.getLogger(Subscriber.class.getName());
 
 	private Suprsend config;
-	private String distinctID, url;
-	private List<JSONObject> events;
-	private List<String> errors, info;
-	private int appendCount, removeCount, unsetCount;
+	private String distinctId, url;
 	private JSONObject superProperties;
+	// 
+	private List<String> errors, info;
+	private List<JSONObject> userOperations;
+	
 	private SubscriberInternalHelper helper;
 
-	Subscriber(Suprsend config, String distinctID) {
+	Subscriber(Suprsend config, String distinctId) {
 		this.config = config;
-		this.distinctID = distinctID;
-		this.url = getUrl();
+		this.distinctId = distinctId;
+		this.url = String.format("%sevent/", this.config.baseUrl);
 		this.superProperties = getSuperProperties();
 		//
 		this.errors = new ArrayList<String>();
 		this.info = new ArrayList<String>();
-		this.appendCount = this.removeCount = this.unsetCount = 0;
 		//
-		this.events = new ArrayList<JSONObject>();
-		this.helper = new SubscriberInternalHelper(this.distinctID, this.config.workspaceKey);
-	}
-
-	private String getUrl() {
-		String urlTemplate = "%sevent/";
-		String urlFormatted = String.format(urlTemplate, this.config.baseUrl);
-		return urlFormatted;
+		this.userOperations = new ArrayList<JSONObject>();
+		this.helper = new SubscriberInternalHelper();
 	}
 
 	/**
@@ -49,7 +42,7 @@ public class Subscriber {
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
-				.put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
 	private JSONObject getSuperProperties() {
@@ -64,30 +57,15 @@ public class Subscriber {
 		return this.errors;
 	}
 
-	public List<JSONObject> getEvents() {
-		// Don't mutate the original array. Make a copy of events.TODO
-		List<JSONObject> allEvents = this.events;
-		for (JSONObject e : allEvents) {
-			e.put("properties", this.superProperties);
-		}
-		// Add $identify event by default, if new properties get added
-		if (allEvents.size() == 0 || this.appendCount > 0) {
-			JSONObject userIdentifyEvent = new JSONObject()
-					.put("$insert_id", UUID.randomUUID().toString())
-					.put("$time", Instant.now().getEpochSecond() * 1000)
-					.put("env", this.config.workspaceKey)
-					.put("event", "$identify")
-					.put("properties", Utils.mergeJSONObjects(
-							// # Don't add $anon_id to properties,
-							new JSONObject().put("$identified_id", this.distinctID),
-							getSuperProperties()
-							)
-						);
-			// Add $identify event at the 0th index, so that $identify runs before
-			// $append/$remove/$reset
-			allEvents.add(0, userIdentifyEvent);
-		}
-		return allEvents;
+	public JSONObject getEvent() {
+		return new JSONObject()
+			.put("$schema", "2")
+			.put("$insert_id", UUID.randomUUID().toString())
+			.put("$time", Instant.now().getEpochSecond() * 1000)
+			.put("env", this.config.apiKey)
+			.put("distinct_id", this.distinctId)
+			.put("$user_operations", this.userOperations)
+			.put("properties", this.superProperties);
 	}
 
 	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
@@ -100,16 +78,16 @@ public class Subscriber {
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
 	}
 
-	public ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
+	ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
 		ArrayList<String> warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
-			String msg = String.format("[distinct_id: %s] %s", this.distinctID, String.join("\n", this.info));
+			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.info));
 			warningsList.add(msg);
 			// print on console as well
 			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
-			String msg = String.format("[distinct_id: %s] %s", this.distinctID, String.join("\n", this.errors));
+			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.errors));
 			warningsList.add(msg);
 			String errMsg = String.format("ERROR: %s", msg);
 			if (isPartOfBulk) {
@@ -125,23 +103,23 @@ public class Subscriber {
 	}
 
 	public JSONObject save() {
-		JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
 		try {
 			validateBody(false);
-			List<JSONObject> allEvents = getEvents();
+			JSONObject headers = getHeaders();
+			JSONObject eventTemp = getEvent();
 			// # --- validate event size
-			for (JSONObject ev : allEvents) {
-				JSONObject o = validateEventSize(ev);
-			}
+			JSONObject ev = validateEventSize(eventTemp);
+			// 
+			JSONObject validatedEvent = ev.getJSONObject("event");
+			int apparentSize = ev.getInt("apparent_size");
 			//
-			String contentText;
 			// Signature and Authorization Header
-			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, allEvents.toString(), headers,
-					this.config.workspaceSecret);
-			contentText = sigResult.getString("contentTxt");
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, validatedEvent.toString(), headers,
+					this.config.apiSecret);
+			String contentText = sigResult.getString("contentTxt");
 			headers.put("Authorization",
-					String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+					String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);
@@ -185,10 +163,7 @@ public class Subscriber {
 		}
 		JSONObject event = response.optJSONObject("event");
 		if (event != null && !event.isEmpty()) {
-			this.events.add(event);
-			this.appendCount = this.appendCount + response.getInt("append");
-			this.removeCount = this.removeCount + response.getInt("remove");
-			this.unsetCount = this.unsetCount + response.getInt("unset");
+			this.userOperations.add(event);
 		}
 	}
 
@@ -257,6 +232,14 @@ public class Subscriber {
 		for (String k : key) {
 			this.helper.unsetK(k, caller);
 		}
+		collectEvent();
+	}
+
+	// =========================================================== Preferred language
+
+	public void setPreferredLanguage(String langCode) {
+		String caller = "set_preferred_language";
+		this.helper.setPreferredLanguage(langCode, caller);
 		collectEvent();
 	}
 
@@ -379,25 +362,40 @@ public class Subscriber {
 	}
 
 	// =========================================================== Slack
+	public void addSlack(JSONObject value) {
+		String caller = "add_slack";
+		this.helper.addSlack(value, caller);
+		collectEvent();
+	}
 
+	public void removeSlack(JSONObject value) {
+		String caller = "remove_slack";
+		this.helper.removeSlack(value, caller);
+		collectEvent();
+	}
+
+	@Deprecated
 	public void addSlackEmail(String value) {
 		String caller = "add_slack_email";
 		this.helper.addSlack(new JSONObject().put("email", value), caller);
 		collectEvent();
 	}
 
+	@Deprecated
 	public void removeSlackEmail(String value) {
 		String caller = "remove_slack_email";
 		this.helper.removeSlack(new JSONObject().put("email", value), caller);
 		collectEvent();
 	}
 
+	@Deprecated
 	public void addSlackUserid(String value) {
 		String caller = "add_slack_userid";
 		this.helper.addSlack(new JSONObject().put("user_id", value), caller);
 		collectEvent();
 	}
 
+	@Deprecated
 	public void removeSlackUserid(String value) {
 		String caller = "remove_slack_userid";
 		this.helper.removeSlack(new JSONObject().put("user_id", value), caller);

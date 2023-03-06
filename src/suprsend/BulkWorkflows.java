@@ -1,6 +1,5 @@
 package suprsend;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -11,76 +10,79 @@ import java.util.logging.Logger;
 
 public class BulkWorkflows {
     private static final Logger logger = Logger.getLogger(BulkWorkflows.class.getName());
-    private Suprsend config;
-    private ArrayList<Workflow> _workflows = new ArrayList<Workflow>();
-    private JSONArray workflowsJA = new JSONArray();
-    private List<BulkWorkflowsChunk> chunks = new ArrayList<>();
-    private BulkWorkflowsChunk currChunk;
 
-    private BulkResponse bulkResponse = new BulkResponse();
+    private Suprsend config;
+
+    private List<Workflow> __workflows;
+    private List<JSONObject> __pendingRecords;
+
+    private List<BulkWorkflowsChunk> chunks;
+    private BulkResponse response;
 
     BulkWorkflows(Suprsend config) {
         this.config = config;
+        this.__workflows = new ArrayList<Workflow>();
+        this.__pendingRecords = new ArrayList<JSONObject>();
+        this.chunks = new ArrayList<>();
+        this.response = new BulkResponse();
     }
 
     private void validateWorkflows() throws SuprsendException, UnsupportedEncodingException {
-        if (_workflows.isEmpty()) {
-            throw new SuprsendException("events list is empty in bulk request");
+        if (this.__workflows.isEmpty()) {
+            throw new SuprsendException("workflow list is empty in bulk request");
         }
-        for (Workflow wf : _workflows) {
-            JSONObject evJson = wf.getFinalJson(config, true);
-            workflowsJA.put(evJson);
-        }
-    }
-
-    private void validateEvents() throws SuprsendException, UnsupportedEncodingException {
-        if (_workflows.isEmpty()) {
-            throw new SuprsendException("events list is empty in bulk request");
-        }
-        for (Workflow wf : _workflows) {
-            JSONObject evJson = wf.getFinalJson(config, true);
-            workflowsJA.put(evJson);
+        for (Workflow wf : this.__workflows) {
+            // {"event", validatedEvent, "apparent_size", apparentSize}
+            JSONObject wfJson = wf.getFinalJson(this.config, true);
+            this.__pendingRecords.add(wfJson);
         }
     }
 
-    private void chunkify(int start) throws SuprsendException {
-        currChunk = new BulkWorkflowsChunk(config);
-        chunks.add(currChunk);
-        for (int i = 0; i < workflowsJA.length(); i++) {
-            JSONObject event = workflowsJA.getJSONObject(i);
-            int apparentSize = event.getInt("apparent_size");
-            boolean isAdded = currChunk.tryToAddIntoChunk(event.getJSONObject("event"), apparentSize);
+    private void chunkify(int startIdx) throws SuprsendException {
+        BulkWorkflowsChunk currChunk = new BulkWorkflowsChunk(this.config);
+        this.chunks.add(currChunk);
+        // loop on slice pendingRecords[startIdx:]
+        int recordsLen = this.__pendingRecords.size();
+        List<JSONObject> slice = this.__pendingRecords.subList(startIdx, recordsLen);
+        //
+        for (int idx = 0; idx < slice.size(); idx++) {
+            JSONObject wfJson = slice.get(idx);
+            boolean isAdded = currChunk.tryToAddIntoChunk(wfJson.getJSONObject("event"), wfJson.getInt("apparent_size"));
             if (!isAdded) {
-                chunkify(start + i);
+                // create chunks from remaining records
+                chunkify(startIdx + idx);
+                // Don't forget to break. As current loop must not continue further
                 break;
             }
         }
     }
 
-    public void append(List<Workflow> workflows) throws SuprsendException {
-        if (workflows.isEmpty()) {
-            System.out.println("events list empty. must pass one or more events");
-            return;
+    public void append(Workflow... workflows) throws SuprsendException {
+        if (workflows.length == 0) {
+            throw new SuprsendException("workflow list empty. must pass one or more valid workflow instances");
         }
-        for (Workflow wf : workflows) {
-            if (wf == null) {
-                throw new SuprsendException("null/empty element found in bulk instance");
+        for (Workflow obj : workflows) {
+            if (obj == null) {
+                continue;
             }
-            //Todo : niks Clone events
-            _workflows.addAll(workflows);
+            this.__workflows.add(obj);
         }
     }
 
     public BulkResponse trigger() throws SuprsendException, UnsupportedEncodingException {
-        validateEvents();
+        validateWorkflows();
         chunkify(0);
-        for (int i = 0; i < chunks.size(); i++) {
-            BulkWorkflowsChunk chunk = chunks.get(i);
-            logger.log(Level.INFO, "triggering api call for chunk:" + i);
+        for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
+            BulkWorkflowsChunk chunk = this.chunks.get(cIdx);
+            if (this.config.debug) {
+                logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
+            }
+            // do api call
             chunk.trigger();
-            bulkResponse.mergeChunkResponse(chunk.response);
+            // merge response
+            this.response.mergeChunkResponse(chunk.response);
         }
-        return bulkResponse;
+        return this.response;
     }
 
 }

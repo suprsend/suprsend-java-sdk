@@ -2,14 +2,14 @@ package suprsend;
 
 public class BulkWorkflowsFactory {
 
-    private Suprsend config;
+    private final Suprsend config;
 
-    public BulkWorkflowsFactory(Suprsend config) {
+    BulkWorkflowsFactory(Suprsend config) {
         this.config = config;
     }
 
-    public BulkWorkflows getInstance() {
-        return new BulkWorkflows(config);
+    public BulkWorkflows newInstance() {
+        return new BulkWorkflows(this.config);
     }
 
 }

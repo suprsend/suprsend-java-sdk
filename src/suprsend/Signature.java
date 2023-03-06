@@ -12,6 +12,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+enum HttpMethod {
+	POST, GET
+}
+
 /**
  * This class creates signature of the payload of HTTP request to SuprSend
  * platform. Signature is required to detect tempering of the request.
@@ -37,10 +41,6 @@ class Signature {
 		return sha256mac;
 	}
 
-	public static JSONObject getRequestSignature(String url, HttpMethod httpMethod, JSONObject headers,
-												 String secret) throws SuprsendException {
-		return getRequestSignature(url,httpMethod,"",headers,secret);
-	}
 	/**
 	 * Get request signature
 	 *
@@ -53,7 +53,7 @@ class Signature {
 	 *         signature.
 	 * @throws SuprsendException if error occurs while creating signature
 	 */
-	public static JSONObject getRequestSignature(String url, HttpMethod httpMethod, String content, JSONObject headers,
+	static JSONObject getRequestSignature(String url, HttpMethod httpMethod, String content, JSONObject headers,
 			String secret) throws SuprsendException {
 		//
 		Mac sha256mac = getSha256macInstance(secret);
@@ -61,7 +61,7 @@ class Signature {
 		String contentMD5 = "";
 		// In case of GET request, there is no payload body,
 		// so assume contentTxt and contentMD5 to be empty.
-		if (httpMethod!= HttpMethod.GET) {
+		if (httpMethod != HttpMethod.GET) {
 			contentMD5 = getMD5(content);
 		}
 		String requestURI = getURI(url);
@@ -111,8 +111,4 @@ class Signature {
 		}
 		return requestURI;
 	}
-}
-
-enum HttpMethod {
-	POST, GET
 }

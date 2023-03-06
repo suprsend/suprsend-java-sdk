@@ -2,20 +2,23 @@ package suprsend;
 
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Initialize HTTP request logs when debug is sent as true
  * 
  * @author Suprsend
  */
-public class RequestLogs {
+class RequestLogs {
 	// static {
 	// ConsoleHandler handler = new ConsoleHandler();
 	// handler.setLevel(Level.FINE);
@@ -25,7 +28,7 @@ public class RequestLogs {
 	// log.setLevel(Level.FINE);
 	// }
 
-	protected static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
+	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
 		logger.log(Level.INFO,
 				String.format(
 						"HTTP Request \n------------------------------->>\n"
@@ -33,12 +36,12 @@ public class RequestLogs {
 						httpMethod.name(), url, headers.toString(), payload));
 	}
 
-	protected static void logHttpResponse(Logger logger, int statusCode, String responseText){
+	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText){
 		logger.log(Level.INFO,
 				String.format(
 						"HTTP Response \n<<-------------------------------\n"
-								+ "Status Code:\t%d\nResponse:\t%s\n" + "<<-------------------------------",
-						statusCode,responseText));
+								+ "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n" + "<<-------------------------------",
+						statusCode, contentType, responseText));
 
 	}
 
@@ -51,8 +54,8 @@ public class RequestLogs {
 		}
 	}
 
-	protected static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
-												   JSONObject headers, String payload) throws IOException {
+	static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
+										JSONObject headers, String payload) throws IOException {
 		if (debug) {
 			logHttpCall(logger, httpMethod, url, headers, payload);
 		}
@@ -67,21 +70,22 @@ public class RequestLogs {
 				dos.write(input);
 			}
 		}
+		//
 		int statusCode = httpConn.getResponseCode();
-		String responseText = httpConn.getResponseMessage();
-		if (debug) {
-			logHttpResponse(logger, statusCode, responseText);
+		BufferedReader br = null;
+		if (statusCode >= 400) {
+			br = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()));
+		} else {
+			br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
 		}
-		return new SuprsendResponse(statusCode, responseText);
-	}
-}
-
-class SuprsendResponse {
-	int statusCode;
-	String responseText;
-
-	SuprsendResponse(int statusCode, String responseText) {
-		this.statusCode = statusCode;
-		this.responseText = responseText;
+		String respText = br.lines().collect(Collectors.joining());
+		String contentType = httpConn.getContentType();
+		if (debug) {
+			logHttpResponse(logger, statusCode, contentType, respText);
+		}
+		//
+		SuprsendResponse response = new SuprsendResponse(statusCode, respText, contentType);
+		response.parseResponse();
+		return response;
 	}
 }

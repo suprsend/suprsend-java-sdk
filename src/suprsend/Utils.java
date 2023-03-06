@@ -7,22 +7,26 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
-public class Utils {
+class Utils {
+	private static ZoneId zone = ZoneId.of("UTC"); 
+	private static DateTimeFormatter dateTimeHeaderFormat = DateTimeFormatter.ofPattern(Constants.HEADER_DATE_FMT);
 
-	public static String getCurrentDateTimeFormatted(String formatPattern) {
-		ZoneId zone = ZoneId.of("UTC");
+	static String getCurrentDateTimeHeader() {
 		LocalDateTime currentDateTime = LocalDateTime.now(zone);
 		ZonedDateTime zonedCurrentDateTime = currentDateTime.atZone(zone);
-		DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern(formatPattern);
-		return dateTimeFormat.format(zonedCurrentDateTime);
+		return dateTimeHeaderFormat.format(zonedCurrentDateTime);
 	}
 
-	public static JSONObject mergeJSONObjects(JSONObject... objs) {
+	static JSONObject mergeJSONObjects(JSONObject... objs) {
 		JSONObject merged = new JSONObject();
 		if (objs == null) {
 			return merged;
@@ -37,8 +41,7 @@ public class Utils {
 		return merged;
 	}
 
-	public static int getApparentWorkflowBodySize(JSONObject body, boolean isPartOfBulk)
-			throws UnsupportedEncodingException {
+	static int getApparentWorkflowBodySize(JSONObject body, boolean isPartOfBulk) throws UnsupportedEncodingException {
 		int extraBytes = Constants.WORKFLOW_RUNTIME_KEYS_POTENTIAL_SIZE_IN_BYTES;
 		JSONObject apparentBody = body;
 		//
@@ -67,8 +70,7 @@ public class Utils {
 							// if auto upload is not enabled, attachment data will be passed as it is.
 						}
 					} else {
-						// If attachment not allowed, then remove data->$attachments before calculating
-						// size
+						// If attachment not allowed, then remove data->$attachments before calculating size
 						apparentBody = new JSONObject(body.toString());
 						apparentBody.getJSONObject("data").remove("$attachments");
 					}
@@ -95,7 +97,7 @@ public class Utils {
 		return apparentSize;
 	}
 
-	public static int getApparentEventSize(JSONObject event, boolean isPartOfBulk) throws UnsupportedEncodingException {
+	static int getApparentEventSize(JSONObject event, boolean isPartOfBulk) throws UnsupportedEncodingException {
 		int extraBytes = 0;
 		JSONObject apparentBody = event;
 
@@ -124,8 +126,7 @@ public class Utils {
 							// if auto upload is not enabled, attachment data will be passed as it is.
 						}
 					} else {
-						// If attachment not allowed, then remove data->$attachments before calculating
-						// size
+						// If attachment not allowed, then remove data->$attachments before calculating size
 						apparentBody = new JSONObject(event.toString());
 						apparentBody.getJSONObject("properties").remove("$attachments");
 					}
@@ -153,9 +154,13 @@ public class Utils {
 		return apparentSize;
 	}
 
-	public static int getApparentIdentityEventSize(JSONObject event) throws UnsupportedEncodingException {
+	static int getApparentIdentityEventSize(JSONObject event) throws UnsupportedEncodingException {
 		int bodySize = event.toString().getBytes("utf-8").length;
 		return bodySize;
+	}
+
+	static int getApparentListBroadcastBodySize(JSONObject body) throws UnsupportedEncodingException {
+		return body.toString().getBytes("utf-8").length;
 	}
 
 	/**
@@ -165,7 +170,8 @@ public class Utils {
 	 * @return Validated data
 	 * @throws SuprsendException if schema not found.
 	 */
-	public static JSONObject validateWorkflowSchema(JSONObject body) throws SuprsendException {
+	static JSONObject validateWorkflowBodySchema(JSONObject body) throws SuprsendException {
+		// --- In case data is not provided, set it to empty dict
 		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
 		}
@@ -186,7 +192,8 @@ public class Utils {
 	 * @return Validated data
 	 * @throws SuprsendException if schema not found.
 	 */
-	public static JSONObject validateEventSchema(JSONObject data) throws SuprsendException {
+	static JSONObject validateTrackEventSchema(JSONObject data) throws SuprsendException {
+		// --- In case props is not provided, set it to empty dict
 		if (data.opt("properties") == null) {
 			data.put("properties", new JSONObject());
 		}
@@ -200,7 +207,8 @@ public class Utils {
 		return data;
 	}
 
-    public static JSONObject validateListBroadcastBodySchema(JSONObject body) throws SuprsendException {
+    static JSONObject validateListBroadcastBodySchema(JSONObject body) throws SuprsendException {
+		// --- In case data is not provided, set it to empty dict
         if (body.opt("data") == null) {
             body.put("data", new JSONObject());
         }
@@ -214,26 +222,22 @@ public class Utils {
         return body;
     }
 
-    static JSONObject getMergedHeaders(Suprsend config) {
-        return mergeJSONObjects(getCommonHeaders(config), dynamicHeaders());
-    }
-
     static String urlEncode(String value) throws UnsupportedEncodingException {
-        return URLEncoder.encode(value, "utf-8");
+        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    private static JSONObject getCommonHeaders(Suprsend config) {
-        return new JSONObject()
-                .put("Content-Type", "application/json; charset=utf-8")
-                .put("User-Agent", config.userAgent);
-    }
-
-	public static int getApparentBodySize(JSONObject body)
-			throws UnsupportedEncodingException {
-		return body.toString().getBytes("utf-8").length;
-	}
-
-    private static JSONObject dynamicHeaders() {
-        return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+	static String buildQueryParams(HashMap<String, Object> params) throws UnsupportedEncodingException {
+        StringBuilder sb = new StringBuilder();
+        Iterator<?> iter = params.entrySet().iterator();
+        while(iter.hasNext()) {
+            if (sb.length() > 0) {
+                sb.append("&");
+            }
+            Entry<?, ?> entry = (Entry<?, ?>) iter.next();
+			String encK = Utils.urlEncode(String.valueOf(entry.getKey()));
+			String encV = Utils.urlEncode(String.valueOf(entry.getValue()));
+			sb.append(encK).append("=").append(encV);
+        }
+        return sb.toString();
     }
 }

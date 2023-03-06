@@ -1,12 +1,13 @@
 package test;
 
+import java.io.IOException;
+
 import org.json.JSONObject;
 import suprsend.BulkEvents;
 import suprsend.BulkResponse;
 import suprsend.Event;
+import suprsend.Suprsend;
 import suprsend.SuprsendException;
-
-import java.util.ArrayList;
 
 
 public class TestEvent {
@@ -18,33 +19,41 @@ public class TestEvent {
     }
 
     public static void sendEvent() throws Exception {
-        JSONObject response = TestHelper.getInstance().trackEvent(getEvent());
-        System.out.println(response);
-    }
-
-    public static void sendEventBulk() throws Exception {
-        BulkEvents bulkEvents = TestHelper.getInstance().bulkEventsFactory.getInstance();
-        ArrayList<Event> eventsList = new ArrayList<Event>();
-        for (int i = 0; i < 3; i++) {
-            eventsList.add(getEvent());
-        }
-        bulkEvents.append(eventsList);
-        BulkResponse response = bulkEvents.trigger();
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // 
+        JSONObject response = suprClient.trackEvent(getEvent(null, null));
         System.out.println(response);
     }
 
     public static void sendEventWithIdempotencyKey() throws Exception {
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // 
         String idempotencyKey = "__uniq_id_like_uuid__";
-        JSONObject response = TestHelper.getInstance().trackEvent(getEvent(idempotencyKey));
+        String brandId = "default";
+        JSONObject response = suprClient.trackEvent(getEvent(idempotencyKey, brandId));
         System.out.println(response);
     }
 
-    private static Event getEvent() throws SuprsendException {
-        return getEvent(null);
+    public static void sendEventBulk() throws Exception {
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // 
+        BulkEvents bulkIns = suprClient.bulkEvents.newInstance();
+        for (int i = 0; i < 3; i++) {
+            bulkIns.append(getEvent(null, null));
+        }
+        BulkResponse response = bulkIns.trigger();
+        System.out.println(response);
     }
 
-    private static Event getEvent(String idempotencyKey) throws SuprsendException {
+    private static Event getEvent(String idempotencyKey, String brandId) throws SuprsendException, IOException {
         JSONObject eventProps = new JSONObject().put("k1", "v1");
-        return new Event("__distinct_id__", "EVENT_NAME", eventProps, idempotencyKey);
+        Event e = new Event("__distinct_id__", "EVENT_NAME", eventProps, 
+            idempotencyKey, brandId);
+        // String filePath = "https://lightning.network/lightning-network-paper.pdf";
+        // String filePath = "~/Downloads/gfs-sosp2003.pdf"; 
+        // e.addAttachment(filePath, "MyFile.pdf", true);
+        // e.addAttachment(filePath, "MyFile2.pdf", true);
+        return e;
     }
+
 }

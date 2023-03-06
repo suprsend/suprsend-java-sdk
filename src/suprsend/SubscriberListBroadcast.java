@@ -12,40 +12,45 @@ public class SubscriberListBroadcast {
     private String idempotencyKey;
     private String brandId;
 
-    public SubscriberListBroadcast(JSONObject body,String idempotencyKey, String brandId){
+    public SubscriberListBroadcast(JSONObject body) throws SuprsendException{
+        this(body, null, null);
+    }
+
+    public SubscriberListBroadcast(JSONObject body, String idempotencyKey) throws SuprsendException{
+        this(body, idempotencyKey, null);
+    }
+
+    public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String brandId) throws SuprsendException{
+        if (body == null) {
+            throw new SuprsendException("broadcast body must be a passed");
+        }
         this.body = body;
-        this.idempotencyKey = idempotencyKey;
-        this.brandId = brandId;
+        if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
+            this.idempotencyKey = idempotencyKey.trim();
+        }
+        if (brandId != null && !brandId.trim().isEmpty()) {
+            this.brandId = brandId.trim();
+        }
     }
 
     JSONObject getFinalJson() throws SuprsendException, UnsupportedEncodingException {
-        body.put("$insert_id", UUID.randomUUID().toString());
-        body.put("$time", Instant.now().getEpochSecond() * 1000);
-        if (!idempotencyKey.isEmpty()) {
-            body.put("$idempotency_key", idempotencyKey);
-        }
-        if (!brandId.isEmpty()) {
-            body.put("brand_id", brandId);
-        }
-        body = validateListBroadcastBodySchema();
-        int apparentSize = Utils.getApparentBodySize(body);
-        if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException("SubscriberListBroadcast body too big - " + apparentSize + " Bytes, " +
-                    "must not cross " + Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
-        }
-        body.put("apparent_size", apparentSize);
-        return body;
-    }
+        this.body.put("$insert_id", UUID.randomUUID().toString());
+        this.body.put("$time", Instant.now().getEpochSecond() * 1000);
+        if (null != this.idempotencyKey) {
+			this.body.put("$idempotency_key", this.idempotencyKey);
+		}
+		if (null != this.brandId) {
+			this.body.put("brand_id", this.brandId);
+		}
+        JSONObject validatedBody = Utils.validateListBroadcastBodySchema(this.body);
+        this.body = validatedBody;
 
-    private JSONObject validateListBroadcastBodySchema() throws SuprsendException {
-        Object data = body.get("data");
-        if (data == null) {
-            body.put("data", new JSONObject());
+        int apparentSize = Utils.getApparentListBroadcastBodySize(this.body);
+        if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
+            throw new SuprsendException(
+                String.format("SubscriberListBroadcast body too big - %d Bytes, must not cross %s",
+                apparentSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }
-        if (!(data instanceof JSONObject)) {
-            throw new SuprsendException("data must be a dictionary");
-        }
-        return Utils.validateListBroadcastBodySchema(this.body);
+        return new JSONObject().put("event", this.body).put("apparent_size", apparentSize);
     }
 }
-

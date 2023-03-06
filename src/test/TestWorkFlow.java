@@ -8,8 +8,9 @@ import suprsend.Suprsend;
 import suprsend.SuprsendException;
 import suprsend.Workflow;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
+import java.util.Arrays;
 
 public class TestWorkFlow {
 
@@ -19,34 +20,41 @@ public class TestWorkFlow {
         testWorkFlowBulk();
     }
 
-
     private static void testWorkFlow() throws SuprsendException, UnsupportedEncodingException {
-        Suprsend suprsend = TestHelper.getInstance();
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // payload
         JSONObject body = getWorkFlowBody();
         Workflow wf = new Workflow(body);
-        JSONObject response = suprsend.triggerWorkflow(wf);
-        System.out.println(response);
+        // 
+        JSONObject resp = suprClient.triggerWorkflow(wf);
+        System.out.println(resp);
     }
 
 
-    public static void testWorkflowWithIdempotencyKey() throws SuprsendException, UnsupportedEncodingException {
-        Suprsend suprsend = TestHelper.getInstance();
+    public static void testWorkflowWithIdempotencyKey() throws SuprsendException, IOException {
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // payload
         JSONObject body = getWorkFlowBody();
         String idempotencyKey = "__uniq_id_like_uuid__";
-        Workflow wf = new Workflow(body, idempotencyKey);
-        JSONObject response = suprsend.triggerWorkflow(wf);
-        System.out.println(response);
+        String brandId = "default";
+        Workflow wf = new Workflow(body, idempotencyKey, brandId);
+        // String filePath = "https://lightning.network/lightning-network-paper.pdf";
+        // String filePath = "~/Downloads/gfs-sosp2003.pdf"; 
+        // wf.addAttachment(filePath, "MyFile.pdf", true);
+        // 
+        JSONObject resp = suprClient.triggerWorkflow(wf);
+        System.out.println(resp);
     }
 
     private static void testWorkFlowBulk() throws SuprsendException, UnsupportedEncodingException {
-        BulkWorkflows bulkWorkFlows = TestHelper.getInstance().bulkWorkflowsFactory.getInstance();
-        ArrayList<Workflow> workFlowsList = new ArrayList<Workflow>();
+        Suprsend suprClient = TestHelper.getClientInstance();
+        // payload
+        BulkWorkflows bulkIns = suprClient.bulkWorkflows.newInstance();
         for (int i = 0; i < 3; i++) {
-            workFlowsList.add(getWorkFlow());
+            bulkIns.append(getWorkFlow());
         }
-        bulkWorkFlows.append(workFlowsList);
-        BulkResponse response = bulkWorkFlows.trigger();
-        System.out.println(response);
+        BulkResponse resp = bulkIns.trigger();
+        System.out.println(resp);
     }
 
     private static Workflow getWorkFlow() {
@@ -62,7 +70,11 @@ public class TestWorkFlow {
                 .put("users", new JSONArray()
                         .put(new JSONObject()
                                 .put("distinct_id", "__distinct_id__")
-                                .put("$whatsapp", new JSONArray().put("+91__mobile_no__"))))
+                                // .put("is_transient", true)
+                                .put("$channels", Arrays.asList("slack"))
+                                .put("$slack", new JSONObject().put("incoming_webhook", new JSONObject().put("url", "https://hooks.slack.com/services/T0XXXXX/B0XXXXXX/XXXXXXX")))
+                                // .put("$whatsapp", new JSONArray().put("+91__mobile_no__"))
+                            ))
                 .put("data", new JSONObject()
                         .put("time", "Tue, 17-Aug-2021, 12:30 AM (Asia/Dubai)")
                         .put("price", "23")

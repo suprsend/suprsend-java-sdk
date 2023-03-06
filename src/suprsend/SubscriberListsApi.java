@@ -4,201 +4,216 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class SubscriberListsApi {
     private static final Logger logger = Logger.getLogger(SubscriberListsApi.class.getName());
+
+    private final Suprsend config;
+    private String subscriberListUrl;
+    private String broadcastUrl;
     private JSONObject nonErrorDefaultResponse;
-    private Suprsend config;
 
     SubscriberListsApi(Suprsend config) {
         this.config = config;
-        nonErrorDefaultResponse = new JSONObject();
-        nonErrorDefaultResponse.put("success", true);
+        this.subscriberListUrl = String.format("%sv1/subscriber_list/", this.config.baseUrl);
+        this.broadcastUrl = String.format("%s%s/broadcast/", this.config.baseUrl, this.config.apiKey);
+        this.nonErrorDefaultResponse = new JSONObject().put("success", true);
     }
 
-    private String validateListId(Object listId) throws SuprsendException {
-        if (!(listId instanceof String)) {
-            throw new SuprsendException("list_id must be a string");
-        }
-        String tempListId = ((String) listId).trim();
-        if (tempListId.isEmpty()) {
+    private JSONObject getHeaders() {
+		return new JSONObject()
+                .put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.config.userAgent)
+                .put("Date", Utils.getCurrentDateTimeHeader());
+	}
+
+    private String validateListId(String listId) throws SuprsendException {
+        if (listId == null || listId.trim().isEmpty()) {
             throw new SuprsendException("missing list_id");
+		} else {
+            return listId.trim();
         }
-        return tempListId;
     }
 
-    //TODO - what should be the return type?
-    public String create(JSONObject payload) throws SuprsendException, IOException {
+    public JSONObject create(JSONObject payload) throws SuprsendException, IOException {
         if (payload == null || payload.length() == 0) {
             throw new SuprsendException("missing payload");
         }
-        if (!payload.has("list_id")) {
-            throw new SuprsendException("missing list_id is payload");
-        }
-        String listId = validateListId(payload.get("list_id"));
-        listId = Utils.urlEncode(listId);
+        String listId = validateListId(payload.optString("list_id"));
         payload.put("list_id", listId);
-        JSONObject headers = Utils.getMergedHeaders(config);
-
-        JSONObject sigResult = Signature.getRequestSignature(getSubscriberListUrl(config), HttpMethod.POST, payload.toString(), headers, this.config.workspaceSecret);
+        // 
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(this.subscriberListUrl, HttpMethod.POST, 
+                                                            payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-
-        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getSubscriberListUrl(config), headers,
-                contentText);
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        //
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, 
+                                    this.subscriberListUrl, headers, contentText);
         if (resp.statusCode >= 400) {
-            throw new SuprsendException(resp.responseText);
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
-        return resp.responseText;
+        return resp.jsonResponse;
     }
 
-    private int cleanedLimit(int limit) {
+    private int cleanLimit(int limit) {
         // limit must be 0 < x <= 1000
         if (limit > 0 && limit <= 1000) {
             return limit;
-        } else {
-            return 20;
         }
+        return 20;
     }
 
-    private int cleanedOffset(int offset) {
+    private int cleanOffset(int offset) {
         // offset must be >=0
         if (offset >= 0) {
             return offset;
-        } else {
-            return 0;
         }
+        return 0;
     }
 
-    public String getAll() throws IOException, SuprsendException {
+    public JSONObject getAll() throws IOException, SuprsendException {
         return getAll(20, 0);
     }
 
-    public String getAll(int limit) throws IOException, SuprsendException {
+    public JSONObject getAll(int limit) throws IOException, SuprsendException {
         return getAll(limit, 0);
     }
 
-    public String getAll(int limit, int offset) throws IOException, SuprsendException {
-        int mLimit = cleanedLimit(limit);
-        int mOffset = cleanedOffset(offset);
-        String url = getSubscriberListUrl(config) + "?limit=" + mLimit + "&offset=" + mOffset;
-        JSONObject headers = Utils.getMergedHeaders(config);
-        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, headers, this.config.workspaceSecret);
+    public JSONObject getAll(int limit, int offset) throws IOException, SuprsendException {
+        HashMap<String, Object> queryParamsMap = new HashMap<String, Object>(){{
+            put("limit", cleanLimit(limit));
+            put("offset", cleanOffset(offset));
+        }};
+        String encodedParams = Utils.buildQueryParams(queryParamsMap);
+        String url = String.format("%s?%s", this.subscriberListUrl, encodedParams);
+        //
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
                 contentText);
         if (resp.statusCode >= 400) {
-            throw new SuprsendException(resp.responseText);
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
-        return resp.responseText;
+        return resp.jsonResponse;
     }
 
     private String subscriberListDetailUrl(String listId) throws UnsupportedEncodingException {
-        String mListId = listId.trim();
-        mListId = Utils.urlEncode(mListId);
-        return getSubscriberListUrl(config) + mListId + "/";
+        return String.format("%s%s/", this.subscriberListUrl, Utils.urlEncode(listId));
     }
 
-    public String get(String listID) throws SuprsendException, IOException {
-        String mListId = validateListId(listID);
-        String url = subscriberListDetailUrl(mListId);
-        JSONObject headers = Utils.getMergedHeaders(config);
-
-        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, headers, this.config.workspaceSecret);
+    public JSONObject get(String listId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        String url = subscriberListDetailUrl(listId);
+        // 
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-        SuprsendResponse suprsendResponse = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
                 contentText);
-        if(suprsendResponse.statusCode>=400){
-            throw new  SuprsendException(suprsendResponse.responseText);
+        if(resp.statusCode>=400){
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
-        return suprsendResponse.responseText;
+        return resp.jsonResponse;
     }
 
-    public String add(String listId, List<String> distinctIds) throws SuprsendException, IOException {
-        String mListId = validateListId(listId);
-        if(distinctIds.size()==0){
-            //TODO - what should be the return type?
-//            JSONObject response = new JSONObject();
-//            response.put("success",true);
-            return "ok";
+    public JSONObject add(String listId, List<String> distinctIds) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        if(distinctIds == null || distinctIds.size() == 0){
+            return this.nonErrorDefaultResponse;
         }
-        String url = String.format("%ssubscriber/add/",subscriberListDetailUrl(mListId));
-        JSONObject payload = new JSONObject();
-        payload.put("distinct_ids",distinctIds);
-        JSONObject headers = Utils.getMergedHeaders(config);
-        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.workspaceSecret);
+        String url = String.format("%ssubscriber/add/", subscriberListDetailUrl(listId));
+        JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
                 contentText);
         if (resp.statusCode >= 400) {
-            throw new SuprsendException(resp.responseText);
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
-        return resp.responseText;
+        return resp.jsonResponse;
     }
 
-    public String remove(String listId,List<String> distinctIds) throws SuprsendException, IOException {
-        String mListId = validateListId(listId);
-        if(distinctIds.size() == 0){
-            //TODO - return type
-//            JSONObject response = new JSONObject();
-//            response.put("success",true);
-            return "ok";
+    public JSONObject remove(String listId, List<String> distinctIds) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        if(distinctIds == null || distinctIds.size() == 0){
+            return this.nonErrorDefaultResponse;
         }
-        String url = String.format("%ssubscriber/remove/", subscriberListDetailUrl(mListId));
-        JSONObject payload = new JSONObject();
-        payload.put("distinct_ids",distinctIds);
-        JSONObject headers = Utils.getMergedHeaders(config);
-        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.workspaceSecret);
+        String url = String.format("%ssubscriber/remove/", subscriberListDetailUrl(listId));
+        JSONObject payload = new JSONObject().put("distinct_ids",distinctIds);
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
         String contentText = sigResult.getString("contentTxt");
         headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
                 contentText);
         if (resp.statusCode >= 400) {
-            throw new SuprsendException(resp.responseText);
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
         }
-        return resp.responseText;
+        return resp.jsonResponse;
     }
 
-    public JSONObject broadcast(SubscriberListBroadcast subscriberListBroadcast) throws IOException, SuprsendException {
-        JSONObject broadcastBody = subscriberListBroadcast.getFinalJson();
-        JSONObject headers = Utils.getMergedHeaders(config);
-        JSONObject sigResult = Signature.getRequestSignature(getBroadcastUrl(config), HttpMethod.POST,broadcastBody.toString(), headers, this.config.workspaceSecret);
-        String contentText = sigResult.getString("contentTxt");
-        headers.put("Authorization",
-                String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
-        SuprsendResponse suprsendResponse = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getBroadcastUrl(config), headers,
-                contentText);
+    public JSONObject broadcast(SubscriberListBroadcast broadcastInstance) throws IOException, SuprsendException {
+        if (broadcastInstance == null) {
+            throw new SuprsendException("argument must be an instance of suprsend.SubscriberListBroadcast");
+        }
+        // {"event": broadcast_body, "apparent_size": apparentSize}
+        JSONObject validatedJson = broadcastInstance.getFinalJson();
+        JSONObject broadcastBody = validatedJson.getJSONObject("event");
+        // 
         JSONObject response = new JSONObject();
-        if(suprsendResponse.statusCode >=400){
-            response.put("success",true);
-            response.put("status","success");
-            response.put("status_code",suprsendResponse.statusCode);
-            response.put("message",suprsendResponse.responseText);
-            return response;
-        }else{
-            response.put("success",false);
-            response.put("status","fail");
-            response.put("status_code",suprsendResponse.statusCode);
-            response.put("message",suprsendResponse.responseText);
-            return response;
+        try {
+            JSONObject headers = getHeaders();
+            // Signature and Authorization-header
+            JSONObject sigResult = Signature.getRequestSignature(this.broadcastUrl, HttpMethod.POST,broadcastBody.toString(), headers, this.config.apiSecret);
+            String contentText = sigResult.getString("contentTxt");
+            headers.put("Authorization",
+                    String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+            // 
+            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.broadcastUrl, headers, 
+                    contentText);
+            int statusCode = resp.statusCode;
+            String responseText = resp.responseText;
+            //
+            if (statusCode >= 200 && statusCode < 300) {
+                response.put("success", true)
+                        .put("status", "success")
+                        .put("status_code", statusCode)
+                        .put("message", responseText);
+            } else {
+                response.put("success", false)
+                        .put("status", "fail")
+                        .put("status_code", statusCode)
+                        .put("message", responseText);
+            }
+        } catch (SuprsendException | IOException e) {
+            response.put("success", false)
+                    .put("status", "fail")
+                    .put("status_code", 500)
+                    .put("message", e.toString());
         }
-    }
-
-    private String getBroadcastUrl(Suprsend config) {
-        return String.format("%s%s/broadcast/", config.baseUrl, config.workspaceKey);
-    }
-
-    private String getSubscriberListUrl(Suprsend config) {
-        return String.format("%sv1/subscriber_list/", config.baseUrl);
+        return response;
     }
 }

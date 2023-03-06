@@ -2,12 +2,11 @@ package suprsend;
 
 import org.json.JSONObject;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 class SubscriberInternalHelper {
 	// -------------- Constants
@@ -23,11 +22,16 @@ class SubscriberInternalHelper {
 			IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK);
 
 	public static final String KEY_PUSHVENDOR = "$pushvendor";
+	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
 
-	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_PUSHVENDOR,
-			"$device_id", "$insert_id", "$time", "$set", "$set_once", "$add", "$append", "$remove", "$unset",
-			"$identify", "$anon_id", "$identified_id", "$notification_delivered", "$notification_dismiss",
-			"$notification_clicked");
+	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList(
+		"$messenger", "$inbox", 
+		KEY_PUSHVENDOR, "$device_id",
+		"$insert_id", "$time", 
+		"$set", "$set_once", "$add", "$append", "$remove", "$unset",
+		"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE,
+		"$notification_delivered", "$notification_dismiss", "$notification_clicked"
+		);
 
 	public static final List<String> SUPER_PROPERTY_KEYS = Arrays.asList("$app_version_string", "$app_build_number",
 			"$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
@@ -44,81 +48,58 @@ class SubscriberInternalHelper {
 
 	private static final String EMAIL_REGEX = "^\\S+@\\S+\\.\\S+$";
 	private static final String MOBILE_REGEX = "^\\+[0-9\\s]+";
+	private static final Pattern emailPatternCompiled = Pattern.compile(EMAIL_REGEX);
+	private static final Pattern mobilePatternCompiled = Pattern.compile(MOBILE_REGEX);
 
 	// --------------
-	private String distinctID, workspaceKey;
-	private JSONObject dictAppend, dictRemove;
-	private int appendCount, removeCount, unsetCount;
+	private JSONObject dictSet, dictAppend, dictRemove;
 	private List<String> listUnset, errors, info;
 
-	SubscriberInternalHelper(String distinctID, String workspaceKey) {
-		this.distinctID = distinctID;
-		this.workspaceKey = workspaceKey;
-		//
+	SubscriberInternalHelper() {
+		this.dictSet = new JSONObject();
 		this.dictAppend = new JSONObject();
-		this.appendCount = 0;
-		//
 		this.dictRemove = new JSONObject();
-		this.removeCount = 0;
-		//
 		this.listUnset = new ArrayList<String>();
-		this.unsetCount = 0;
 		//
 		this.errors = new ArrayList<String>();
 		this.info = new ArrayList<String>();
 	}
 
 	private void reset() {
+		this.dictSet = new JSONObject();
 		this.dictAppend = new JSONObject();
 		this.dictRemove = new JSONObject();
 		this.listUnset = new ArrayList<String>();
-		//
-		this.appendCount = 0;
-		this.removeCount = 0;
-		this.unsetCount = 0;
 		//
 		this.errors = new ArrayList<String>();
 		this.info = new ArrayList<String>();
 	}
 
-	protected JSONObject getIdentityEvent() {
+	JSONObject getIdentityEvent() {
 		JSONObject event = formEvent();
 		JSONObject retValue = new JSONObject()
 				.put("errors", this.errors)
 				.put("info", this.info)
-				.put("event", event)
-				.put("append", this.appendCount)
-				.put("remove", this.removeCount)
-				.put("unset", this.unsetCount);
+				.put("event", event);
 		reset();
 		return retValue;
 	}
 
 	private JSONObject formEvent() {
-		if (this.dictAppend.length() > 0 || this.dictRemove.length() > 0 || this.listUnset.size() > 0) {
-			JSONObject event = new JSONObject()
-					.put("$insert_id", UUID.randomUUID().toString())
-					.put("$time", Instant.now().getEpochSecond() * 1000)
-					.put("env", this.workspaceKey)
-					.put("distinct_id", this.distinctID);
-
-			if (this.dictAppend.length() > 0) {
-				event.put("$append", this.dictAppend);
-				this.appendCount = this.appendCount + 1;
-			}
-
-			if (this.dictRemove.length() > 0) {
-				event.put("$remove", this.dictRemove);
-				this.removeCount = this.removeCount + 1;
-			}
-
-			if (this.listUnset.size() > 0) {
-				event.put("$unset", this.listUnset);
-				this.unsetCount = this.unsetCount + 1;
-			}
-			return event;
+		JSONObject event = new JSONObject();
+		if (this.dictSet.length() > 0) {
+			event.put("$set", this.dictSet);
 		}
-		return null;
+		if (this.dictAppend.length() > 0) {
+			event.put("$append", this.dictAppend);
+		}
+		if (this.dictRemove.length() > 0) {
+			event.put("$remove", this.dictRemove);
+		}
+		if (this.listUnset.size() > 0) {
+			event.put("$unset", this.listUnset);
+		}
+		return event;
 	}
 
 	private JSONObject validateKeyBasic(String key, String caller) {
@@ -148,7 +129,7 @@ class SubscriberInternalHelper {
 		return IDENT_KEYS_ALL.contains(key);
 	}
 
-	protected void appendKV(String key, String value, JSONObject kwargs, String caller) {
+	void appendKV(String key, String value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -165,7 +146,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	protected void appendKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+	void appendKV(String key, JSONObject value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -182,7 +163,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	protected void removeKV(String key, String value, JSONObject kwargs, String caller) {
+	void removeKV(String key, String value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -199,7 +180,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	protected void removeKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+	void removeKV(String key, JSONObject value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -216,7 +197,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	protected void unsetK(String key, String caller) {
+	void unsetK(String key, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -225,74 +206,72 @@ class SubscriberInternalHelper {
 		this.listUnset.add(res.getString("key"));
 	}
 
+	void setPreferredLanguage(String langCode, String caller) {
+		// Check language code is in the list
+		if (!LanguageCode.ALL_LANG_CODES.contains(langCode)) {
+			this.info.add(String.format("[%s] invalid value %s", caller, langCode));
+            return;
+		}
+		this.dictSet.put(KEY_PREFERRED_LANGUAGE, langCode);
+	}
+
 	private void addIdentity(String key, String value, JSONObject kwargs, String caller) {
+		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_EMAIL.equals(key)) {
-			addEmail(value, caller);
+			addEmail(value, newCaller);
 
 		} else if (IDENT_KEY_SMS.equals(key)) {
-			addSms(value, caller);
+			addSms(value, newCaller);
 
 		} else if (IDENT_KEY_WHATSAPP.equals(key)) {
-			addWhatsapp(value, caller);
+			addWhatsapp(value, newCaller);
 
 		} else if (IDENT_KEY_ANDROIDPUSH.equals(key)) {
-			addAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.getString(KEY_PUSHVENDOR));
-			}
+			addAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			addIospush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.getString(KEY_PUSHVENDOR));
-			}
+			addIospush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
 
 		}
 	}
 
 	private void addIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
+		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_WEBPUSH.equals(key)) {
-			addWebpush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictAppend.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictAppend.getString(KEY_PUSHVENDOR));
-			}
+			addWebpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+
 		} else if (IDENT_KEY_SLACK.equals(key)) {
-			addSlack(value, caller);
+			addSlack(value, newCaller);
 		}
 	}
 
 	private void removeIdentity(String key, String value, JSONObject kwargs, String caller) {
+		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_EMAIL.equals(key)) {
-			removeEmail(value, caller);
+			removeEmail(value, newCaller);
 
 		} else if (IDENT_KEY_SMS.equals(key)) {
-			removeSms(value, caller);
+			removeSms(value, newCaller);
 
 		} else if (IDENT_KEY_WHATSAPP.equals(key)) {
-			removeWhatsapp(value, caller);
+			removeWhatsapp(value, newCaller);
 
 		} else if (IDENT_KEY_ANDROIDPUSH.equals(key)) {
-			removeAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.getString(KEY_PUSHVENDOR));
-			}
+			removeAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			removeIospush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.getString(KEY_PUSHVENDOR));
-			}
+			removeIospush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+
 		}
 	}
 
 	private void removeIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
+		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_WEBPUSH.equals(key)) {
-			removeWebpush(value, kwargs.optString(KEY_PUSHVENDOR), caller);
-			if (this.dictRemove.optString(KEY_PUSHVENDOR).isEmpty() == false) {
-				kwargs.put(KEY_PUSHVENDOR, this.dictRemove.getString(KEY_PUSHVENDOR));
-			}
+			removeWebpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+
 		} else if (IDENT_KEY_SLACK.equals(key)) {
-			removeSlack(value, caller);
+			removeSlack(value, newCaller);
 		}
 	}
 
@@ -312,7 +291,7 @@ class SubscriberInternalHelper {
 
 	// ------------------------------- Email
 
-	private JSONObject validateEmail(String email, String caller) {
+	private JSONObject validateEmail(String email, String caller) throws PatternSyntaxException{
 		JSONObject res = checkIdentValString(email, caller);
 		boolean isError = false;
 		if (!res.getBoolean("is_valid")) {
@@ -324,7 +303,7 @@ class SubscriberInternalHelper {
 			int minLength = 6;
 			int maxLength = 127;
 			//
-			boolean isValidEmail = Pattern.compile(EMAIL_REGEX).matcher(email).matches();
+			boolean isValidEmail = emailPatternCompiled.matcher(email).matches();
 			if (!isValidEmail) {
 				this.errors.add(String.format("[%s] invalid value %s. %s", caller, email, msg));
 				isError = true;
@@ -339,7 +318,7 @@ class SubscriberInternalHelper {
 		return new JSONObject().put("email", email).put("is_valid", !isError);
 	}
 
-	protected void addEmail(String value, String caller) {
+	void addEmail(String value, String caller) {
 		JSONObject res = validateEmail(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -348,7 +327,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(IDENT_KEY_EMAIL, res.getString("email"));
 	}
 
-	protected void removeEmail(String value, String caller) {
+	void removeEmail(String value, String caller) {
 		JSONObject res = validateEmail(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -370,7 +349,7 @@ class SubscriberInternalHelper {
 			String msg = "number must start with + and must contain country code. e.g. +41446681800";
 			int minLength = 8;
 			//
-			boolean isValidMobileNo = Pattern.compile(MOBILE_REGEX).matcher(mobileNo).matches();
+			boolean isValidMobileNo = mobilePatternCompiled.matcher(mobileNo).matches();
 			if (!isValidMobileNo) {
 				this.errors.add(String.format("[%s] invalid value %s. %s", caller, mobileNo, msg));
 				isError = true;
@@ -387,7 +366,7 @@ class SubscriberInternalHelper {
 
 	// ------------------------------- SMS
 
-	protected void addSms(String value, String caller) {
+	void addSms(String value, String caller) {
 		JSONObject res = validateMobileNo(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -396,7 +375,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(IDENT_KEY_SMS, res.getString("mobile"));
 	}
 
-	protected void removeSms(String value, String caller) {
+	void removeSms(String value, String caller) {
 		JSONObject res = validateMobileNo(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -407,7 +386,7 @@ class SubscriberInternalHelper {
 
 	// ------------------------------- Whatsapp
 
-	protected void addWhatsapp(String value, String caller) {
+	void addWhatsapp(String value, String caller) {
 		JSONObject res = validateMobileNo(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -416,7 +395,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(IDENT_KEY_WHATSAPP, res.getString("mobile"));
 	}
 
-	protected void removeWhatsapp(String value, String caller) {
+	void removeWhatsapp(String value, String caller) {
 		JSONObject res = validateMobileNo(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -450,7 +429,7 @@ class SubscriberInternalHelper {
 		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
 
-	protected void addAndroidpush(String value, String provider, String caller) {
+	void addAndroidpush(String value, String provider, String caller) {
 		JSONObject res = checkAndroidpushValue(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -460,7 +439,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
 	}
 
-	protected void removeAndroidpush(String value, String provider, String caller) {
+	void removeAndroidpush(String value, String provider, String caller) {
 		JSONObject res = checkAndroidpushValue(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -495,7 +474,7 @@ class SubscriberInternalHelper {
 		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
 
-	protected void addIospush(String value, String provider, String caller) {
+	void addIospush(String value, String provider, String caller) {
 		JSONObject res = checkIospushValue(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -505,7 +484,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
 	}
 
-	protected void removeIospush(String value, String provider, String caller) {
+	void removeIospush(String value, String provider, String caller) {
 		JSONObject res = checkIospushValue(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -538,7 +517,7 @@ class SubscriberInternalHelper {
 		return response;
 	}
 
-	protected void addWebpush(JSONObject value, String provider, String caller) {
+	void addWebpush(JSONObject value, String provider, String caller) {
 		JSONObject res = checkWebpushDict(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -548,7 +527,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
 	}
 
-	protected void removeWebpush(JSONObject value, String provider, String caller) {
+	void removeWebpush(JSONObject value, String provider, String caller) {
 		JSONObject res = checkWebpushDict(value, provider, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -560,64 +539,19 @@ class SubscriberInternalHelper {
 
 	// ------------------------ Slack
 
-	private JSONObject validateSlackUserId(String userId, String caller) {
-		boolean isError = false;
-		JSONObject res = checkIdentValString(userId, caller);
-		boolean isValid = res.getBoolean("is_valid");
-		if (!isValid) {
-			isError = true;
-		} else {
-			userId = userId.toUpperCase();
-			if (!(userId.startsWith("U") || userId.startsWith("W"))) {
-				this.errors.add(String.format("[%s] invalid value %s. Slack user/member_id starts with a U or W",
-						caller, userId));
-				isError = true;
-				return new JSONObject().put("user_id", userId).put("is_valid", !isError);
-			}
-		}
-		return new JSONObject().put("user_id", userId).put("is_valid", !isError);
-	}
-
 	private JSONObject checkSlackDict(JSONObject value, String caller) {
-		String msg = "value must be a valid dict/json with one of these keys: [email, user_id]";
+		String msg = "value must be a valid dict/json with proper keys";
 
 		boolean isError = false;
 		if (value == null || value.isEmpty()) {
 			this.errors.add(String.format("[%s] %s", caller, msg));
 			isError = true;
-		} else {
-			String userId = value.optString("user_id");
-			String email = value.optString("email");
-			if (userId != null && !userId.trim().isEmpty()) {
-				userId = userId.trim();
-				JSONObject res = validateSlackUserId(userId, caller);
-				boolean isValid = res.getBoolean("is_valid");
-				if (!isValid) {
-					isError = true;
-				} else {
-					userId = res.getString("user_id");
-					value = new JSONObject().put("user_id", userId);
-				}
-			} else if (email != null && !email.trim().isEmpty()) {
-				email = email.trim();
-				JSONObject res = validateEmail(email, caller);
-				boolean isValid = res.getBoolean("is_valid");
-				if (!isValid) {
-					isError = true;
-				} else {
-					email = res.getString("email");
-					value = new JSONObject().put("email", email);
-				}
-			} else {
-				this.errors.add(String.format("[%s] %s", caller, msg));
-				isError = true;
-			}
 		}
 		JSONObject response = new JSONObject().put("value", value).put("is_valid", !isError);
 		return response;
 	}
 
-	protected void addSlack(JSONObject value, String caller) {
+	void addSlack(JSONObject value, String caller) {
 		JSONObject res = checkSlackDict(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
@@ -626,7 +560,7 @@ class SubscriberInternalHelper {
 		this.dictAppend.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
 	}
 
-	protected void removeSlack(JSONObject value, String caller) {
+	void removeSlack(JSONObject value, String caller) {
 		JSONObject res = checkSlackDict(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {

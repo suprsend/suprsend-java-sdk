@@ -1,55 +1,61 @@
 package suprsend;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class BulkEventsChunk {
     private static final Logger logger = Logger.getLogger(BulkEventsChunk.class.getName());
-    private Suprsend config;
-    private JSONArray __chunk = new JSONArray();
-    int __running_size = 0;
-    JSONObject response = new JSONObject();
 
-    public BulkEventsChunk(Suprsend config) {
+    private static final int chunkApparentSizeInBytes = Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES;
+    private static final String chunkApparentSizeInBytesReadable = Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES_READABLE;
+    private static final int maxRecordsInChunk = Constants.MAX_EVENTS_IN_BULK_API;
+    
+    private final Suprsend config;
+    private List<JSONObject> chunk;
+    private String url;
+    private int runningSize;
+    private int runningLength;
+    
+    JSONObject response;
+
+    BulkEventsChunk(Suprsend config) {
         this.config = config;
+        this.chunk = new ArrayList<JSONObject>();
+        this.url = String.format("%sevent/", this.config.baseUrl);
+        // 
+        this.runningSize = 0;
+        this.runningLength = 0;
+        this.response = new JSONObject();
     }
 
-    private String getUrl() {
-        String urlTemplate = "%sevent/";
-        return String.format(urlTemplate, this.config.baseUrl);
-    }
-
-    private JSONObject getCommonHeaders() {
-        return new JSONObject()
+    private JSONObject getHeaders() {
+		return new JSONObject()
                 .put("Content-Type", "application/json; charset=utf-8")
-                .put("User-Agent", this.config.userAgent);
+				.put("User-Agent", this.config.userAgent)
+                .put("Date", Utils.getCurrentDateTimeHeader());
+	}
+
+    private void addEventToChunk(JSONObject event, int eventSize) {
+        this.runningSize += eventSize;
+        this.chunk.add(event);
+        this.runningLength += 1;
     }
 
-    private JSONObject dynamicHeaders() {
-        return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+    private boolean checkLimitReached() {
+        return (this.runningLength >= BulkEventsChunk.maxRecordsInChunk || 
+        this.runningSize >= BulkEventsChunk.chunkApparentSizeInBytes);
     }
 
-    private JSONObject getMergedHeaders() {
-        return Utils.mergeJSONObjects(getCommonHeaders(), dynamicHeaders());
-    }
-
-    public void addEventToChunk(JSONObject event, int eventSize) {
-        __running_size += eventSize;
-        __chunk.put(event);
-    }
-
-    public boolean checkLimitReached() {
-        if (__chunk.length() >= Constants.MAX_RECORDS_IN_CHUNK ||
-                __running_size >= Constants.CHUNK_APPARENT_SIZE_IN_BYTES)
-            return true;
-        else
-            return false;
-    }
-
-    public boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws SuprsendException {
+    /*
+     * returns whether passed event was able to get added to this chunk or not,
+        if true, event gets added to chunk
+     */
+    boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws SuprsendException {
         if (event == null) {
             return true;
         }
@@ -57,55 +63,69 @@ class BulkEventsChunk {
             return false;
         }
         if (eventSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException("Event properties too big - " + eventSize + " Bytes" +
-                    "must not cross " + Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+            throw new SuprsendException(
+                String.format("Event properties too big - %d Bytes, must not cross %s", 
+                eventSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }
-        if (__running_size + eventSize > Constants.CHUNK_APPARENT_SIZE_IN_BYTES) {
+        // if apparent_size of event crosses limit
+        if (this.runningSize + eventSize > BulkEventsChunk.chunkApparentSizeInBytes) {
             return false;
         }
         if (!Constants.ALLOW_ATTACHMENTS_IN_BULK_API) {
-            // TODO - test attachments
             event.getJSONObject("properties").remove("$attachments");
         }
+        // Add Event to chunk
         addEventToChunk(event, eventSize);
         return true;
     }
 
-    public void trigger() {
-        JSONObject headers = getMergedHeaders();
-
+    void trigger() {
+        JSONObject headers = getHeaders();
         try {
-            String contentText;
             // Signature and Authorization Header
-            JSONObject sigResult = Signature.getRequestSignature(getUrl(), HttpMethod.POST, __chunk.toString(), headers,
-                    this.config.workspaceSecret);
-            contentText = sigResult.getString("contentTxt");
+            JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, this.chunk.toString(), headers,
+                    this.config.apiSecret);
+            String contentText = sigResult.getString("contentTxt");
             headers.put("Authorization",
-                    String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+                    String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
             // --- Make HTTP POST request
-            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, getUrl(), headers,
+            SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
                     contentText);
             int statusCode = resp.statusCode;
             String responseText = resp.responseText;
             //
             if (statusCode >= 200 && statusCode < 300) {
-                response.put("success", true)
-                        .put("status", "success")
+                this.response.put("status", "success")
                         .put("status_code", statusCode)
-                        .put("message", responseText);
+                        .put("total", this.chunk.size())
+                        .put("success", this.chunk.size())
+                        .put("failure", 0)
+                        .put("failed_records", new ArrayList<JSONObject>());
             } else {
-                response.put("success", false)
-                        .put("status", "fail")
+                this.response.put("status", "fail")
                         .put("status_code", statusCode)
-                        .put("message", responseText);
+                        .put("total", this.chunk.size())
+                        .put("success", 0)
+                        .put("failure", this.chunk.size())
+                        .put("failed_records", getFailedRecords(statusCode, responseText));
             }
         } catch (SuprsendException | IOException e) {
-            response.put("success", false)
-                    .put("status", "fail")
+            this.response.put("status", "fail")
                     .put("status_code", 500)
-                    .put("message", e.toString());
+                    .put("total", this.chunk.size())
+                    .put("success", 0)
+                    .put("failure", this.chunk.size())
+                    .put("failed_records", getFailedRecords(500, e.toString()));
         }
 
     }
 
+    private List<JSONObject> getFailedRecords(int statusCode, String errMsg) {
+        return this.chunk.stream().map(
+                c -> new JSONObject()
+                        .put("record", c)
+                        .put("error", errMsg)
+                        .put("code", statusCode)
+            ).collect(Collectors.toList());
+    }
 }

@@ -9,6 +9,7 @@ package suprsend;
 public class SuprsendException extends Exception {
 	private static final long serialVersionUID = 1L;
 
+	public int statusCode;
 	/**
 	 * Constructs an {@code SuprsendException} with {@code null} as its error detail
 	 * message.
@@ -25,6 +26,12 @@ public class SuprsendException extends Exception {
 	 */
 	public SuprsendException(String message) {
 		super(message);
+		this.statusCode = 500;
+	}
+
+	public SuprsendException(String message, int statusCode) {
+		super(message);
+		this.statusCode = statusCode;
 	}
 
 	/**

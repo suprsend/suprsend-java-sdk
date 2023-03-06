@@ -6,32 +6,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 
-public class EventCollector {
+class EventCollector {
 	private static final Logger logger = Logger.getLogger(EventCollector.class.getName());
 
 	private Suprsend config;
 	private String url;
-	private JSONObject commonHeaders;
 
 	EventCollector(Suprsend config) {
 		this.config = config;
-		this.url = getUrl();
-		this.commonHeaders = getCommonHeaders();
-	}
-
-	private String getUrl() {
-		String urlTemplate = "%sevent/";
-		return String.format(urlTemplate, this.config.baseUrl);
-	}
-
-	private JSONObject getCommonHeaders() {
-		return new JSONObject()
-				.put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent);
-	}
-
-	private JSONObject dynamicHeaders() {
-		return new JSONObject().put("Date", Utils.getCurrentDateTimeFormatted(Constants.HEADER_DATE_FMT));
+		this.url = String.format("%sevent/", this.config.baseUrl);
 	}
 
 	/**
@@ -39,13 +22,13 @@ public class EventCollector {
 	 * 
 	 * @return Headers as JSON object
 	 */
-	private JSONObject getMergedHeaders() {
-		JSONObject dynHeaders = dynamicHeaders();
-		JSONObject merged = Utils.mergeJSONObjects(this.commonHeaders, dynHeaders);
-		return merged;
+	private JSONObject getHeaders() {
+		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.config.userAgent)
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
-	public JSONObject collect(Event event) throws SuprsendException, UnsupportedEncodingException {
+	JSONObject collect(Event event) throws SuprsendException, UnsupportedEncodingException {
 		JSONObject finalJson = event.getFinalJson(config, false);
 		JSONObject eventDict = finalJson.getJSONObject("event");
 		int eventSize = finalJson.getInt("apparent_size");
@@ -53,16 +36,16 @@ public class EventCollector {
 	}
 
 	private JSONObject send(JSONObject event) {
-		JSONObject headers = getMergedHeaders();
+		JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
 		try {
 			String contentText;
 			// Signature and Authorization Header
 			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, event.toString(), headers,
-					this.config.workspaceSecret);
+					this.config.apiSecret);
 			contentText = sigResult.getString("contentTxt");
 			headers.put("Authorization",
-					String.format("%s:%s", this.config.workspaceKey, sigResult.getString("signature")));
+					String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
 					contentText);

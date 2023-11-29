@@ -194,82 +194,82 @@ public class Subscriber {
 	}
 
 	// =========================================================== Set
-    public void set(JSONObject arg1) {
-        String caller = "set";
-        String[] keys = JSONObject.getNames(arg1);
-        for (String key : keys) {
-            if (arg1.get(key) instanceof String) {
-                this.helper.setKV(key, arg1.getString(key), arg1, caller);
-            } else {
-                this.helper.setKV(key, arg1.getJSONObject(key), arg1, caller);
-            }
-        }
-        collectEvent();
-    }
+	public void set(JSONObject arg1) {
+		String caller = "set";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			if (arg1.get(key) instanceof String) {
+				this.helper.setKV(key, arg1.getString(key), arg1, caller);
+			} else {
+				this.helper.setKV(key, arg1.getJSONObject(key), arg1, caller);
+			}
+		}
+		collectEvent();
+	}
 
-    public void set(String arg1, String arg2) {
-        String caller = "set";
-        this.helper.setKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void set(String arg1, String arg2) {
+		String caller = "set";
+		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
-    public void set(String arg1, JSONObject arg2) {
-        String caller = "set";
-        this.helper.setKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void set(String arg1, JSONObject arg2) {
+		String caller = "set";
+		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
-    // =========================================================== SetOnce
-    public void setOnce(JSONObject arg1) {
-        String caller = "set_once";
-        String[] keys = JSONObject.getNames(arg1);
-        for (String key : keys) {
-            if (arg1.get(key) instanceof String) {
-                this.helper.setOnceKV(key, arg1.getString(key), arg1, caller);
-            } else {
-                this.helper.setOnceKV(key, arg1.getJSONObject(key), arg1, caller);
-            }
-        }
-        collectEvent();
-    }
+	// =========================================================== SetOnce
+	public void setOnce(JSONObject arg1) {
+		String caller = "set_once";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			if (arg1.get(key) instanceof String) {
+				this.helper.setOnceKV(key, arg1.getString(key), arg1, caller);
+			} else {
+				this.helper.setOnceKV(key, arg1.getJSONObject(key), arg1, caller);
+			}
+		}
+		collectEvent();
+	}
 
-    public void setOnce(String arg1, String arg2) {
-        String caller = "set_once";
-        this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void setOnce(String arg1, String arg2) {
+		String caller = "set_once";
+		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
-    public void setOnce(String arg1, JSONObject arg2) {
-        String caller = "set_once";
-        this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void setOnce(String arg1, JSONObject arg2) {
+		String caller = "set_once";
+		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
-    // =========================================================== Increment
-    public void increment(JSONObject arg1) {
-        String caller = "increment";
-        String[] keys = JSONObject.getNames(arg1);
-        for (String key : keys) {
-            if (arg1.get(key) instanceof String) {
-                this.helper.incrementKV(key, arg1.getString(key), arg1, caller);
-            } else {
-                this.helper.incrementKV(key, arg1.getJSONObject(key), arg1, caller);
-            }
-        }
-        collectEvent();
-    }
+	// =========================================================== Increment
+	public void increment(JSONObject arg1) {
+		String caller = "increment";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			if (arg1.get(key) instanceof String) {
+				this.helper.incrementKV(key, arg1.getString(key), arg1, caller);
+			} else {
+				this.helper.incrementKV(key, arg1.getJSONObject(key), arg1, caller);
+			}
+		}
+		collectEvent();
+	}
 
-    public void increment(String arg1, String arg2) {
-        String caller = "increment";
-        this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void increment(String arg1, String arg2) {
+		String caller = "increment";
+		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
-    public void increment(String arg1, JSONObject arg2) {
-        String caller = "increment";
-        this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
-        collectEvent();
-    }
+	public void increment(String arg1, JSONObject arg2) {
+		String caller = "increment";
+		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
 
 	// =========================================================== Remove
 	public void remove(JSONObject arg1) {

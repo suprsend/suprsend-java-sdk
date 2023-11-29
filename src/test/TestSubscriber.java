@@ -225,52 +225,52 @@ public class TestSubscriber {
 	}
 
 	public static void testUserPropertySet() throws Exception {
-        Suprsend suprClient = TestHelper.getClientInstance();
-        //
-        String distinctId = "__distinct_id__";
-        Subscriber user = suprClient.user.getInstance(distinctId);
-        //
-        user.set("prop1", "val1");
-        JSONObject userProperties = new JSONObject()
-                                    .put("prop2", "val2")
-                                    .put("prop3", "val3")
-                                    ;
-        user.set(userProperties)
-        JSONObject res = user.save();
-        System.out.println(res);
-    }
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.set("prop1", "val1");
+		JSONObject userProperties = new JSONObject()
+									.put("prop2", "val2")
+									.put("prop3", "val3")
+									;
+		user.set(userProperties)
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
 
-    public static void testUserPropertySetOnce() throws Exception {
-        Suprsend suprClient = TestHelper.getClientInstance();
-        //
-        String distinctId = "__distinct_id__";
-        Subscriber user = suprClient.user.getInstance(distinctId);
-        //
-        user.setOnce("prop1", "val1");
-        JSONObject userProperties = new JSONObject()
-                                    .put("prop2", "val2")
-                                    .put("prop3", "val3")
-                                    ;
-        user.setOnce(userProperties);
-        JSONObject res = user.save();
-        System.out.println(res);
-    }
+	public static void testUserPropertySetOnce() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.setOnce("prop1", "val1");
+		JSONObject userProperties = new JSONObject()
+									.put("prop2", "val2")
+									.put("prop3", "val3")
+									;
+		user.setOnce(userProperties);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
 
-    public static void testUserPropertyIncrement() throws Exception {
-            Suprsend suprClient = TestHelper.getClientInstance();
-            //
-            String distinctId = "__distinct_id__";
-            Subscriber user = suprClient.user.getInstance(distinctId);
-            //
-            user.increment("prop1", 1);
-            JSONObject userProperties = new JSONObject()
-                                        .put("prop2", 2)
-                                        .put("prop3", 3)
-                                        ;
-            user.increment(userProperties);
-            JSONObject res = user.save();
-            System.out.println(res);
-        }
+	public static void testUserPropertyIncrement() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.increment("prop1", 1);
+		JSONObject userProperties = new JSONObject()
+									.put("prop2", 2)
+									.put("prop3", 3)
+									;
+		user.increment(userProperties);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
 
 	private static Subscriber getSubscriber(String distinctId) throws SuprsendException {
 		Suprsend suprClient = TestHelper.getClientInstance();

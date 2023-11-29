@@ -57,6 +57,8 @@ class SubscriberInternalHelper {
 
 	SubscriberInternalHelper() {
 		this.dictSet = new JSONObject();
+		this.dictSetOnce = new JSONObject();
+        this.dictIncrement = new JSONObject();
 		this.dictAppend = new JSONObject();
 		this.dictRemove = new JSONObject();
 		this.listUnset = new ArrayList<String>();
@@ -67,6 +69,8 @@ class SubscriberInternalHelper {
 
 	private void reset() {
 		this.dictSet = new JSONObject();
+		this.dictSetOnce = new JSONObject();
+		this.dictIncrement = new JSONObject();
 		this.dictAppend = new JSONObject();
 		this.dictRemove = new JSONObject();
 		this.listUnset = new ArrayList<String>();
@@ -90,6 +94,12 @@ class SubscriberInternalHelper {
 		if (this.dictSet.length() > 0) {
 			event.put("$set", this.dictSet);
 		}
+		if (this.dictSetOnce.length() > 0) {
+            event.put("$set_once", this.dictSetOnce);
+        }
+        if (this.dictIncrement.length() > 0) {
+            event.put("$increment", this.dictIncrement);
+        }
 		if (this.dictAppend.length() > 0) {
 			event.put("$append", this.dictAppend);
 		}
@@ -161,6 +171,84 @@ class SubscriberInternalHelper {
 			}
 		}
 	}
+
+	void setKV(String key, String value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
+
+    void setKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
+
+    void setOnceKV(String key, String value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
+
+    void setOnceKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
+
+    void incrementKV(String key, String value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
+
+    void incrementKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+        JSONObject res = validateKeyBasic(key, caller);
+        boolean isKeyValid = res.getBoolean("is_valid");
+        if (!isKeyValid) {
+            return;
+        }
+        key = res.getString("key");
+        boolean isKValid = validateKeyPrefix(key, caller);
+        if (isKValid) {
+            this.dictAppend.put(key, value);
+        }
+    }
 
 	void removeKV(String key, String value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);

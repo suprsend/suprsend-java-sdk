@@ -9,6 +9,7 @@ We're working towards creating SDK in other languages as well.
 * java (`suprsend-java-sdk`)
 * python3 >= 3.7 (`suprsend-py-sdk`)
 * node (`suprsend-node-sdk`)
+* go (`suprsend-go`)
 
 ### Installation
 
@@ -30,7 +31,7 @@ You can include the jar using following two ways:
 2. As a jar file for non maven projects:
 
    Please download jar from releases section.
-   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.5.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
+   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.6.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
 
 ### Usage
 Initialize the Suprsend library using the following:

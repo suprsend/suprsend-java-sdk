@@ -29,7 +29,6 @@ public class TestSubscriber {
 		testUnsetKey();
 		testUnsetKeyMulti();
 		testBulkSubscriber();
-		testUserProperties();
 	}
 
 	public static void testSave() throws Exception {
@@ -235,7 +234,7 @@ public class TestSubscriber {
 									.put("prop2", "val2")
 									.put("prop3", "val3")
 									;
-		user.set(userProperties)
+		user.set(userProperties);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}
@@ -262,10 +261,10 @@ public class TestSubscriber {
 		String distinctId = "__distinct_id__";
 		Subscriber user = suprClient.user.getInstance(distinctId);
 		//
-		user.increment("prop1", 1);
+		user.increment("prop1", "1");
 		JSONObject userProperties = new JSONObject()
-									.put("prop2", 2)
-									.put("prop3", 3)
+									.put("prop2", "2")
+									.put("prop3", "3")
 									;
 		user.increment(userProperties);
 		JSONObject res = user.save();

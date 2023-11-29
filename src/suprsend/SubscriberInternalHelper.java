@@ -52,7 +52,7 @@ class SubscriberInternalHelper {
 	private static final Pattern mobilePatternCompiled = Pattern.compile(MOBILE_REGEX);
 
 	// --------------
-	private JSONObject dictSet, dictAppend, dictRemove;
+	private JSONObject dictSet, dictSetOnce, dictIncrement, dictAppend, dictRemove;
 	private List<String> listUnset, errors, info;
 
 	SubscriberInternalHelper() {
@@ -98,7 +98,7 @@ class SubscriberInternalHelper {
 			event.put("$set_once", this.dictSetOnce);
 		}
 		if (this.dictIncrement.length() > 0) {
-			event.put("$increment", this.dictIncrement);
+			event.put("$add", this.dictIncrement);
 		}
 		if (this.dictAppend.length() > 0) {
 			event.put("$append", this.dictAppend);
@@ -181,7 +181,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictSet.put(key, value);
 		}
 	}
 
@@ -194,7 +194,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictSet.put(key, value);
 		}
 	}
 
@@ -207,7 +207,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictSetOnce.put(key, value);
 		}
 	}
 
@@ -220,7 +220,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictSetOnce.put(key, value);
 		}
 	}
 
@@ -233,7 +233,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictIncrement.put(key, value);
 		}
 	}
 
@@ -246,7 +246,7 @@ class SubscriberInternalHelper {
 		key = res.getString("key");
 		boolean isKValid = validateKeyPrefix(key, caller);
 		if (isKValid) {
-			this.dictAppend.put(key, value);
+			this.dictIncrement.put(key, value);
 		}
 	}
 

@@ -402,4 +402,17 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	// =========================================================== MS Teams
+	public void addMSTeams(JSONObject value) {
+		String caller = "add_ms_teams";
+		this.helper.addMSTeams(value, caller);
+		collectEvent();
+	}
+
+	public void removeMSTeams(JSONObject value) {
+		String caller = "remove_ms_teams";
+		this.helper.removeMSTeams(value, caller);
+		collectEvent();
+	}
+
 }

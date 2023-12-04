@@ -17,9 +17,10 @@ class SubscriberInternalHelper {
 	public static final String IDENT_KEY_WHATSAPP = "$whatsapp";
 	public static final String IDENT_KEY_WEBPUSH = "$webpush";
 	public static final String IDENT_KEY_SLACK = "$slack";
+	public static final String IDENT_KEY_MS_TEAMS = "$ms_teams";
 
 	public static final List<String> IDENT_KEYS_ALL = Arrays.asList(IDENT_KEY_EMAIL, IDENT_KEY_SMS,
-	        IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK);
+	        IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK, IDENT_KEY_MS_TEAMS);
 
 	public static final String KEY_PUSHVENDOR = "$pushvendor";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
@@ -241,6 +242,10 @@ class SubscriberInternalHelper {
 
 		} else if (IDENT_KEY_SLACK.equals(key)) {
 			addSlack(value, newCaller);
+
+		} else if (IDENT_KEY_MS_TEAMS.equals(key)) {
+			addMSTeams(kwargs, newCaller);
+		
 		}
 	}
 
@@ -260,6 +265,9 @@ class SubscriberInternalHelper {
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
 			removeIospush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+
+		} else if (IDENT_KEY_MS_TEAMS.equals(key)) {
+			removeMSTeams(kwargs, newCaller);
 
 		}
 	}
@@ -564,5 +572,23 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictRemove.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
+	}
+
+	void addMSTeams(JSONObject value, String caller) {
+		JSONObject res = checkSlackDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictAppend.put(IDENT_KEY_MS_TEAMS, res.getJSONObject("value"));
+	}
+
+	void removeMSTeams(JSONObject value, String caller) {
+		JSONObject res = checkSlackDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictRemove.put(IDENT_KEY_MS_TEAMS, res.getJSONObject("value"));
 	}
 }

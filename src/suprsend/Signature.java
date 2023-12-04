@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 enum HttpMethod {
-	POST, GET
+	POST, GET, PATCH
 }
 
 /**

@@ -38,6 +38,14 @@ public class SubscriberListsApi {
         }
     }
 
+    private String validateVersionId(String versionId) throws SuprsendException {
+        if (versionId == null || versionId.trim().isEmpty()) {
+            throw new SuprsendException("missing version_id");
+		} else {
+            return versionId.trim();
+        }
+    }
+
     public JSONObject create(JSONObject payload) throws SuprsendException, IOException {
         if (payload == null || payload.length() == 0) {
             throw new SuprsendException("missing payload");
@@ -110,9 +118,31 @@ public class SubscriberListsApi {
         return String.format("%s%s/", this.subscriberListUrl, Utils.urlEncode(listId));
     }
 
+    private String subscriberListUrlWithVersion(String listId, String versionId) throws UnsupportedEncodingException {
+        return String.format("%s%s/version/%s/", this.subscriberListUrl, Utils.urlEncode(listId), Utils.urlEncode(versionId));
+    }
+
     public JSONObject get(String listId) throws SuprsendException, IOException {
         listId = validateListId(listId);
         String url = subscriberListDetailUrl(listId);
+        // 
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        //
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers, contentText);
+        if(resp.statusCode>=400){
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject getVersion(String listId, String versionId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        versionId = validateVersionId(versionId);
+        String url = subscriberListUrlWithVersion(listId, versionId);
         // 
         JSONObject headers = getHeaders();
         // Signature and Authorization-header
@@ -161,6 +191,122 @@ public class SubscriberListsApi {
         headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
         // 
         SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject addToVersion(String listId, String versionId, List<String> distinctIds) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        versionId = validateVersionId(versionId);
+        if(distinctIds == null || distinctIds.size() == 0){
+            return this.nonErrorDefaultResponse;
+        }
+        String url = String.format("%ssubscriber/add/", subscriberListUrlWithVersion(listId, versionId));
+        JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject removeFromVersion(String listId, String versionId, List<String> distinctIds) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        versionId = validateVersionId(versionId);
+        if(distinctIds == null || distinctIds.size() == 0){
+            return this.nonErrorDefaultResponse;
+        }
+        String url = String.format("%ssubscriber/remove/", subscriberListUrlWithVersion(listId, versionId));
+        JSONObject payload = new JSONObject().put("distinct_ids",distinctIds);
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST,payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject delete(String listId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        //
+        String url = String.format("%sdelete/", subscriberListDetailUrl(listId));
+        JSONObject payload = new JSONObject();
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.PATCH, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject deleteVersion(String listId, String versionId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        versionId = validateVersionId(versionId);
+        //
+        String url = String.format("%delete/", subscriberListUrlWithVersion(listId, versionId));
+        JSONObject payload = new JSONObject();
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.PATCH, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject startSync(String listId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        //
+        String url = String.format("%start_sync/", subscriberListDetailUrl(listId));
+        JSONObject payload = new JSONObject();
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        return resp.jsonResponse;
+    }
+
+    public JSONObject finishSync(String listId, String versionId) throws SuprsendException, IOException {
+        listId = validateListId(listId);
+        versionId = validateVersionId(versionId);
+        //
+        String url = String.format("%sfinish_sync/", subscriberListUrlWithVersion(listId, versionId));
+        JSONObject payload = new JSONObject();
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.PATCH, url, headers, contentText);
         if (resp.statusCode >= 400) {
             throw new SuprsendException(resp.errMsg, resp.statusCode);
         }

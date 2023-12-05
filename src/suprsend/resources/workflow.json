@@ -198,7 +198,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger"]
+            "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger", "ms_teams"]
           },
           "minItems": 0,
           "description": "user preferred channels. notification will be tried only on specified channels e.g ['email', 'sms']"
@@ -326,6 +326,18 @@
               "items": { "$ref": "#/definitions/non_empty_string" }
             }
           ]
+        },
+        "$ms_teams": {
+          "oneOf": [
+              { "$ref": "#/definitions/ms_teams_setting" },
+              {
+                  "type": "array",
+                  "uniqueItems": false,
+                  "maxItems": 10,
+                  "minItems": 1,
+                  "items": { "$ref": "#/definitions/ms_teams_setting" }
+              }
+          ]
         }
       },
       "required": [],
@@ -353,7 +365,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger"]
+            "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger", "ms_teams"]
           },
           "minItems": 0,
           "description": "e.g ['email', 'sms']. Used if smart=true, notification on these channels must be sent, irrespective of success metric outcome"

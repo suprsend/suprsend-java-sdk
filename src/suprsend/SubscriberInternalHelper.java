@@ -574,8 +574,20 @@ class SubscriberInternalHelper {
 		this.dictRemove.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
 	}
 
+	// ------------------------ MS Teams
+
+	private JSONObject checkMSTeamsDict(JSONObject value, String caller) {
+		boolean isError = false;
+		if (value == null || value.isEmpty()) {
+			this.errors.add(String.format("[%s] value must be a valid dict/json with proper keys", caller));
+			isError = true;
+		}
+		JSONObject response = new JSONObject().put("value", value).put("is_valid", !isError);
+		return response;
+	}
+
 	void addMSTeams(JSONObject value, String caller) {
-		JSONObject res = checkSlackDict(value, caller);
+		JSONObject res = checkMSTeamsDict(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
@@ -584,7 +596,7 @@ class SubscriberInternalHelper {
 	}
 
 	void removeMSTeams(JSONObject value, String caller) {
-		JSONObject res = checkSlackDict(value, caller);
+		JSONObject res = checkMSTeamsDict(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;

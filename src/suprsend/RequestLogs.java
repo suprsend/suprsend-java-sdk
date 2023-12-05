@@ -1,13 +1,18 @@
 package suprsend;
 
 import org.json.JSONObject;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,47 +49,73 @@ class RequestLogs {
 						statusCode, contentType, responseText));
 	}
 
-	private static void setMandatoryHeaders(HttpURLConnection httpConn, JSONObject headers) {
-		httpConn.setRequestProperty("Content-Type", headers.getString("Content-Type"));
-		httpConn.setRequestProperty("User-Agent", headers.getString("User-Agent"));
-		httpConn.setRequestProperty("Date", headers.getString("Date"));
+	private static void setMandatoryHeaders(HttpRequestBase httpRequest, JSONObject headers) {
+		httpRequest.setHeader("Content-Type", headers.getString("Content-Type"));
+		httpRequest.setHeader("User-Agent", headers.getString("User-Agent"));
+		httpRequest.setHeader("Date", headers.getString("Date"));
+
 		if (headers.opt("Authorization") != null) {
-			httpConn.setRequestProperty("Authorization", headers.getString("Authorization"));
+			httpRequest.setHeader("Authorization", headers.getString("Authorization"));
 		}
 	}
 
 	static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
-										JSONObject headers, String payload) throws IOException {
-		if (debug) {
-			logHttpCall(logger, httpMethod, url, headers, payload);
-		}
-		// --- Make HTTP POST request
-		HttpURLConnection httpConn = (HttpURLConnection) new URL(url).openConnection();
-		httpConn.setRequestMethod(httpMethod.name());
-		setMandatoryHeaders(httpConn, headers);
-		if (httpMethod != HttpMethod.GET) {
-			httpConn.setDoOutput(true);
-			byte[] input = payload.getBytes(StandardCharsets.UTF_8);
-			try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
-				dos.write(input);
-			}
-		}
-		//
-		int statusCode = httpConn.getResponseCode();
-		BufferedReader br = null;
-		if (statusCode >= 400) {
-			br = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()));
-		} else {
-			br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
-		}
-		String respText = br.lines().collect(Collectors.joining());
-		String contentType = httpConn.getContentType();
-		if (debug) {
-			logHttpResponse(logger, statusCode, contentType, respText);
-		}
-		//
-		SuprsendResponse response = new SuprsendResponse(statusCode, respText, contentType);
-		response.parseResponse();
-		return response;
-	}
+                                         JSONObject headers, String payload) throws IOException {
+        if (debug) {
+            logHttpCall(logger, httpMethod, url, headers, payload);
+        }
+
+        CloseableHttpResponse response = null;
+
+        try {
+            HttpClient httpClient = HttpClients.createDefault();
+            HttpRequestBase httpRequest;
+
+            switch (httpMethod) {
+                case GET:
+                    httpRequest = new HttpGet(url);
+                    break;
+                case POST:
+                    httpRequest = new HttpPost(url);
+                    ((HttpPost) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+                    break;
+                case PATCH:
+                    httpRequest = new HttpPatch(url);
+                    ((HttpPatch) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported HTTP method: " + httpMethod);
+            }
+
+            // Set headers using the setMandatoryHeaders method
+            setMandatoryHeaders(httpRequest, headers);
+
+            // Execute the request
+            response = (CloseableHttpResponse) httpClient.execute(httpRequest);
+
+            // Read the response
+            int statusCode = response.getStatusLine().getStatusCode();
+            String contentType = response.getEntity().getContentType().getValue();
+            String respText;
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
+                respText = br.lines().collect(Collectors.joining());
+            }
+
+            if (debug) {
+                logHttpResponse(logger, statusCode, contentType, respText);
+            }
+
+            // Close the response
+            response.close();
+
+            SuprsendResponse suprsendResponse = new SuprsendResponse(statusCode, respText, contentType);
+            suprsendResponse.parseResponse();
+            return suprsendResponse;
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }        
 }

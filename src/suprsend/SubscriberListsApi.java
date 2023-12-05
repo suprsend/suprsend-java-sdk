@@ -261,7 +261,7 @@ public class SubscriberListsApi {
         listId = validateListId(listId);
         versionId = validateVersionId(versionId);
         //
-        String url = String.format("%delete/", subscriberListUrlWithVersion(listId, versionId));
+        String url = String.format("%sdelete/", subscriberListUrlWithVersion(listId, versionId));
         JSONObject payload = new JSONObject();
         JSONObject headers = getHeaders();
         // Signature and Authorization-header
@@ -279,7 +279,7 @@ public class SubscriberListsApi {
     public JSONObject startSync(String listId) throws SuprsendException, IOException {
         listId = validateListId(listId);
         //
-        String url = String.format("%start_sync/", subscriberListDetailUrl(listId));
+        String url = String.format("%sstart_sync/", subscriberListDetailUrl(listId));
         JSONObject payload = new JSONObject();
         JSONObject headers = getHeaders();
         // Signature and Authorization-header

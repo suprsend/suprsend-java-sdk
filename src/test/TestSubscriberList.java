@@ -19,6 +19,8 @@ public class TestSubscriberList {
         createList();
         addToList();
         removeFromList();
+        listVersioning();
+        deleteList();
         broadcast();
     }
 
@@ -87,6 +89,80 @@ public class TestSubscriberList {
         try {
             String listId = "L00001";
             JSONObject res = suprClient.subscriberLists.remove(listId, distinctIds);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+    }
+
+    private static void listVersioning() throws Exception {
+        logger.log(Level.INFO, "List Versioning Methods:");
+        Suprsend suprClient = TestHelper.getClientInstance();
+        JSONObject res = new JSONObject();
+        String listId = "L00001";
+        try {
+            res = suprClient.subscriberLists.startSync(listId);
+            System.out.println("start sync resp: ");
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        String versionId = res.getString("version_id");
+        // get version
+        try {
+            res = suprClient.subscriberLists.getVersion(listId, versionId);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        //
+        String distinctId = "id-14980";
+        ArrayList<String> distinctIds =  new ArrayList<>(Arrays.asList(distinctId));
+        // add to version
+        try {
+            res = suprClient.subscriberLists.addToVersion(listId, versionId, distinctIds);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        // remove from version
+        try {
+            res = suprClient.subscriberLists.removeFromVersion(listId, versionId, distinctIds);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        // finish sync
+        try {
+            res = suprClient.subscriberLists.finishSync(listId, versionId);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+    }
+
+    private static void deleteList() throws Exception {
+        logger.log(Level.INFO, "List Delete:");
+        Suprsend suprClient = TestHelper.getClientInstance();
+        JSONObject res = new JSONObject();
+        String listId = "L00001";
+        try {
+            res = suprClient.subscriberLists.startSync(listId);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        String versionId = res.getString("version_id");
+        // delete version (draft list)
+        try {
+            res = suprClient.subscriberLists.deleteVersion(listId, versionId);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+        // delete active list
+        try {
+            res = suprClient.subscriberLists.delete(listId);
             System.out.println(res);
         } catch (SuprsendException e) {
             System.out.println(e);

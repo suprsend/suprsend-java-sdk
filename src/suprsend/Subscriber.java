@@ -207,13 +207,7 @@ public class Subscriber {
 		collectEvent();
 	}
 
-	public void set(String arg1, String arg2) {
-		String caller = "set";
-		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
-	}
-
-	public void set(String arg1, JSONObject arg2) {
+	public void set(String arg1, Object arg2) {
 		String caller = "set";
 		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
 		collectEvent();
@@ -233,13 +227,7 @@ public class Subscriber {
 		collectEvent();
 	}
 
-	public void setOnce(String arg1, String arg2) {
-		String caller = "set_once";
-		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
-	}
-
-	public void setOnce(String arg1, JSONObject arg2) {
+	public void setOnce(String arg1, Object arg2) {
 		String caller = "set_once";
 		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
 		collectEvent();
@@ -250,22 +238,12 @@ public class Subscriber {
 		String caller = "increment";
 		String[] keys = JSONObject.getNames(arg1);
 		for (String key : keys) {
-			if (arg1.get(key) instanceof String) {
-				this.helper.incrementKV(key, arg1.getString(key), arg1, caller);
-			} else {
-				this.helper.incrementKV(key, arg1.getJSONObject(key), arg1, caller);
-			}
+			this.helper.incrementKV(key, arg1.get(key), arg1, caller);
 		}
 		collectEvent();
 	}
 
-	public void increment(String arg1, String arg2) {
-		String caller = "increment";
-		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
-	}
-
-	public void increment(String arg1, JSONObject arg2) {
+	public void increment(String arg1, Object arg2) {
 		String caller = "increment";
 		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
 		collectEvent();

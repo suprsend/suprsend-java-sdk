@@ -235,6 +235,9 @@ public class TestSubscriber {
 									.put("prop3", "val3")
 									;
 		user.set(userProperties);
+		user.set("prop4", 100);
+		user.set("prop5", new Integer[] {1,2});
+		user.set("prop6", 10.02);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}
@@ -251,6 +254,8 @@ public class TestSubscriber {
 									.put("prop3", "val3")
 									;
 		user.setOnce(userProperties);
+		user.setOnce("prop4", 100);
+		user.setOnce("prop5", 2.00);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}
@@ -264,9 +269,11 @@ public class TestSubscriber {
 		user.increment("prop1", "1");
 		JSONObject userProperties = new JSONObject()
 									.put("prop2", "2")
-									.put("prop3", "3")
+									.put("prop3", 3)
 									;
 		user.increment(userProperties);
+		user.increment("prop4", 1);
+		user.increment("prop5", 2.0);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}

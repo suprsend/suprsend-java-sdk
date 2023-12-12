@@ -172,7 +172,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	void setKV(String key, String value, JSONObject kwargs, String caller) {
+	void setKV(String key, Object value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -185,20 +185,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	void setKV(String key, JSONObject value, JSONObject kwargs, String caller) {
-		JSONObject res = validateKeyBasic(key, caller);
-		boolean isKeyValid = res.getBoolean("is_valid");
-		if (!isKeyValid) {
-			return;
-		}
-		key = res.getString("key");
-		boolean isKValid = validateKeyPrefix(key, caller);
-		if (isKValid) {
-			this.dictSet.put(key, value);
-		}
-	}
-
-	void setOnceKV(String key, String value, JSONObject kwargs, String caller) {
+	void setOnceKV(String key, Object value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {
@@ -211,33 +198,7 @@ class SubscriberInternalHelper {
 		}
 	}
 
-	void setOnceKV(String key, JSONObject value, JSONObject kwargs, String caller) {
-		JSONObject res = validateKeyBasic(key, caller);
-		boolean isKeyValid = res.getBoolean("is_valid");
-		if (!isKeyValid) {
-			return;
-		}
-		key = res.getString("key");
-		boolean isKValid = validateKeyPrefix(key, caller);
-		if (isKValid) {
-			this.dictSetOnce.put(key, value);
-		}
-	}
-
-	void incrementKV(String key, String value, JSONObject kwargs, String caller) {
-		JSONObject res = validateKeyBasic(key, caller);
-		boolean isKeyValid = res.getBoolean("is_valid");
-		if (!isKeyValid) {
-			return;
-		}
-		key = res.getString("key");
-		boolean isKValid = validateKeyPrefix(key, caller);
-		if (isKValid) {
-			this.dictIncrement.put(key, value);
-		}
-	}
-
-	void incrementKV(String key, JSONObject value, JSONObject kwargs, String caller) {
+	void incrementKV(String key, Object value, JSONObject kwargs, String caller) {
 		JSONObject res = validateKeyBasic(key, caller);
 		boolean isKeyValid = res.getBoolean("is_valid");
 		if (!isKeyValid) {

@@ -23,6 +23,7 @@ public class TestSubscriber {
 		testPreferredLanguage();
 		testRemove();
 		testAddHelperFunctions();
+		testRemoveHelperFunctions();
 		testUserPropertySet();
 		testUserPropertySetOnce();
 		testUserPropertyIncrement();

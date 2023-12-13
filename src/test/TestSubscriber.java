@@ -26,6 +26,8 @@ public class TestSubscriber {
 		testUserPropertySet();
 		testUserPropertySetOnce();
 		testUserPropertyIncrement();
+		testUserPropertyAppend();
+		testUserPropertyRemove();
 		testUnsetKey();
 		testUnsetKeyMulti();
 		testBulkSubscriber();
@@ -276,6 +278,40 @@ public class TestSubscriber {
 		user.increment(userProperties);
 		user.increment("prop4", 1);
 		user.increment("prop5", 2.0);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
+
+	public static void testUserPropertyAppend() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.append("prop1", "1");
+		JSONObject userProperties = new JSONObject()
+									.put("$email", "user@example.com")
+									.put("prop3", 3)
+									;
+		user.append(userProperties);
+		user.append("prop4", 1.0);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
+
+	public static void testUserPropertyRemove() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.remove("prop1", "1");
+		JSONObject userProperties = new JSONObject()
+									.put("$email", "user@example.com")
+									.put("prop3", 3)
+									;
+		user.remove(userProperties);
+		user.remove("prop4", 1.0);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}

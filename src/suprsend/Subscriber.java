@@ -174,8 +174,10 @@ public class Subscriber {
 		for (String key : keys) {
 			if (arg1.get(key) instanceof String) {
 				this.helper.appendKV(key, arg1.getString(key), arg1, caller);
-			} else {
+			} else if (arg1.get(key) instanceof JSONObject) {
 				this.helper.appendKV(key, arg1.getJSONObject(key), arg1, caller);
+			} else {
+				this.helper.appendKV(key, arg1.get(key), arg1, caller);
 			}
 		}
 		collectEvent();
@@ -193,6 +195,12 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	public void append(String arg1, Object arg2) {
+		String caller = "append";
+		this.helper.appendKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
 	// =========================================================== Set
 	public void set(JSONObject arg1) {
 		String caller = "set";
@@ -203,6 +211,7 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	// TODO: find better way than using Object class as it may contain child classes which are not JSON serializable
 	public void set(String arg1, Object arg2) {
 		String caller = "set";
 		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
@@ -248,8 +257,10 @@ public class Subscriber {
 		for (String key : keys) {
 			if (arg1.get(key) instanceof String) {
 				this.helper.removeKV(key, arg1.getString(key), arg1, caller);
-			} else {
+			} else if (arg1.get(key) instanceof JSONObject) {
 				this.helper.removeKV(key, arg1.getJSONObject(key), arg1, caller);
+			} else {
+				this.helper.removeKV(key, arg1.get(key), arg1, caller);
 			}
 		}
 		collectEvent();
@@ -262,6 +273,12 @@ public class Subscriber {
 	}
 
 	public void remove(String arg1, JSONObject arg2) {
+		String caller = "remove";
+		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
+	public void remove(String arg1, Object arg2) {
 		String caller = "remove";
 		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
 		collectEvent();
@@ -419,34 +436,6 @@ public class Subscriber {
 	public void removeSlack(JSONObject value) {
 		String caller = "remove_slack";
 		this.helper.removeSlack(value, caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void addSlackEmail(String value) {
-		String caller = "add_slack_email";
-		this.helper.addSlack(new JSONObject().put("email", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void removeSlackEmail(String value) {
-		String caller = "remove_slack_email";
-		this.helper.removeSlack(new JSONObject().put("email", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void addSlackUserid(String value) {
-		String caller = "add_slack_userid";
-		this.helper.addSlack(new JSONObject().put("user_id", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void removeSlackUserid(String value) {
-		String caller = "remove_slack_userid";
-		this.helper.removeSlack(new JSONObject().put("user_id", value), caller);
 		collectEvent();
 	}
 

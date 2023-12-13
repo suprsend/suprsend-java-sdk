@@ -233,6 +233,8 @@ public class TestSubscriber {
 		JSONObject userProperties = new JSONObject()
 									.put("prop2", "val2")
 									.put("prop3", "val3")
+									.put("some", 1)
+									.put("key", 1.0)
 									;
 		user.set(userProperties);
 		user.set("prop4", 100);
@@ -251,7 +253,7 @@ public class TestSubscriber {
 		user.setOnce("prop1", "val1");
 		JSONObject userProperties = new JSONObject()
 									.put("prop2", "val2")
-									.put("prop3", "val3")
+									.put("prop3", 1)
 									;
 		user.setOnce(userProperties);
 		user.setOnce("prop4", 100);

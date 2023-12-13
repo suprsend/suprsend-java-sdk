@@ -198,11 +198,7 @@ public class Subscriber {
 		String caller = "set";
 		String[] keys = JSONObject.getNames(arg1);
 		for (String key : keys) {
-			if (arg1.get(key) instanceof String) {
-				this.helper.setKV(key, arg1.getString(key), arg1, caller);
-			} else {
-				this.helper.setKV(key, arg1.getJSONObject(key), arg1, caller);
-			}
+			this.helper.setKV(key, arg1.get(key), arg1, caller);
 		}
 		collectEvent();
 	}
@@ -218,11 +214,7 @@ public class Subscriber {
 		String caller = "set_once";
 		String[] keys = JSONObject.getNames(arg1);
 		for (String key : keys) {
-			if (arg1.get(key) instanceof String) {
-				this.helper.setOnceKV(key, arg1.getString(key), arg1, caller);
-			} else {
-				this.helper.setOnceKV(key, arg1.getJSONObject(key), arg1, caller);
-			}
+			this.helper.setOnceKV(key, arg1.get(key), arg1, caller);
 		}
 		collectEvent();
 	}

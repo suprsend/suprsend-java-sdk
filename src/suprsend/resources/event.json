@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://github.com/suprsend/suprsend-py-sdk/request_json/event.json",
+  "$id": "http://github.com/suprsend/suprsend-java-sdk/request_json/event.json",
   "title": "track_event",
   "description": "Json schema for Track event",
   "$comment": "Json schema for Track event",
@@ -8,8 +8,13 @@
   "properties": {
     "$idempotency_key": {
       "type": ["string", "null"],
-      "maxLength": 64,
+      "maxLength": 255,
       "description": "unique id provided by client for request"
+    },
+    "tenant_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "tenant id for workflow to be run in context of a tenant"
     },
     "brand_id": {
       "type": ["string", "null"],

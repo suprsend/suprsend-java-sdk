@@ -35,7 +35,7 @@ class SubscriberInternalHelper {
     		);
 
 	public static final List<String> SUPER_PROPERTY_KEYS = Arrays.asList("$app_version_string", "$app_build_number",
-	        "$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
+	        "$tenant", "$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
 
 	public static final List<String> ALL_RESERVED_KEYS = getAllReservedKeys();
 

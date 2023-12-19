@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://github.com/suprsend/suprsend-py-sdk/request_json/workflow.json",
+  "$id": "http://github.com/suprsend/suprsend-java-sdk/request_json/workflow.json",
   "title": "workflow_request",
   "description": "Json schema for workflow request",
   "$comment": "Json schema for workflow request",
@@ -8,8 +8,13 @@
   "properties": {
     "$idempotency_key": {
       "type": ["string", "null"],
-      "maxLength": 64,
+      "maxLength": 255,
       "description": "unique id provided by client for request"
+    },
+    "tenant_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "tenant id for workflow to be run in context of a tenant"
     },
     "brand_id": {
       "type": ["string", "null"],
@@ -303,6 +308,18 @@
             }
           ]
         },
+        "$ms_teams": {
+          "oneOf": [
+            { "$ref": "#/definitions/ms_teams_setting" },
+            {
+              "type": "array",
+              "uniqueItems": false,
+              "maxItems": 10,
+              "minItems": 1,
+              "items": { "$ref": "#/definitions/ms_teams_setting" }
+            }
+          ]
+        },
         "$inbox": {
           "oneOf": [
             { "$ref": "#/definitions/non_empty_string" },
@@ -325,18 +342,6 @@
               "minItems": 1,
               "items": { "$ref": "#/definitions/non_empty_string" }
             }
-          ]
-        },
-        "$ms_teams": {
-          "oneOf": [
-              { "$ref": "#/definitions/ms_teams_setting" },
-              {
-                  "type": "array",
-                  "uniqueItems": false,
-                  "maxItems": 10,
-                  "minItems": 1,
-                  "items": { "$ref": "#/definitions/ms_teams_setting" }
-              }
           ]
         }
       },

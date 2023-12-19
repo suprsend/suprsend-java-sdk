@@ -10,23 +10,31 @@ public class SubscriberListBroadcast {
 
     private JSONObject body;
     private String idempotencyKey;
+    private String tenantId;
     private String brandId;
 
     public SubscriberListBroadcast(JSONObject body) throws SuprsendException{
-        this(body, null, null);
+        this(body, null, null, null);
     }
 
     public SubscriberListBroadcast(JSONObject body, String idempotencyKey) throws SuprsendException{
-        this(body, idempotencyKey, null);
+        this(body, idempotencyKey, null, null);
     }
 
-    public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String brandId) throws SuprsendException{
+    public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String tenantId) throws SuprsendException{
+        this(body, idempotencyKey, tenantId, null);
+    }
+
+    public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String tenantId, String brandId) throws SuprsendException{
         if (body == null) {
             throw new SuprsendException("broadcast body must be a passed");
         }
         this.body = body;
         if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
             this.idempotencyKey = idempotencyKey.trim();
+        }
+        if (tenantId != null && !tenantId.trim().isEmpty()) {
+            this.tenantId = tenantId.trim();
         }
         if (brandId != null && !brandId.trim().isEmpty()) {
             this.brandId = brandId.trim();
@@ -38,6 +46,9 @@ public class SubscriberListBroadcast {
         this.body.put("$time", Instant.now().getEpochSecond() * 1000);
         if (null != this.idempotencyKey) {
 			this.body.put("$idempotency_key", this.idempotencyKey);
+		}
+        if (null != this.tenantId) {
+			this.body.put("tenant_id", this.tenantId);
 		}
 		if (null != this.brandId) {
 			this.body.put("brand_id", this.brandId);

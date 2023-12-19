@@ -18,6 +18,7 @@ public class Event {
 	private String eventName;
 	private JSONObject properties;
 	private String idempotencyKey;
+	private String tenantId;
 	private String brandId;
 
 	static List<String> RESERVED_EVENT_NAMES = Arrays.asList("$identify", "$notification_delivered",
@@ -30,21 +31,29 @@ public class Event {
 	}
 
 	public Event(String distinctId, String eventName, JSONObject properties) throws SuprsendException {
-		this(distinctId, eventName, properties, null, null);
+		this(distinctId, eventName, properties, null, null, null);
 	}
 
 	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey)
 			throws SuprsendException {
-		this(distinctId, eventName, properties, idempotencyKey, null);
+		this(distinctId, eventName, properties, idempotencyKey, null, null);
 	}
 
-	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String brandId)
+	public Event(String distinctId, String eventName, JSONObject properties, String tenantId, String idempotencyKey)
+			throws SuprsendException {
+		this(distinctId, eventName, properties, idempotencyKey, tenantId, null);
+	}
+
+	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String tenantId, String brandId)
 			throws SuprsendException {
 		this.distinctId = distinctId;
 		this.eventName = eventName;
 		this.properties = properties;
 		if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
 			this.idempotencyKey = idempotencyKey.trim();
+		}
+		if (tenantId != null && !tenantId.trim().isEmpty()) {
+			this.tenantId = tenantId.trim();
 		}
 		if (brandId != null && !brandId.trim().isEmpty()) {
 			this.brandId = brandId.trim();
@@ -116,6 +125,9 @@ public class Event {
 				.put("properties", merged);
 		if (null != idempotencyKey) {
 			eventDict.put("$idempotency_key", idempotencyKey);
+		}
+		if (null != tenantId) {
+			eventDict.put("tenant_id", tenantId);
 		}
 		if (null != brandId) {
 			eventDict.put("brand_id", brandId);

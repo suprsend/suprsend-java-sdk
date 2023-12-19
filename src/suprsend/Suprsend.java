@@ -25,7 +25,9 @@ public class Suprsend {
 	public BulkEventsFactory bulkEvents;
 	public BulkSubscribersFactory bulkUsers;
 	//
+	public TenantsApi tenants;
 	public BrandsApi brands;
+	//
 	public SubscriberListsApi subscriberLists;
 
 	private void initHelpers() {
@@ -37,7 +39,9 @@ public class Suprsend {
 		this.bulkEvents = new BulkEventsFactory(this);
 		this.bulkUsers = new BulkSubscribersFactory(this);
 		//
+		this.tenants = new TenantsApi(this);
 		this.brands = new BrandsApi(this);
+		//
 		this.subscriberLists = new SubscriberListsApi(this);
 	}
 
@@ -200,7 +204,7 @@ public class Suprsend {
 	 */
 	@Deprecated
 	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, UnsupportedEncodingException {
-		Workflow wfIns = new Workflow(data, null, null);
+		Workflow wfIns = new Workflow(data, null, null, null);
 		return this.workflowTrigger.trigger(wfIns);
 	}
 
@@ -230,7 +234,7 @@ public class Suprsend {
 	 */
 	@Deprecated
 	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws SuprsendException, UnsupportedEncodingException {
-		Event event = new Event(distinctId, eventName, properties, null, null);
+		Event event = new Event(distinctId, eventName, properties, null, null, null);
 		return this.eventCollector.collect(event);
 	}
 

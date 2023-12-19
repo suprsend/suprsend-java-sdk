@@ -12,6 +12,7 @@ public class Workflow {
 
 	private JSONObject body;
 	private String idempotencyKey;
+	private String tenantId;
 	private String brandId;
 
 	/**
@@ -19,7 +20,7 @@ public class Workflow {
 	 * @param body json body of workflow
 	 */
 	public Workflow(JSONObject body) {
-		this(body, null, null);
+		this(body, null, null, null);
 	}
 
 	/**
@@ -28,22 +29,36 @@ public class Workflow {
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey) {
-		this(body, idempotencyKey, null);
+		this(body, idempotencyKey, null, null);
+	}
+
+	/**
+	 * 
+	 * @param body json body of workflow
+	 * @param idempotencyKey idempotency-key for workflow request
+	 * @param tenantId tenantId for workflow request
+	 */
+	public Workflow(JSONObject body, String idempotencyKey, String tenantId) {
+		this(body, idempotencyKey, tenantId, null);
 	}
 
 	/**
 	 * 
 	 * @param body body json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
+	 * @param tenantId tenant-id for workflow request
 	 * @param brandId brand-id for workflow request
 	 */
-	public Workflow(JSONObject body, String idempotencyKey, String brandId) {
+	public Workflow(JSONObject body, String idempotencyKey, String tenantId, String brandId) {
 		if (null == body) {
 			body = new JSONObject();
 		}
 		this.body = body;
 		if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
 			this.idempotencyKey = idempotencyKey.trim();
+		}
+		if (tenantId != null && !tenantId.trim().isEmpty()) {
+			this.tenantId = tenantId.trim();
 		}
 		if (brandId != null && !brandId.trim().isEmpty()) {
 			this.brandId = brandId.trim();
@@ -85,6 +100,9 @@ public class Workflow {
 		// add idempotency key in body if present
 		if (null != idempotencyKey) {
 			this.body.put("$idempotency_key", idempotencyKey);
+		}
+		if (null != tenantId) {
+			this.body.put("tenant_id", tenantId);
 		}
 		if (null != brandId) {
 			this.body.put("brand_id", brandId);

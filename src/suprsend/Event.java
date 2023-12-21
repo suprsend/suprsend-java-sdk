@@ -39,7 +39,7 @@ public class Event {
 		this(distinctId, eventName, properties, idempotencyKey, null, null);
 	}
 
-	public Event(String distinctId, String eventName, JSONObject properties, String tenantId, String idempotencyKey)
+	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String tenantId)
 			throws SuprsendException {
 		this(distinctId, eventName, properties, idempotencyKey, tenantId, null);
 	}

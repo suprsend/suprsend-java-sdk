@@ -46,7 +46,7 @@ public class TestWorkflow {
         System.out.println(resp);
     }
 
-    private static void testWorkflowBulk() throws SuprsendException, IOException {
+    private static void testWorkflowBulk() throws SuprsendException {
         Suprsend suprClient = TestHelper.getClientInstance();
         // payload
         BulkWorkflows bulkIns = suprClient.bulkWorkflows.newInstance();
@@ -57,7 +57,7 @@ public class TestWorkflow {
         System.out.println(resp);
     }
 
-    private static Workflow getWorkflow() throws SuprsendException, IOException {
+    private static Workflow getWorkflow() throws SuprsendException {
         JSONObject body = getWorkflowBody();
         Workflow wf = new Workflow(body);
         // String filePath = "https://lightning.network/lightning-network-paper.pdf";

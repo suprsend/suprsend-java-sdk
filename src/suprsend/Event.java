@@ -3,7 +3,6 @@ package suprsend;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -23,23 +22,15 @@ public class Event {
 	static List<String> RESERVED_EVENT_NAMES = Arrays.asList("$identify", "$notification_delivered",
 	        "$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", "$user_logout");
 
-	private void validateParams() throws SuprsendException {
-		this.validateDistinctId();
-		this.validateEventName();
-		this.validateProperties();
-	}
-
-	public Event(String distinctId, String eventName, JSONObject properties) throws SuprsendException {
+	public Event(String distinctId, String eventName, JSONObject properties) {
 		this(distinctId, eventName, properties, null, null);
 	}
 
-	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey)
-			throws SuprsendException {
+	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey) {
 		this(distinctId, eventName, properties, idempotencyKey, null);
 	}
 
-	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String brandId)
-			throws SuprsendException {
+	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String brandId) {
 		this.distinctId = distinctId;
 		this.eventName = eventName;
 		this.properties = properties;
@@ -49,49 +40,44 @@ public class Event {
 		if (brandId != null && !brandId.trim().isEmpty()) {
 			this.brandId = brandId.trim();
 		}
-		// --- validate
-		validateParams();
+		if (properties == null) {
+			properties = new JSONObject();
+		}
 	}
 
-	private void validateDistinctId() throws SuprsendException {
+	private void validateDistinctId() throws InputValueException {
 		if (this.distinctId == null || this.distinctId.trim().isEmpty()) {
-			throw new SuprsendException("distinct_id missing");
+			throw new InputValueException("distinct_id missing");
 		}
 		this.distinctId = this.distinctId.trim();
 	}
 
-	private void checkEventPrefix(String eventName) throws SuprsendException {
+	private void checkEventPrefix(String eventName) throws InputValueException {
 		if (Event.RESERVED_EVENT_NAMES.contains(eventName) == false) {
 			String eLower = eventName.toLowerCase();
 			if (eLower.startsWith("$") || (eLower.length() >= 3 && "ss_".equals(eLower.substring(0, 3)))) {
-				throw new SuprsendException("event_name starting with [$,ss_] are reserved");
+				throw new InputValueException("event_name starting with [$,ss_] are reserved by SuprSend");
 			}
 		}
 	}
 
-	private void validateEventName() throws SuprsendException {
+	private void validateEventName() throws InputValueException {
 		if (this.eventName == null || this.eventName.trim().isEmpty()) {
-			throw new SuprsendException("event_name must be passed");
+			throw new InputValueException("event_name missing");
 		}
 		this.eventName = this.eventName.trim();
 		checkEventPrefix(this.eventName);
 	}
 
-	private void validateProperties() {
-		if (this.properties == null) {
-			this.properties = new JSONObject();
-		}
-	}
-
-	public void addAttachment(String filePath) throws SuprsendException, IOException {
+	public void addAttachment(String filePath) throws InputValueException {
 		this.addAttachment(filePath, null, false);
 	}
 
-	public void addAttachment(String filePath, String fileName) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName) throws InputValueException {
 		this.addAttachment(filePath, fileName, false);
 	}
 
-	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		JSONObject attachment = Attachment.getAttachmentJSON(filePath, fileName, ignoreIfError);
 		if (attachment != null) {
 			// --- add the attachment to properties->$attachments
@@ -104,7 +90,10 @@ public class Event {
 	}
 
 	JSONObject getFinalJson(Suprsend config, boolean isPartOfBulk)
-			throws SuprsendException, UnsupportedEncodingException {
+			throws InputValueException, SuprsendException, UnsupportedEncodingException {
+		// -- validate
+		this.validateDistinctId();
+		this.validateEventName();
 		JSONObject superProps = new JSONObject().put("$ss_sdk_version", config.userAgent);
 		JSONObject merged = Utils.mergeJSONObjects(this.properties, superProps);
 		JSONObject eventDict = new JSONObject()
@@ -126,9 +115,23 @@ public class Event {
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 			String errMsg = String.format("Event size too big - %d Bytes, must not cross %s", apparentSize,
 			        Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
-			throw new SuprsendException(errMsg);
+			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", validatedEvent).put("apparent_size", apparentSize);
+	}
+
+	JSONObject asJson() {
+		JSONObject eventDict = new JSONObject()
+				.put("event", this.eventName)
+				.put("distinct_id", this.distinctId)
+				.put("properties", this.properties);
+		if (null != idempotencyKey) {
+			eventDict.put("$idempotency_key", idempotencyKey);
+		}
+		if (null != brandId) {
+			eventDict.put("brand_id", brandId);
+		}
+		return eventDict;
 	}
 
 }

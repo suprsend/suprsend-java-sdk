@@ -234,11 +234,11 @@ public class TestSubscriber {
 		//
 		user.set("prop1", "val1");
 		JSONObject userProperties = new JSONObject()
-									.put("prop2", "val2")
-									.put("prop3", "val3")
-									.put("some", 1)
-									.put("key", 1.0)
-									;
+				.put("prop2", "val2")
+				.put("prop3", "val3")
+				.put("some", 1)
+				.put("key", 1.0)
+				;
 		user.set(userProperties);
 		user.set("prop4", 100);
 		user.set("prop5", new Integer[] {1,2});
@@ -255,9 +255,9 @@ public class TestSubscriber {
 		//
 		user.setOnce("prop1", "val1");
 		JSONObject userProperties = new JSONObject()
-									.put("prop2", "val2")
-									.put("prop3", 1)
-									;
+				.put("prop2", "val2")
+				.put("prop3", 1)
+				;
 		user.setOnce(userProperties);
 		user.setOnce("prop4", 100);
 		user.setOnce("prop5", 2.00);
@@ -273,9 +273,9 @@ public class TestSubscriber {
 		//
 		user.increment("prop1", "1");
 		JSONObject userProperties = new JSONObject()
-									.put("prop2", "2")
-									.put("prop3", 3)
-									;
+				.put("prop2", "2")
+				.put("prop3", 3)
+				;
 		user.increment(userProperties);
 		user.increment("prop4", 1);
 		user.increment("prop5", 2.0);
@@ -291,9 +291,9 @@ public class TestSubscriber {
 		//
 		user.append("prop1", "1");
 		JSONObject userProperties = new JSONObject()
-									.put("$email", "user@example.com")
-									.put("prop3", 3)
-									;
+				.put("prop_append", "val_append")
+				.put("prop_append2", "23")
+				;
 		user.append(userProperties);
 		user.append("prop4", 1.0);
 		JSONObject res = user.save();
@@ -308,9 +308,9 @@ public class TestSubscriber {
 		//
 		user.remove("prop1", "1");
 		JSONObject userProperties = new JSONObject()
-									.put("$email", "user@example.com")
-									.put("prop3", 3)
-									;
+				.put("prop_append", "val_append")
+				.put("prop_append2", "23")
+				;
 		user.remove(userProperties);
 		user.remove("prop4", 1.0);
 		JSONObject res = user.save();

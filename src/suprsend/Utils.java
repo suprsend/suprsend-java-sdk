@@ -240,4 +240,18 @@ class Utils {
         }
         return sb.toString();
     }
+
+	static JSONObject invalidRecordJson(JSONObject failedRecord, Exception err) {
+		String errStr = "";
+		if (err instanceof InputValueException) {
+			errStr = err.toString(); 
+		} else {
+			errStr = err.getMessage(); 
+		}
+		return new JSONObject()
+			.put("record", failedRecord)
+			.put("error", errStr)
+			.put("code", 500);
+    }
+
 }

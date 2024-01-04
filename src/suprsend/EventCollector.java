@@ -28,7 +28,7 @@ class EventCollector {
 				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
-	JSONObject collect(Event event) throws SuprsendException, UnsupportedEncodingException {
+	JSONObject collect(Event event) throws InputValueException, SuprsendException, UnsupportedEncodingException {
 		JSONObject finalJson = event.getFinalJson(config, false);
 		JSONObject eventDict = finalJson.getJSONObject("event");
 		// int eventSize = finalJson.getInt("apparent_size");

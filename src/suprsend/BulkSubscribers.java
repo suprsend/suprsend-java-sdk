@@ -2,7 +2,6 @@ package suprsend;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,32 +18,42 @@ public class BulkSubscribers {
     private List<BulkSubscribersChunk> chunks;
     private BulkResponse response;
 
+    // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+    private List<JSONObject> __invalidRecords;
+
     BulkSubscribers(Suprsend config) {
         this.config = config;
         this.__subscribers = new ArrayList<Subscriber>();
         this.__pendingRecords = new ArrayList<JSONObject>();
+        // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+        this.__invalidRecords = new ArrayList<JSONObject>();
         this.chunks = new ArrayList<>();
         this.response = new BulkResponse();
+
     }
 
-    private void validateSubscribers() throws SuprsendException, UnsupportedEncodingException {
-        if (this.__subscribers.isEmpty()) {
-            throw new SuprsendException("users list is empty in bulk request");
-        }
+    private void validateSubscribers() {
         for (Subscriber s : this.__subscribers) {
-            // check if there is any error/warning, if so add it to warnings list of BulkResponse
-            List<String> warningsList = s.validateBody(true);
-            if (!warningsList.isEmpty())
-                this.response.warnings.addAll(warningsList);
-            // 
-            JSONObject ev = s.getEvent();
-            // {"event", validatedEvent, "apparent_size", apparentSize}
-            JSONObject evJson = s.validateEventSize(ev);
-            this.__pendingRecords.add(evJson);
+            try {
+                // check if there is any error/warning, if so add it to warnings list of BulkResponse
+                List<String> warningsList = s.validateBody(true);
+                if (!warningsList.isEmpty())
+                    this.response.warnings.addAll(warningsList);
+                // 
+                JSONObject ev = s.getEvent();
+                // {"event", validatedEvent, "apparent_size", apparentSize}
+                JSONObject evJson = s.validateEventSize(ev);
+                this.__pendingRecords.add(evJson);
+
+            } catch (Exception ex) {
+                // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+                JSONObject invRec = Utils.invalidRecordJson(s.asJson(), ex);
+                this.__invalidRecords.add(invRec);
+            }
         }
     }
 
-    private void chunkify(int startIdx) throws SuprsendException {
+    private void chunkify(int startIdx) throws InputValueException {
         BulkSubscribersChunk currChunk = new BulkSubscribersChunk(this.config);
         this.chunks.add(currChunk);
         // loop on slice pendingRecords[startIdx:]
@@ -63,9 +72,9 @@ public class BulkSubscribers {
         }
     }
 
-    public void append(Subscriber... subscribers) throws SuprsendException {
+    public void append(Subscriber... subscribers) {
         if (subscribers.length == 0) {
-            throw new SuprsendException("users list empty. must pass one or more users");
+            return;
         }
         for (Subscriber obj : subscribers) {
             if (obj == null) {
@@ -76,23 +85,36 @@ public class BulkSubscribers {
         }
     }
 
-    public BulkResponse trigger() throws SuprsendException, UnsupportedEncodingException {
+    public BulkResponse trigger() throws InputValueException {
         return save();
     }
 
-    public BulkResponse save() throws SuprsendException, UnsupportedEncodingException {
+    public BulkResponse save() throws InputValueException {
         validateSubscribers();
-        chunkify(0);
-        for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
-            BulkSubscribersChunk chunk = this.chunks.get(cIdx);
-            if (this.config.debug) {
-                logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
-            }
-            // do api call
-            chunk.trigger();
-            // merge response
-            this.response.mergeChunkResponse(chunk.response);
+        if (this.__invalidRecords.size() > 0) {
+            JSONObject chResponse = BulkResponse.invalidRecordsChunkResponse(this.__invalidRecords);
+            this.response.mergeChunkResponse(chResponse);
         }
+        if (this.__pendingRecords.size() > 0) {
+            chunkify(0);
+            for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
+                BulkSubscribersChunk chunk = this.chunks.get(cIdx);
+                if (this.config.debug) {
+                    logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
+                }
+                // do api call
+                chunk.trigger();
+                // merge response
+                this.response.mergeChunkResponse(chunk.response);
+            }
+        } else {
+            // if no records. i.e. len(invalid_records) and len(pending_records) both are 0
+            // then add empty success response
+            if (this.__invalidRecords.size() == 0) {
+                this.response.mergeChunkResponse(BulkResponse.emptyChunkSuccessResponse());
+            }
+        }
+        // -----
         return this.response;
     }
 

@@ -23,6 +23,8 @@ public class Subscriber {
 	
 	private SubscriberInternalHelper helper;
 
+	private List<String> __warningsList;
+
 	Subscriber(Suprsend config, String distinctId) {
 		this.config = config;
 		this.distinctId = distinctId;
@@ -34,6 +36,8 @@ public class Subscriber {
 		//
 		this.userOperations = new ArrayList<JSONObject>();
 		this.helper = new SubscriberInternalHelper();
+		// 
+		this.__warningsList = new ArrayList<String>();
 	}
 
 	/**
@@ -68,38 +72,45 @@ public class Subscriber {
 			.put("properties", this.superProperties);
 	}
 
-	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
+	public JSONObject asJson() {
+		return new JSONObject()
+			.put("distinct_id", this.distinctId)
+			.put("$user_operations", this.userOperations)
+			.put("warnings", this.__warningsList);
+	}
+
+	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, InputValueException {
 		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
 		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 		    String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
 		            Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
-			throw new SuprsendException(errMsg);
+			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
 	}
 
-	ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
-		ArrayList<String> warningsList = new ArrayList<String>();
+	List<String> validateBody(boolean isPartOfBulk) throws InputValueException {
+		this.__warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.info));
-			warningsList.add(msg);
+			this.__warningsList.add(msg);
 			// print on console as well
 			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.errors));
-			warningsList.add(msg);
+			this.__warningsList.add(msg);
 			String errMsg = String.format("ERROR: %s", msg);
 			if (isPartOfBulk) {
 				// print on console in case of bulk-api
 				System.out.println(errMsg);
 			} else {
 				// raise error in case of single api
-				throw new SuprsendException(errMsg);
+				throw new InputValueException(errMsg);
 			}
 		}
 		//
-		return warningsList;
+		return this.__warningsList;
 	}
 
 	public JSONObject save() {

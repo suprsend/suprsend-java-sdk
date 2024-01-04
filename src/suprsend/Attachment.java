@@ -3,7 +3,6 @@ package suprsend;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Base64;
@@ -15,15 +14,15 @@ import java.util.List;
 public class Attachment {
 	private static List<String> urlSchemes = Arrays.asList("https://", "http://");
 
-	public static JSONObject getAttachmentJSON(String filePath) throws SuprsendException, IOException {
+	public static JSONObject getAttachmentJSON(String filePath) throws InputValueException {
 		return getAttachmentJSON(filePath, null, false);
 	}
 	
-	public static JSONObject getAttachmentJSON(String filePath, String fileName) throws SuprsendException, IOException {
+	public static JSONObject getAttachmentJSON(String filePath, String fileName) throws InputValueException {
 		return getAttachmentJSON(filePath, fileName, false);
 	}
 
-	public static JSONObject getAttachmentJSON(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException{
+	public static JSONObject getAttachmentJSON(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		// check for empty filepath
 		if (filePath == null || filePath.trim().isEmpty()) {
 			return null;
@@ -61,26 +60,34 @@ public class Attachment {
         		.put("ignore_if_error", ignoreIfError);
 	}
 
-	private static JSONObject getAttachmentJSONForFile(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException{
+	private static JSONObject getAttachmentJSONForFile(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		// Handle ~ in path. Ensure that path is expanded and absolute
 		filePath = filePath.replaceFirst("^~", System.getProperty("user.home"));
 		//
-		File file = new File(filePath);
-		if (!file.exists()) {
-			throw new SuprsendException(String.format("file not found: %s", filePath));
+		try {
+			File file = new File(filePath);
+			if (!file.exists()) {
+				throw new InputValueException(String.format("file not found: %s", filePath));
+			}
+			String finalFileName = fileName != null ? fileName : file.getName();
+			String mimeType = Files.probeContentType(file.toPath());
+			//
+			byte[] fileBytes = Files.readAllBytes(file.toPath());
+			String b64EncodedStr = Base64.getEncoder().encodeToString(fileBytes);
+			//
+			return new JSONObject()
+					.put("filename", finalFileName)
+					.put("contentType", mimeType)
+					.put("data", b64EncodedStr)
+					.put("url", JSONObject.NULL)
+					.put("ignore_if_error", ignoreIfError);
+		} catch (Exception ex) {
+			if (ignoreIfError) {
+				System.out.println(String.format("WARNING: ignoring error while processing attachment file. %s", ex.toString()));
+				return null;
+			}
+			throw new InputValueException(ex.toString());
 		}
-		String finalFileName = fileName != null ? fileName : file.getName();
-		String mimeType = Files.probeContentType(file.toPath());
-		//
-		byte[] fileBytes = Files.readAllBytes(file.toPath());
-		String b64EncodedStr = Base64.getEncoder().encodeToString(fileBytes);
-		//
-		return new JSONObject()
-		        .put("filename", finalFileName)
-        		.put("contentType", mimeType)
-        		.put("data", b64EncodedStr)
-        		.put("url", JSONObject.NULL)
-        		.put("ignore_if_error", ignoreIfError);
 	}
 	
 }

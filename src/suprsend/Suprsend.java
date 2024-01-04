@@ -171,7 +171,7 @@ public class Suprsend {
 	 * @throws SuprsendException IOException
 	 */
 	@Deprecated
-	public JSONObject addAttachment(JSONObject body, String filePath) throws SuprsendException, IOException {
+	public JSONObject addAttachment(JSONObject body, String filePath) throws InputValueException {
 		// if data key not present, add it and set value={}.
 		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
@@ -229,7 +229,7 @@ public class Suprsend {
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	@Deprecated
-	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws InputValueException, SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctId, eventName, properties, null, null);
 		return this.eventCollector.collect(event);
 	}
@@ -243,7 +243,7 @@ public class Suprsend {
 	 * @throws SuprsendException SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	public JSONObject trackEvent(Event event) throws SuprsendException, UnsupportedEncodingException {
+	public JSONObject trackEvent(Event event) throws InputValueException, SuprsendException, UnsupportedEncodingException {
 		return this.eventCollector.collect(event);
 	}
 

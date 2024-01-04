@@ -23,6 +23,8 @@ public class Subscriber {
 	
 	private SubscriberInternalHelper helper;
 
+	private List<String> __warningsList;
+
 	Subscriber(Suprsend config, String distinctId) {
 		this.config = config;
 		this.distinctId = distinctId;
@@ -34,6 +36,8 @@ public class Subscriber {
 		//
 		this.userOperations = new ArrayList<JSONObject>();
 		this.helper = new SubscriberInternalHelper();
+		// 
+		this.__warningsList = new ArrayList<String>();
 	}
 
 	/**
@@ -68,38 +72,45 @@ public class Subscriber {
 			.put("properties", this.superProperties);
 	}
 
-	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, SuprsendException {
+	public JSONObject asJson() {
+		return new JSONObject()
+			.put("distinct_id", this.distinctId)
+			.put("$user_operations", this.userOperations)
+			.put("warnings", this.__warningsList);
+	}
+
+	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, InputValueException {
 		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
 		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 		    String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
 		            Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
-			throw new SuprsendException(errMsg);
+			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
 	}
 
-	ArrayList<String> validateBody(boolean isPartOfBulk) throws SuprsendException {
-		ArrayList<String> warningsList = new ArrayList<String>();
+	List<String> validateBody(boolean isPartOfBulk) throws InputValueException {
+		this.__warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.info));
-			warningsList.add(msg);
+			this.__warningsList.add(msg);
 			// print on console as well
 			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.errors));
-			warningsList.add(msg);
+			this.__warningsList.add(msg);
 			String errMsg = String.format("ERROR: %s", msg);
 			if (isPartOfBulk) {
 				// print on console in case of bulk-api
 				System.out.println(errMsg);
 			} else {
 				// raise error in case of single api
-				throw new SuprsendException(errMsg);
+				throw new InputValueException(errMsg);
 			}
 		}
 		//
-		return warningsList;
+		return this.__warningsList;
 	}
 
 	public JSONObject save() {
@@ -174,8 +185,10 @@ public class Subscriber {
 		for (String key : keys) {
 			if (arg1.get(key) instanceof String) {
 				this.helper.appendKV(key, arg1.getString(key), arg1, caller);
-			} else {
+			} else if (arg1.get(key) instanceof JSONObject) {
 				this.helper.appendKV(key, arg1.getJSONObject(key), arg1, caller);
+			} else {
+				this.helper.appendKV(key, arg1.get(key), arg1, caller);
 			}
 		}
 		collectEvent();
@@ -193,6 +206,61 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	public void append(String arg1, Object arg2) {
+		String caller = "append";
+		this.helper.appendKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
+	// =========================================================== Set
+	public void set(JSONObject arg1) {
+		String caller = "set";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			this.helper.setKV(key, arg1.get(key), arg1, caller);
+		}
+		collectEvent();
+	}
+
+	// TODO: find better way than using Object class as it may contain child classes which are not JSON serializable
+	public void set(String arg1, Object arg2) {
+		String caller = "set";
+		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
+	// =========================================================== SetOnce
+	public void setOnce(JSONObject arg1) {
+		String caller = "set_once";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			this.helper.setOnceKV(key, arg1.get(key), arg1, caller);
+		}
+		collectEvent();
+	}
+
+	public void setOnce(String arg1, Object arg2) {
+		String caller = "set_once";
+		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
+	// =========================================================== Increment
+	public void increment(JSONObject arg1) {
+		String caller = "increment";
+		String[] keys = JSONObject.getNames(arg1);
+		for (String key : keys) {
+			this.helper.incrementKV(key, arg1.get(key), arg1, caller);
+		}
+		collectEvent();
+	}
+
+	public void increment(String arg1, Object arg2) {
+		String caller = "increment";
+		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
 	// =========================================================== Remove
 	public void remove(JSONObject arg1) {
 		String caller = "remove";
@@ -200,8 +268,10 @@ public class Subscriber {
 		for (String key : keys) {
 			if (arg1.get(key) instanceof String) {
 				this.helper.removeKV(key, arg1.getString(key), arg1, caller);
-			} else {
+			} else if (arg1.get(key) instanceof JSONObject) {
 				this.helper.removeKV(key, arg1.getJSONObject(key), arg1, caller);
+			} else {
+				this.helper.removeKV(key, arg1.get(key), arg1, caller);
 			}
 		}
 		collectEvent();
@@ -214,6 +284,12 @@ public class Subscriber {
 	}
 
 	public void remove(String arg1, JSONObject arg2) {
+		String caller = "remove";
+		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
+		collectEvent();
+	}
+
+	public void remove(String arg1, Object arg2) {
 		String caller = "remove";
 		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
 		collectEvent();
@@ -371,34 +447,6 @@ public class Subscriber {
 	public void removeSlack(JSONObject value) {
 		String caller = "remove_slack";
 		this.helper.removeSlack(value, caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void addSlackEmail(String value) {
-		String caller = "add_slack_email";
-		this.helper.addSlack(new JSONObject().put("email", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void removeSlackEmail(String value) {
-		String caller = "remove_slack_email";
-		this.helper.removeSlack(new JSONObject().put("email", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void addSlackUserid(String value) {
-		String caller = "add_slack_userid";
-		this.helper.addSlack(new JSONObject().put("user_id", value), caller);
-		collectEvent();
-	}
-
-	@Deprecated
-	public void removeSlackUserid(String value) {
-		String caller = "remove_slack_userid";
-		this.helper.removeSlack(new JSONObject().put("user_id", value), caller);
 		collectEvent();
 	}
 

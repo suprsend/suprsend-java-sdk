@@ -50,11 +50,11 @@ public class Workflow {
 		}
 	}
 	
-	public void addAttachment(String filePath) throws SuprsendException, IOException {
+	public void addAttachment(String filePath) throws InputValueException {
 		this.addAttachment(filePath, null, false);
 	}
 	
-	public void addAttachment(String filePath, String fileName) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName) throws InputValueException {
 		this.addAttachment(filePath, fileName, false);
 	}
 	/**
@@ -65,7 +65,7 @@ public class Workflow {
 	 * @throws IOException IOException
 	 * @throws SuprsendException SuprsendException
 	 */
-	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		if (this.body.opt("data") == null) {
 			this.body.put("data", new JSONObject());
 		}
@@ -100,4 +100,16 @@ public class Workflow {
 		}
 		return new JSONObject().put("event", validatedBody).put("apparent_size", apparentSize);
 	}
+
+	JSONObject asJson() {
+		JSONObject obj = new JSONObject(this.body); // TODO: check if this clone works fine??
+		if (null != idempotencyKey) {
+			obj.put("$idempotency_key", idempotencyKey);
+		}
+		if (null != brandId) {
+			obj.put("brand_id", brandId);
+		}
+		return obj;
+	}
+
 }

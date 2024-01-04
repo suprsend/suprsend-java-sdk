@@ -9,6 +9,7 @@ We're working towards creating SDK in other languages as well.
 * java (`suprsend-java-sdk`)
 * python3 >= 3.7 (`suprsend-py-sdk`)
 * node (`suprsend-node-sdk`)
+* go (`suprsend-go`)
 
 ### Installation
 

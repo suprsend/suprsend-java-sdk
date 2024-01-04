@@ -2,7 +2,6 @@ package suprsend;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,26 +18,33 @@ public class BulkEvents {
     private List<BulkEventsChunk> chunks;
     private BulkResponse response;
 
+    private List<JSONObject> __invalidRecords;
+
     BulkEvents(Suprsend config) {
         this.config = config;
         this.__events = new ArrayList<Event>();
-        this.__pendingRecords = new ArrayList<JSONObject>();
+        this.__pendingRecords = new ArrayList<>();
+        // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+        this.__invalidRecords = new ArrayList<>();
         this.chunks = new ArrayList<>();
         this.response = new BulkResponse();
     }
 
-    private void validateEvents() throws SuprsendException, UnsupportedEncodingException {
-        if (this.__events.isEmpty()) {
-            throw new SuprsendException("events list is empty in bulk request");
-        }
+    private void validateEvents() {
         for (Event e : this.__events) {
-            // {"event", validatedEvent, "apparent_size", apparentSize}
-            JSONObject evJson = e.getFinalJson(this.config, true);
-            this.__pendingRecords.add(evJson);
+            try {
+                // {"event": validatedEvent, "apparent_size": apparentSize}
+                JSONObject evJson = e.getFinalJson(this.config, true);   
+                this.__pendingRecords.add(evJson); 
+            } catch (Exception ex) {
+                // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+                JSONObject invRec = Utils.invalidRecordJson(e.asJson(), ex);
+                this.__invalidRecords.add(invRec);
+            }
         }
     }
 
-    private void chunkify(int startIdx) throws SuprsendException {
+    private void chunkify(int startIdx) throws InputValueException {
         BulkEventsChunk currChunk = new BulkEventsChunk(this.config);
         this.chunks.add(currChunk);
         // loop on slice pendingRecords[startIdx:]
@@ -57,9 +63,9 @@ public class BulkEvents {
         }
     }
 
-    public void append(Event... events) throws SuprsendException {
+    public void append(Event... events) {
         if (events.length == 0) {
-            throw new SuprsendException("events list empty. must pass one or more events");
+            return;
         }
         for (Event obj : events) {
             if (obj == null) {
@@ -70,19 +76,32 @@ public class BulkEvents {
         }
     }
 
-    public BulkResponse trigger() throws SuprsendException, UnsupportedEncodingException {
+    public BulkResponse trigger() throws InputValueException {
         validateEvents();
-        chunkify(0);
-        for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
-            BulkEventsChunk chunk = this.chunks.get(cIdx);
-            if (this.config.debug) {
-                logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
-            }
-            // do api call
-            chunk.trigger();
-            // merge response
-            this.response.mergeChunkResponse(chunk.response);
+        if (this.__invalidRecords.size() > 0) {
+            JSONObject chResponse = BulkResponse.invalidRecordsChunkResponse(this.__invalidRecords);
+            this.response.mergeChunkResponse(chResponse);
         }
+        if (this.__pendingRecords.size() > 0) {
+            chunkify(0);
+            for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
+                BulkEventsChunk chunk = this.chunks.get(cIdx);
+                if (this.config.debug) {
+                    logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
+                }
+                // do api call
+                chunk.trigger();
+                // merge response
+                this.response.mergeChunkResponse(chunk.response);
+            }    
+        } else {
+            // if no records. i.e. len(invalid_records) and len(pending_records) both are 0
+            // then add empty success response
+            if (this.__invalidRecords.size() == 0) {
+                this.response.mergeChunkResponse(BulkResponse.emptyChunkSuccessResponse());
+            }
+        }
+        // ----
         return this.response;
     }
 

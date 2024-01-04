@@ -55,7 +55,7 @@ class BulkWorkflowsChunk {
      * returns whether passed body was able to get added to this chunk or not,
         if true, body gets added to chunk
      */
-    boolean tryToAddIntoChunk(JSONObject body, int bodySize) throws SuprsendException {
+    boolean tryToAddIntoChunk(JSONObject body, int bodySize) throws InputValueException {
         if (body == null) {
             return true;
         }
@@ -63,7 +63,7 @@ class BulkWorkflowsChunk {
             return false;
         }
         if (bodySize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException(
+            throw new InputValueException(
                     String.format("workflow body too big - %d Bytes, must not cross %s", 
                             bodySize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }

@@ -1,7 +1,5 @@
 package test;
 
-import java.io.IOException;
-
 import org.json.JSONObject;
 import suprsend.BulkEvents;
 import suprsend.BulkResponse;
@@ -45,7 +43,7 @@ public class TestEvent {
         System.out.println(response);
     }
 
-    private static Event getEvent(String idempotencyKey, String brandId) throws SuprsendException, IOException {
+    private static Event getEvent(String idempotencyKey, String brandId) throws SuprsendException {
         JSONObject eventProps = new JSONObject().put("k1", "v1");
         Event e = new Event("__distinct_id__", "EVENT_NAME", eventProps, 
             idempotencyKey, brandId);

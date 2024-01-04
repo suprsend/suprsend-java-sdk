@@ -51,7 +51,7 @@ class BulkSubscribersChunk {
                 this.runningSize >= BulkSubscribersChunk.chunkApparentSizeInBytes);
     }
 
-    boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws SuprsendException {
+    boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws InputValueException {
         if (event == null) {
             return true;
         }
@@ -59,7 +59,7 @@ class BulkSubscribersChunk {
             return false;
         }
         if (eventSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException(
+            throw new InputValueException(
                     String.format("Event too big - %d Bytes, must not cross %s",
                             eventSize, Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }

@@ -16,6 +16,13 @@ public class BulkResponse {
     public int failure = 0;
     public List<String> warnings = new ArrayList<String>();
 
+    @Override
+    public String toString() {
+        return String.format(
+            "BulkResponse{status: '%s' | total: %d | success: %d | failure: %d | warnings: %d}",
+            this.status, this.total, this.success, this.failure, this.warnings.size());
+    }
+
     void mergeChunkResponse(JSONObject chResponse) {
         if (chResponse == null) 
             return;
@@ -43,10 +50,24 @@ public class BulkResponse {
         }
     }
 
-    @Override
-    public String toString() {
-        return String.format(
-            "BulkResponse{status: '%s' | total: %d | success: %d | failure: %d | warnings: %d}",
-            this.status, this.total, this.success, this.failure, this.warnings.size());
+    static JSONObject emptyChunkSuccessResponse() {
+        return new JSONObject()
+                .put("status", "success")
+				.put("status_code", 200)
+                .put("total", 0)
+                .put("success", 0)
+                .put("failure", 0)
+                .put("failed_records", new ArrayList<>());
     }
+
+    static JSONObject invalidRecordsChunkResponse(List<JSONObject> invalidRecords) {
+        return new JSONObject()
+                .put("status", "fail")
+				.put("status_code", 500)
+                .put("total", invalidRecords.size())
+                .put("success", 0)
+                .put("failure", invalidRecords.size())
+                .put("failed_records", invalidRecords);
+    }
+
 }

@@ -30,7 +30,7 @@ public class TestTenant {
         Suprsend suprClient = TestHelper.getClientInstance();
         //
         try {
-            String tenantId = "br00001";
+            String tenantId = "t00001";
             JSONObject res = suprClient.tenants.get(tenantId);
             System.out.println(res);
         } catch (SuprsendException e) {
@@ -41,7 +41,7 @@ public class TestTenant {
     private static void upsert() throws Exception {
         Suprsend suprClient = TestHelper.getClientInstance();
         // 
-        String tenantId = " br-te-00001";
+        String tenantId = " t00001";
         JSONObject payload = new JSONObject()
             .put("tenant_name", "Tenant 1")
             .put("logo", "https://google.com")

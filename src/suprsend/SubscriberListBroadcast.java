@@ -11,21 +11,16 @@ public class SubscriberListBroadcast {
     private JSONObject body;
     private String idempotencyKey;
     private String tenantId;
-    private String brandId;
 
     public SubscriberListBroadcast(JSONObject body) throws SuprsendException{
-        this(body, null, null, null);
+        this(body, null, null);
     }
 
     public SubscriberListBroadcast(JSONObject body, String idempotencyKey) throws SuprsendException{
-        this(body, idempotencyKey, null, null);
+        this(body, idempotencyKey, null);
     }
 
     public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String tenantId) throws SuprsendException{
-        this(body, idempotencyKey, tenantId, null);
-    }
-
-    public SubscriberListBroadcast(JSONObject body, String idempotencyKey, String tenantId, String brandId) throws SuprsendException{
         if (body == null) {
             throw new SuprsendException("broadcast body must be a passed");
         }
@@ -35,9 +30,6 @@ public class SubscriberListBroadcast {
         }
         if (tenantId != null && !tenantId.trim().isEmpty()) {
             this.tenantId = tenantId.trim();
-        }
-        if (brandId != null && !brandId.trim().isEmpty()) {
-            this.brandId = brandId.trim();
         }
     }
 
@@ -49,9 +41,6 @@ public class SubscriberListBroadcast {
 		}
         if (null != this.tenantId) {
 			this.body.put("tenant_id", this.tenantId);
-		}
-		if (null != this.brandId) {
-			this.body.put("brand_id", this.brandId);
 		}
         JSONObject validatedBody = Utils.validateListBroadcastBodySchema(this.body);
         this.body = validatedBody;

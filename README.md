@@ -9,6 +9,7 @@ We're working towards creating SDK in other languages as well.
 * java (`suprsend-java-sdk`)
 * python3 >= 3.7 (`suprsend-py-sdk`)
 * node (`suprsend-node-sdk`)
+* go (`suprsend-go`)
 
 ### Installation
 
@@ -485,13 +486,13 @@ String distinctId = "__uniq_user_id__"; // Mandatory, Unique id of user in your 
 String eventName = "__event_name__";   // Mandatory, name of the event you're tracking
 JSONObject properties = new JSONObject(); // default=null, a json object representing event-attributes
 String idempotencyKey = "__uuid__"
-String brandId = "__brand_id__"
+String tenantId = "__tenant_id__"
 
 Event event = new Event(distinctId, eventName, properties);
 // You can also add Idempotency-key
 Event event = new Event(distinctId, eventName, properties, idempotencyKey);
-// You can also the brand_id to be used for templates/notifications
-Event event = new Event(distinctId, eventName, properties, idempotencyKey, brandId);
+// You can also pass the tenantId to be used for templates/notifications
+Event event = new Event(distinctId, eventName, properties, idempotencyKey, tenantId);
 
 // Send event
 JSONObject res = suprClient.track_event(event);

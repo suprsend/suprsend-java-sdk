@@ -36,8 +36,8 @@ public class TestWorkflow {
         // payload
         JSONObject body = getWorkflowBody();
         String idempotencyKey = "__uniq_id_like_uuid__";
-        String brandId = "default";
-        Workflow wf = new Workflow(body, idempotencyKey, brandId);
+        String tenantId = "default";
+        Workflow wf = new Workflow(body, idempotencyKey, tenantId);
         // String filePath = "https://lightning.network/lightning-network-paper.pdf";
         // String filePath = "~/Downloads/gfs-sosp2003.pdf"; 
         // wf.addAttachment(filePath, "MyFile.pdf", true);
@@ -46,7 +46,7 @@ public class TestWorkflow {
         System.out.println(resp);
     }
 
-    private static void testWorkflowBulk() throws SuprsendException, IOException {
+    private static void testWorkflowBulk() throws SuprsendException {
         Suprsend suprClient = TestHelper.getClientInstance();
         // payload
         BulkWorkflows bulkIns = suprClient.bulkWorkflows.newInstance();
@@ -57,7 +57,7 @@ public class TestWorkflow {
         System.out.println(resp);
     }
 
-    private static Workflow getWorkflow() throws SuprsendException, IOException {
+    private static Workflow getWorkflow() throws SuprsendException {
         JSONObject body = getWorkflowBody();
         Workflow wf = new Workflow(body);
         // String filePath = "https://lightning.network/lightning-network-paper.pdf";

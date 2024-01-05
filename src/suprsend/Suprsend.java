@@ -175,7 +175,7 @@ public class Suprsend {
 	 * @throws SuprsendException IOException
 	 */
 	@Deprecated
-	public JSONObject addAttachment(JSONObject body, String filePath) throws SuprsendException, IOException {
+	public JSONObject addAttachment(JSONObject body, String filePath) throws InputValueException {
 		// if data key not present, add it and set value={}.
 		if (body.opt("data") == null) {
 			body.put("data", new JSONObject());
@@ -204,7 +204,7 @@ public class Suprsend {
 	 */
 	@Deprecated
 	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, UnsupportedEncodingException {
-		Workflow wfIns = new Workflow(data, null, null, null);
+		Workflow wfIns = new Workflow(data, null, null);
 		return this.workflowTrigger.trigger(wfIns);
 	}
 
@@ -234,7 +234,7 @@ public class Suprsend {
 	 */
 	@Deprecated
 	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws SuprsendException, UnsupportedEncodingException {
-		Event event = new Event(distinctId, eventName, properties, null, null, null);
+		Event event = new Event(distinctId, eventName, properties, null, null);
 		return this.eventCollector.collect(event);
 	}
 

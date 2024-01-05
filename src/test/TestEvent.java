@@ -1,7 +1,5 @@
 package test;
 
-import java.io.IOException;
-
 import org.json.JSONObject;
 import suprsend.BulkEvents;
 import suprsend.BulkResponse;
@@ -29,8 +27,8 @@ public class TestEvent {
         Suprsend suprClient = TestHelper.getClientInstance();
         // 
         String idempotencyKey = "__uniq_id_like_uuid__";
-        String brandId = "default";
-        JSONObject response = suprClient.trackEvent(getEvent(idempotencyKey, brandId));
+        String tenantId = "default";
+        JSONObject response = suprClient.trackEvent(getEvent(idempotencyKey, tenantId));
         System.out.println(response);
     }
 
@@ -45,10 +43,10 @@ public class TestEvent {
         System.out.println(response);
     }
 
-    private static Event getEvent(String idempotencyKey, String brandId) throws SuprsendException, IOException {
+    private static Event getEvent(String idempotencyKey, String tenantId) throws SuprsendException {
         JSONObject eventProps = new JSONObject().put("k1", "v1");
         Event e = new Event("__distinct_id__", "EVENT_NAME", eventProps, 
-            idempotencyKey, brandId);
+            idempotencyKey, tenantId);
         // String filePath = "https://lightning.network/lightning-network-paper.pdf";
         // String filePath = "~/Downloads/gfs-sosp2003.pdf"; 
         // e.addAttachment(filePath, "MyFile.pdf", true);

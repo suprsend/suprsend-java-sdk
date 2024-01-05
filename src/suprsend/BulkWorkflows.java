@@ -2,7 +2,6 @@ package suprsend;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,26 +18,33 @@ public class BulkWorkflows {
     private List<BulkWorkflowsChunk> chunks;
     private BulkResponse response;
 
+    private List<JSONObject> __invalidRecords;
+
     BulkWorkflows(Suprsend config) {
         this.config = config;
         this.__workflows = new ArrayList<Workflow>();
         this.__pendingRecords = new ArrayList<JSONObject>();
         this.chunks = new ArrayList<>();
         this.response = new BulkResponse();
+        // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+        this.__invalidRecords = new ArrayList<>();
     }
 
-    private void validateWorkflows() throws SuprsendException, UnsupportedEncodingException {
-        if (this.__workflows.isEmpty()) {
-            throw new SuprsendException("workflow list is empty in bulk request");
-        }
+    private void validateWorkflows(){
         for (Workflow wf : this.__workflows) {
-            // {"event", validatedEvent, "apparent_size", apparentSize}
-            JSONObject wfJson = wf.getFinalJson(this.config, true);
-            this.__pendingRecords.add(wfJson);
+            try {
+                // {"event", validatedEvent, "apparent_size", apparentSize}
+                JSONObject wfJson = wf.getFinalJson(this.config, true);
+                this.__pendingRecords.add(wfJson);
+            } catch (Exception ex) {
+                // invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+                JSONObject invRec = Utils.invalidRecordJson(wf.asJson(), ex);
+                this.__invalidRecords.add(invRec);
+            }
         }
     }
 
-    private void chunkify(int startIdx) throws SuprsendException {
+    private void chunkify(int startIdx) throws InputValueException {
         BulkWorkflowsChunk currChunk = new BulkWorkflowsChunk(this.config);
         this.chunks.add(currChunk);
         // loop on slice pendingRecords[startIdx:]
@@ -57,9 +63,9 @@ public class BulkWorkflows {
         }
     }
 
-    public void append(Workflow... workflows) throws SuprsendException {
+    public void append(Workflow... workflows) {
         if (workflows.length == 0) {
-            throw new SuprsendException("workflow list empty. must pass one or more valid workflow instances");
+            return;
         }
         for (Workflow obj : workflows) {
             if (obj == null) {
@@ -69,18 +75,30 @@ public class BulkWorkflows {
         }
     }
 
-    public BulkResponse trigger() throws SuprsendException, UnsupportedEncodingException {
+    public BulkResponse trigger() throws InputValueException {
         validateWorkflows();
-        chunkify(0);
-        for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
-            BulkWorkflowsChunk chunk = this.chunks.get(cIdx);
-            if (this.config.debug) {
-                logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
+        if (this.__invalidRecords.size() > 0) {
+            JSONObject chResponse = BulkResponse.invalidRecordsChunkResponse(this.__invalidRecords);
+            this.response.mergeChunkResponse(chResponse);
+        }
+        if (this.__pendingRecords.size() > 0) {
+            chunkify(0);
+            for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
+                BulkWorkflowsChunk chunk = this.chunks.get(cIdx);
+                if (this.config.debug) {
+                    logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
+                }
+                // do api call
+                chunk.trigger();
+                // merge response
+                this.response.mergeChunkResponse(chunk.response);
             }
-            // do api call
-            chunk.trigger();
-            // merge response
-            this.response.mergeChunkResponse(chunk.response);
+        } else {
+            // if no records. i.e. len(invalid_records) and len(pending_records) both are 0
+            // then add empty success response
+            if (this.__invalidRecords.size() == 0) {
+                this.response.mergeChunkResponse(BulkResponse.emptyChunkSuccessResponse());
+            }
         }
         return this.response;
     }

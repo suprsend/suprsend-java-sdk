@@ -13,14 +13,13 @@ public class Workflow {
 	private JSONObject body;
 	private String idempotencyKey;
 	private String tenantId;
-	private String brandId;
 
 	/**
 	 * 
 	 * @param body json body of workflow
 	 */
 	public Workflow(JSONObject body) {
-		this(body, null, null, null);
+		this(body, null, null);
 	}
 
 	/**
@@ -29,7 +28,7 @@ public class Workflow {
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey) {
-		this(body, idempotencyKey, null, null);
+		this(body, idempotencyKey, null);
 	}
 
 	/**
@@ -39,17 +38,6 @@ public class Workflow {
 	 * @param tenantId tenantId for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey, String tenantId) {
-		this(body, idempotencyKey, tenantId, null);
-	}
-
-	/**
-	 * 
-	 * @param body body json body of workflow
-	 * @param idempotencyKey idempotency-key for workflow request
-	 * @param tenantId tenant-id for workflow request
-	 * @param brandId brand-id for workflow request
-	 */
-	public Workflow(JSONObject body, String idempotencyKey, String tenantId, String brandId) {
 		if (null == body) {
 			body = new JSONObject();
 		}
@@ -60,16 +48,13 @@ public class Workflow {
 		if (tenantId != null && !tenantId.trim().isEmpty()) {
 			this.tenantId = tenantId.trim();
 		}
-		if (brandId != null && !brandId.trim().isEmpty()) {
-			this.brandId = brandId.trim();
-		}
 	}
 	
-	public void addAttachment(String filePath) throws SuprsendException, IOException {
+	public void addAttachment(String filePath) throws InputValueException {
 		this.addAttachment(filePath, null, false);
 	}
 	
-	public void addAttachment(String filePath, String fileName) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName) throws InputValueException {
 		this.addAttachment(filePath, fileName, false);
 	}
 	/**
@@ -80,7 +65,7 @@ public class Workflow {
 	 * @throws IOException IOException
 	 * @throws SuprsendException SuprsendException
 	 */
-	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws SuprsendException, IOException {
+	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		if (this.body.opt("data") == null) {
 			this.body.put("data", new JSONObject());
 		}
@@ -104,9 +89,6 @@ public class Workflow {
 		if (null != tenantId) {
 			this.body.put("tenant_id", tenantId);
 		}
-		if (null != brandId) {
-			this.body.put("brand_id", brandId);
-		}
 		//
 		JSONObject validatedBody = Utils.validateWorkflowBodySchema(this.body);
 		// Check body size
@@ -118,4 +100,16 @@ public class Workflow {
 		}
 		return new JSONObject().put("event", validatedBody).put("apparent_size", apparentSize);
 	}
+
+	JSONObject asJson() {
+		JSONObject obj = new JSONObject(this.body); // TODO: check if this clone works fine??
+		if (null != idempotencyKey) {
+			obj.put("$idempotency_key", idempotencyKey);
+		}
+		if (null != tenantId) {
+			obj.put("tenant_id", tenantId);
+		}
+		return obj;
+	}
+
 }

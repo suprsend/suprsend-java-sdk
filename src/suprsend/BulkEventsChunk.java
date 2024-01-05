@@ -55,7 +55,7 @@ class BulkEventsChunk {
      * returns whether passed event was able to get added to this chunk or not,
         if true, event gets added to chunk
      */
-    boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws SuprsendException {
+    boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws InputValueException {
         if (event == null) {
             return true;
         }
@@ -63,7 +63,7 @@ class BulkEventsChunk {
             return false;
         }
         if (eventSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-            throw new SuprsendException(
+            throw new InputValueException(
                     String.format("Event properties too big - %d Bytes, must not cross %s", 
                             eventSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
         }

@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 enum HttpMethod {
-	POST, GET, PATCH
+	POST, GET, PATCH, DELETE
 }
 
 /**
@@ -61,7 +61,10 @@ class Signature {
 		String contentMD5 = "";
 		// In case of GET request, there is no payload body,
 		// so assume contentTxt and contentMD5 to be empty.
-		if (httpMethod != HttpMethod.GET) {
+		if (httpMethod == HttpMethod.GET || (null == content || content.isEmpty())) {
+			content = "";
+			contentMD5 = "";
+		} else {
 			contentMD5 = getMD5(content);
 		}
 		String requestURI = getURI(url);

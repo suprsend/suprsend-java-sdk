@@ -14,6 +14,7 @@ public class TestTenant {
         list();
         get();
         upsert();
+        delete();
     }
 
     private static void list() throws Exception {
@@ -74,4 +75,15 @@ public class TestTenant {
         }
     }
 
+    private static void delete() throws Exception {
+        Suprsend suprClient = TestHelper.getClientInstance();
+        //
+        try {
+            String tenantId = "t00001";
+            JSONObject res = suprClient.tenants.delete(tenantId);
+            System.out.println(res);
+        } catch (SuprsendException e) {
+            System.out.println(e);
+        }
+    }
 }

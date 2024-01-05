@@ -125,4 +125,26 @@ public class TenantsApi {
         }
         return resp.jsonResponse;
     }
+
+    public JSONObject delete(String tenantId) throws IOException, SuprsendException {
+        tenantId = validateTenantId(tenantId);
+        String url = detailUrl(tenantId);
+        // 
+        JSONObject headers = getHeaders();
+        // Signature and Authorization-header
+        JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, "", headers, this.config.apiSecret);
+        String contentText = sigResult.getString("contentTxt");
+        headers.put("Authorization",
+                String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+        // 
+        SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.DELETE, 
+                url, headers, contentText);
+        if (resp.statusCode >= 400) {
+            throw new SuprsendException(resp.errMsg, resp.statusCode);
+        }
+        // if no error, that means successfully deleted
+        return new JSONObject()
+            .put("success", true)
+            .put("status_code", resp.statusCode);
+    }
 }

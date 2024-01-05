@@ -20,6 +20,8 @@ public class TestSubscriber {
 		testRemoveAndroidpush();
 		testAddSlack();
 		testRemoveSlack();
+		testAddMSTeams();
+		testRemoveMSTeams();
 		testPreferredLanguage();
 		testRemove();
 		testAddHelperFunctions();
@@ -113,7 +115,7 @@ public class TestSubscriber {
 				.put("user_id", "u88998989")
 				.put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
-				.put("incoming_webhook", new JSONObject("url", "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"))
+				.put("incoming_webhook", new JSONObject().put("url", "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"))
 				;
 
 		user.addSlack(slackIdent);
@@ -132,9 +134,47 @@ public class TestSubscriber {
 				// .put("user_id", "u88998989")
 				// .put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
-				// .put("incoming_webhook", new JSONObject("url", "https://google.com"))
+				// .put("incoming_webhook", new JSONObject().put("url", "https://google.com"))
 		;
 		user.removeSlack(slackIdent);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
+
+	public static void testAddMSTeams() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		JSONObject teamsIdent = new JSONObject()
+				.put("tenant_id", "XXXXXXX")
+				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
+				.put("conversation_id", "XXXXXXXXXXXX")
+				// .put("user_id", "XXXXXXXXXXXX")
+				// .put("incoming_webhook", new JSONObject().put("url", "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
+				;
+
+		user.addMSTeams(teamsIdent);
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
+
+	public static void testRemoveMSTeams() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		JSONObject teamsIdent = new JSONObject()
+				.put("tenant_id", "XXXXXXX")
+				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
+				.put("conversation_id", "XXXXXXXXXXXX")
+				// .put("user_id", "XXXXXXXXXXXX")
+				// .put("incoming_webhook", new JSONObject().put("url", "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
+				;
+		;
+		user.removeMSTeams(teamsIdent);
 		JSONObject res = user.save();
 		System.out.println(res);
 	}

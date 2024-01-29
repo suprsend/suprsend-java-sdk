@@ -7,15 +7,15 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-public class BrandsApi {
-	private static final Logger logger = Logger.getLogger(BrandsApi.class.getName());
+public class TenantsApi {
+	private static final Logger logger = Logger.getLogger(TenantsApi.class.getName());
 
 	private Suprsend config;
 	private String listUrl;
 
-	BrandsApi(Suprsend config) {
+	TenantsApi(Suprsend config) {
 		this.config = config;
-		this.listUrl = String.format("%sv1/brand/", this.config.baseUrl);
+		this.listUrl = String.format("%sv1/tenant/", this.config.baseUrl);
 	}
 
 	private JSONObject getHeaders() {
@@ -71,21 +71,21 @@ public class BrandsApi {
 		return resp.jsonResponse;
 	}
 
-	private String validateBrandId(String brandId) throws SuprsendException {
-		if (brandId == null || brandId.trim().isEmpty()) {
-			throw new SuprsendException("missing brandId");
+	private String validateTenantId(String tenantId) throws SuprsendException {
+		if (tenantId == null || tenantId.trim().isEmpty()) {
+			throw new SuprsendException("missing tenantId");
 		} else {
-			return brandId.trim();
+			return tenantId.trim();
 		}
 	}
 
-	private String detailUrl(String brandId) throws UnsupportedEncodingException {
-		return String.format("%s%s/", this.listUrl, Utils.urlEncode(brandId));
+	private String detailUrl(String tenantId) throws UnsupportedEncodingException {
+		return String.format("%s%s/", this.listUrl, Utils.urlEncode(tenantId));
 	}
 
-	public JSONObject get(String brandId) throws IOException, SuprsendException {
-		brandId = validateBrandId(brandId);
-		String url = detailUrl(brandId);
+	public JSONObject get(String tenantId) throws IOException, SuprsendException {
+		tenantId = validateTenantId(tenantId);
+		String url = detailUrl(tenantId);
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
@@ -101,16 +101,16 @@ public class BrandsApi {
 		return resp.jsonResponse;
 	}
 
-	public JSONObject upsert(String brandId, JSONObject brandPayload) throws IOException, SuprsendException {
-		brandId = validateBrandId(brandId);
-		String url = detailUrl(brandId);
-		if (brandPayload == null) {
-			brandPayload = new JSONObject();
+	public JSONObject upsert(String tenantId, JSONObject tenantPayload) throws IOException, SuprsendException {
+		tenantId = validateTenantId(tenantId);
+		String url = detailUrl(tenantId);
+		if (tenantPayload == null) {
+			tenantPayload = new JSONObject();
 		}
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
-		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, brandPayload.toString(), headers,
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, tenantPayload.toString(), headers,
 				this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
@@ -121,5 +121,25 @@ public class BrandsApi {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
 		return resp.jsonResponse;
+	}
+
+	public JSONObject delete(String tenantId) throws IOException, SuprsendException {
+		tenantId = validateTenantId(tenantId);
+		String url = detailUrl(tenantId);
+		//
+		JSONObject headers = getHeaders();
+		// Signature and Authorization-header
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, "", headers,
+				this.config.apiSecret);
+		String contentText = sigResult.getString("contentTxt");
+		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+		//
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.DELETE, url, headers,
+				contentText);
+		if (resp.statusCode >= 400) {
+			throw new SuprsendException(resp.errMsg, resp.statusCode);
+		}
+		// if no error, that means successfully deleted
+		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
 	}
 }

@@ -10,6 +10,7 @@ public class SuprsendException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	public int statusCode;
+
 	/**
 	 * Constructs an {@code SuprsendException} with {@code null} as its error detail
 	 * message.

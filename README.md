@@ -23,7 +23,7 @@ You can include the jar using following two ways:
         <dependency>
           <groupId>com.suprsend</groupId>
           <artifactId>suprsend-java-sdk</artifactId>
-          <version>0.5.0</version>
+          <version>0.6.0</version>
 	    </dependency>
       </dependencies>
     ```
@@ -31,7 +31,7 @@ You can include the jar using following two ways:
 2. As a jar file for non maven projects:
 
    Please download jar from releases section.
-   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.5.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
+   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.6.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
 
 ### Usage
 Initialize the Suprsend library using the following:
@@ -486,13 +486,13 @@ String distinctId = "__uniq_user_id__"; // Mandatory, Unique id of user in your 
 String eventName = "__event_name__";   // Mandatory, name of the event you're tracking
 JSONObject properties = new JSONObject(); // default=null, a json object representing event-attributes
 String idempotencyKey = "__uuid__"
-String brandId = "__brand_id__"
+String tenantId = "__tenant_id__"
 
 Event event = new Event(distinctId, eventName, properties);
 // You can also add Idempotency-key
 Event event = new Event(distinctId, eventName, properties, idempotencyKey);
-// You can also the brand_id to be used for templates/notifications
-Event event = new Event(distinctId, eventName, properties, idempotencyKey, brandId);
+// You can also pass the tenantId to be used for templates/notifications
+Event event = new Event(distinctId, eventName, properties, idempotencyKey, tenantId);
 
 // Send event
 JSONObject res = suprClient.track_event(event);

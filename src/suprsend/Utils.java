@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 class Utils {
-	private static ZoneId zone = ZoneId.of("UTC"); 
+	private static ZoneId zone = ZoneId.of("UTC");
 	private static DateTimeFormatter dateTimeHeaderFormat = DateTimeFormatter.ofPattern(Constants.HEADER_DATE_FMT);
 
 	static String getCurrentDateTimeHeader() {
@@ -70,7 +70,8 @@ class Utils {
 							// if auto upload is not enabled, attachment data will be passed as it is.
 						}
 					} else {
-						// If attachment not allowed, then remove data->$attachments before calculating size
+						// If attachment not allowed, then remove data->$attachments before calculating
+						// size
 						apparentBody = new JSONObject(body.toString());
 						apparentBody.getJSONObject("data").remove("$attachments");
 					}
@@ -126,7 +127,8 @@ class Utils {
 							// if auto upload is not enabled, attachment data will be passed as it is.
 						}
 					} else {
-						// If attachment not allowed, then remove data->$attachments before calculating size
+						// If attachment not allowed, then remove data->$attachments before calculating
+						// size
 						apparentBody = new JSONObject(event.toString());
 						apparentBody.getJSONObject("properties").remove("$attachments");
 					}
@@ -207,51 +209,48 @@ class Utils {
 		return data;
 	}
 
-    static JSONObject validateListBroadcastBodySchema(JSONObject body) throws SuprsendException {
+	static JSONObject validateListBroadcastBodySchema(JSONObject body) throws SuprsendException {
 		// --- In case data is not provided, set it to empty dict
-        if (body.opt("data") == null) {
-            body.put("data", new JSONObject());
-        }
-        Schema schemaValidator = RequestSchema.getSchemaValidator("list_broadcast");
-        try {
-            schemaValidator.validate(body);
-        } catch (ValidationException e) {
-            String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
-            throw new SuprsendException(msg, e);
-        }
-        return body;
-    }
+		if (body.opt("data") == null) {
+			body.put("data", new JSONObject());
+		}
+		Schema schemaValidator = RequestSchema.getSchemaValidator("list_broadcast");
+		try {
+			schemaValidator.validate(body);
+		} catch (ValidationException e) {
+			String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
+			throw new SuprsendException(msg, e);
+		}
+		return body;
+	}
 
-    static String urlEncode(String value) throws UnsupportedEncodingException {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-    }
+	static String urlEncode(String value) throws UnsupportedEncodingException {
+		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+	}
 
 	static String buildQueryParams(HashMap<String, Object> params) throws UnsupportedEncodingException {
-        StringBuilder sb = new StringBuilder();
-        Iterator<?> iter = params.entrySet().iterator();
-        while(iter.hasNext()) {
-            if (sb.length() > 0) {
-                sb.append("&");
-            }
-            Entry<?, ?> entry = (Entry<?, ?>) iter.next();
+		StringBuilder sb = new StringBuilder();
+		Iterator<?> iter = params.entrySet().iterator();
+		while (iter.hasNext()) {
+			if (sb.length() > 0) {
+				sb.append("&");
+			}
+			Entry<?, ?> entry = (Entry<?, ?>) iter.next();
 			String encK = Utils.urlEncode(String.valueOf(entry.getKey()));
 			String encV = Utils.urlEncode(String.valueOf(entry.getValue()));
 			sb.append(encK).append("=").append(encV);
-        }
-        return sb.toString();
-    }
+		}
+		return sb.toString();
+	}
 
 	static JSONObject invalidRecordJson(JSONObject failedRecord, Exception err) {
 		String errStr = "";
 		if (err instanceof InputValueException) {
-			errStr = err.toString(); 
+			errStr = err.toString();
 		} else {
-			errStr = err.getMessage(); 
+			errStr = err.getMessage();
 		}
-		return new JSONObject()
-			.put("record", failedRecord)
-			.put("error", errStr)
-			.put("code", 500);
-    }
+		return new JSONObject().put("record", failedRecord).put("error", errStr).put("code", 500);
+	}
 
 }

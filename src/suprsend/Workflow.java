@@ -12,7 +12,7 @@ public class Workflow {
 
 	private JSONObject body;
 	private String idempotencyKey;
-	private String brandId;
+	private String tenantId;
 
 	/**
 	 * 
@@ -24,7 +24,7 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body json body of workflow
+	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey) {
@@ -33,11 +33,11 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body body json body of workflow
+	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
-	 * @param brandId brand-id for workflow request
+	 * @param tenantId       tenantId for workflow request
 	 */
-	public Workflow(JSONObject body, String idempotencyKey, String brandId) {
+	public Workflow(JSONObject body, String idempotencyKey, String tenantId) {
 		if (null == body) {
 			body = new JSONObject();
 		}
@@ -45,25 +45,25 @@ public class Workflow {
 		if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
 			this.idempotencyKey = idempotencyKey.trim();
 		}
-		if (brandId != null && !brandId.trim().isEmpty()) {
-			this.brandId = brandId.trim();
+		if (tenantId != null && !tenantId.trim().isEmpty()) {
+			this.tenantId = tenantId.trim();
 		}
 	}
-	
+
 	public void addAttachment(String filePath) throws InputValueException {
 		this.addAttachment(filePath, null, false);
 	}
-	
+
 	public void addAttachment(String filePath, String fileName) throws InputValueException {
 		this.addAttachment(filePath, fileName, false);
 	}
+
 	/**
 	 * 
-	 * @param filePath filePath
-	 * @param fileName fileName
+	 * @param filePath      filePath
+	 * @param fileName      fileName
 	 * @param ignoreIfError ignoreIfError
-	 * @throws IOException IOException
-	 * @throws SuprsendException SuprsendException
+	 * @throws InputValueException SuprsendException
 	 */
 	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		if (this.body.opt("data") == null) {
@@ -86,16 +86,16 @@ public class Workflow {
 		if (null != idempotencyKey) {
 			this.body.put("$idempotency_key", idempotencyKey);
 		}
-		if (null != brandId) {
-			this.body.put("brand_id", brandId);
+		if (null != tenantId) {
+			this.body.put("tenant_id", tenantId);
 		}
 		//
 		JSONObject validatedBody = Utils.validateWorkflowBodySchema(this.body);
 		// Check body size
 		int apparentSize = Utils.getApparentWorkflowBodySize(body, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-		    String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
-		            Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+			String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
+					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new SuprsendException(errMsg);
 		}
 		return new JSONObject().put("event", validatedBody).put("apparent_size", apparentSize);
@@ -106,8 +106,8 @@ public class Workflow {
 		if (null != idempotencyKey) {
 			obj.put("$idempotency_key", idempotencyKey);
 		}
-		if (null != brandId) {
-			obj.put("brand_id", brandId);
+		if (null != tenantId) {
+			obj.put("tenant_id", tenantId);
 		}
 		return obj;
 	}

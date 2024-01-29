@@ -17,10 +17,10 @@ public class Subscriber {
 	private Suprsend config;
 	private String distinctId, url;
 	private JSONObject superProperties;
-	// 
+	//
 	private List<String> errors, info;
 	private List<JSONObject> userOperations;
-	
+
 	private SubscriberInternalHelper helper;
 
 	private List<String> __warningsList;
@@ -36,7 +36,7 @@ public class Subscriber {
 		//
 		this.userOperations = new ArrayList<JSONObject>();
 		this.helper = new SubscriberInternalHelper();
-		// 
+		//
 		this.__warningsList = new ArrayList<String>();
 	}
 
@@ -45,8 +45,7 @@ public class Subscriber {
 	 */
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-		        .put("User-Agent", this.config.userAgent)
-				.put("Date", Utils.getCurrentDateTimeHeader());
+				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
 	private JSONObject getSuperProperties() {
@@ -63,27 +62,27 @@ public class Subscriber {
 
 	public JSONObject getEvent() {
 		return new JSONObject()
-			.put("$schema", "2")
-			.put("$insert_id", UUID.randomUUID().toString())
-			.put("$time", Instant.now().getEpochSecond() * 1000)
-			.put("env", this.config.apiKey)
-			.put("distinct_id", this.distinctId)
-			.put("$user_operations", this.userOperations)
-			.put("properties", this.superProperties);
+				.put("$schema", "2")
+				.put("$insert_id", UUID.randomUUID().toString())
+				.put("$time", Instant.now().getEpochSecond() * 1000)
+				.put("env", this.config.apiKey)
+				.put("distinct_id", this.distinctId)
+				.put("$user_operations", this.userOperations)
+				.put("properties", this.superProperties);
 	}
 
 	public JSONObject asJson() {
 		return new JSONObject()
-			.put("distinct_id", this.distinctId)
-			.put("$user_operations", this.userOperations)
-			.put("warnings", this.__warningsList);
+				.put("distinct_id", this.distinctId)
+				.put("$user_operations", this.userOperations)
+				.put("warnings", this.__warningsList);
 	}
 
 	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, InputValueException {
 		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
 		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-		    String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
-		            Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+			String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
+					Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
@@ -121,38 +120,30 @@ public class Subscriber {
 			JSONObject eventTemp = getEvent();
 			// # --- validate event size
 			JSONObject ev = validateEventSize(eventTemp);
-			// 
+			//
 			JSONObject validatedEvent = ev.getJSONObject("event");
 			// int apparentSize = ev.getInt("apparent_size");
 			//
 			// Signature and Authorization Header
-			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, validatedEvent.toString(), headers,
-					this.config.apiSecret);
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, validatedEvent.toString(),
+					headers, this.config.apiSecret);
 			String contentText = sigResult.getString("contentTxt");
-			headers.put("Authorization",
-					String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+			headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers,
-					contentText);
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
+					headers, contentText);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true)
-				.put("status", "success")
-				.put("status_code", statusCode)
-				.put("message", responseText);
+				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
+						responseText);
 			} else {
-				response.put("success", false)
-				.put("status", "fail")
-				.put("status_code", statusCode)
-				.put("message", responseText);
+				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
+						responseText);
 			}
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false)
-			.put("status", "fail")
-			.put("status_code", 500)
-			.put("message", e.toString());
+			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
 		}
 		return response;
 	}
@@ -222,7 +213,7 @@ public class Subscriber {
 		collectEvent();
 	}
 
-	// TODO: find better way than using Object class as it may contain child classes which are not JSON serializable
+	// TODO: should use a JSON serializable type instead of Object
 	public void set(String arg1, Object arg2) {
 		String caller = "set";
 		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
@@ -311,7 +302,7 @@ public class Subscriber {
 		collectEvent();
 	}
 
-	// =========================================================== Preferred language
+	// =========================================== Preferred language
 
 	public void setPreferredLanguage(String langCode) {
 		String caller = "set_preferred_language";
@@ -447,6 +438,19 @@ public class Subscriber {
 	public void removeSlack(JSONObject value) {
 		String caller = "remove_slack";
 		this.helper.removeSlack(value, caller);
+		collectEvent();
+	}
+
+	// =========================================================== MS Teams
+	public void addMSTeams(JSONObject value) {
+		String caller = "add_ms_teams";
+		this.helper.addMSTeams(value, caller);
+		collectEvent();
+	}
+
+	public void removeMSTeams(JSONObject value) {
+		String caller = "remove_ms_teams";
+		this.helper.removeMSTeams(value, caller);
 		collectEvent();
 	}
 

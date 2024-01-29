@@ -1,13 +1,13 @@
 package suprsend;
 
 public class BulkEventsFactory {
-    private final Suprsend config;
+	private final Suprsend config;
 
-    BulkEventsFactory(Suprsend config) {
-        this.config = config;
-    }
+	BulkEventsFactory(Suprsend config) {
+		this.config = config;
+	}
 
-    public BulkEvents newInstance() {
-        return new BulkEvents(this.config);
-    }
+	public BulkEvents newInstance() {
+		return new BulkEvents(this.config);
+	}
 }

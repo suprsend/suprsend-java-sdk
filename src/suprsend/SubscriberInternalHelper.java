@@ -17,24 +17,22 @@ class SubscriberInternalHelper {
 	public static final String IDENT_KEY_WHATSAPP = "$whatsapp";
 	public static final String IDENT_KEY_WEBPUSH = "$webpush";
 	public static final String IDENT_KEY_SLACK = "$slack";
+	public static final String IDENT_KEY_MS_TEAMS = "$ms_teams";
 
 	public static final List<String> IDENT_KEYS_ALL = Arrays.asList(IDENT_KEY_EMAIL, IDENT_KEY_SMS,
-	        IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK);
+			IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK,
+			IDENT_KEY_MS_TEAMS);
 
 	public static final String KEY_PUSHVENDOR = "$pushvendor";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
 
-	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList(
-	        "$messenger", "$inbox", 
-    		KEY_PUSHVENDOR, "$device_id",
-    		"$insert_id", "$time", 
-    		"$set", "$set_once", "$add", "$append", "$remove", "$unset",
-    		"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE,
-    		"$notification_delivered", "$notification_dismiss", "$notification_clicked"
-    		);
+	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_PUSHVENDOR,
+			"$device_id", "$insert_id", "$time", "$set", "$set_once", "$add", "$append", "$remove", "$unset",
+			"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE, "$notification_delivered",
+			"$notification_dismiss", "$notification_clicked");
 
 	public static final List<String> SUPER_PROPERTY_KEYS = Arrays.asList("$app_version_string", "$app_build_number",
-	        "$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
+			"$brand", "$carrier", "$manufacturer", "$model", "$os", "$ss_sdk_version", "$insert_id", "$time");
 
 	public static final List<String> ALL_RESERVED_KEYS = getAllReservedKeys();
 
@@ -81,10 +79,7 @@ class SubscriberInternalHelper {
 
 	JSONObject getIdentityEvent() {
 		JSONObject event = formEvent();
-		JSONObject retValue = new JSONObject()
-		        .put("errors", this.errors)
-				.put("info", this.info)
-				.put("event", event);
+		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("event", event);
 		reset();
 		return retValue;
 	}
@@ -127,7 +122,8 @@ class SubscriberInternalHelper {
 		if (ALL_RESERVED_KEYS.contains(key) == false) {
 			String kLower = key.toLowerCase();
 			if (kLower.startsWith("$") || (kLower.length() >= 3 && "ss_".equals(kLower.substring(0, 3)))) {
-				this.info.add(String.format("[%s] skipping key: %s, key starting with [$, ss_] are reserved", caller, key));
+				this.info.add(
+						String.format("[%s] skipping key: %s, key starting with [$, ss_] are reserved", caller, key));
 				return false;
 			}
 		}
@@ -284,7 +280,7 @@ class SubscriberInternalHelper {
 		// Check language code is in the list
 		if (!LanguageCode.ALL_LANG_CODES.contains(langCode)) {
 			this.info.add(String.format("[%s] invalid value %s", caller, langCode));
-            return;
+			return;
 		}
 		this.dictSet.put(KEY_PREFERRED_LANGUAGE, langCode);
 	}
@@ -316,6 +312,10 @@ class SubscriberInternalHelper {
 
 		} else if (IDENT_KEY_SLACK.equals(key)) {
 			addSlack(value, newCaller);
+
+		} else if (IDENT_KEY_MS_TEAMS.equals(key)) {
+			addMSTeams(value, newCaller);
+
 		}
 	}
 
@@ -346,6 +346,10 @@ class SubscriberInternalHelper {
 
 		} else if (IDENT_KEY_SLACK.equals(key)) {
 			removeSlack(value, newCaller);
+
+		} else if (IDENT_KEY_MS_TEAMS.equals(key)) {
+			removeMSTeams(value, newCaller);
+
 		}
 	}
 
@@ -365,7 +369,7 @@ class SubscriberInternalHelper {
 
 	// ------------------------------- Email
 
-	private JSONObject validateEmail(String email, String caller) throws PatternSyntaxException{
+	private JSONObject validateEmail(String email, String caller) throws PatternSyntaxException {
 		JSONObject res = checkIdentValString(email, caller);
 		boolean isError = false;
 		if (!res.getBoolean("is_valid")) {
@@ -639,5 +643,35 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictRemove.put(IDENT_KEY_SLACK, res.getJSONObject("value"));
+	}
+
+	// ------------------------ MS Teams
+
+	private JSONObject checkMSTeamsDict(JSONObject value, String caller) {
+		boolean isError = false;
+		if (value == null || value.isEmpty()) {
+			this.errors.add(String.format("[%s] value must be a valid dict/json with proper keys", caller));
+			isError = true;
+		}
+		JSONObject response = new JSONObject().put("value", value).put("is_valid", !isError);
+		return response;
+	}
+
+	void addMSTeams(JSONObject value, String caller) {
+		JSONObject res = checkMSTeamsDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictAppend.put(IDENT_KEY_MS_TEAMS, res.getJSONObject("value"));
+	}
+
+	void removeMSTeams(JSONObject value, String caller) {
+		JSONObject res = checkMSTeamsDict(value, caller);
+		boolean isValid = res.getBoolean("is_valid");
+		if (!isValid) {
+			return;
+		}
+		this.dictRemove.put(IDENT_KEY_MS_TEAMS, res.getJSONObject("value"));
 	}
 }

@@ -1,13 +1,21 @@
 package suprsend;
 
 import org.json.JSONObject;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,72 +27,100 @@ import java.util.stream.Collectors;
  * @author Suprsend
  */
 class RequestLogs {
-	// static {
-	// ConsoleHandler handler = new ConsoleHandler();
-	// handler.setLevel(Level.FINE);
-	// // sun.net.www.protocol.http.HttpUrlConnection
-	// Logger log = LogManager.getLogManager().getLogger("");
-	// log.addHandler(handler);
-	// log.setLevel(Level.FINE);
-	// }
 
-	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
+	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers,
+			String payload) {
 		logger.log(Level.INFO,
-		        String.format("HTTP Request \n------------------------------->>\n"
-		                + "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n"
-		                + "------------------------------->>",
-		                httpMethod.name(), url, headers.toString(), payload));
+				String.format("HTTP Request \n------------------------------->>\n"
+						+ "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" + "------------------------------->>",
+						httpMethod.name(), url, headers.toString(), payload));
 	}
 
-	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText){
+	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText) {
 		logger.log(Level.INFO,
-		        String.format("HTTP Response \n<<-------------------------------\n"
-		                + "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n"
-		                + "<<-------------------------------",
+				String.format("HTTP Response \n<<-------------------------------\n"
+						+ "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n" + "<<-------------------------------",
 						statusCode, contentType, responseText));
 	}
 
-	private static void setMandatoryHeaders(HttpURLConnection httpConn, JSONObject headers) {
-		httpConn.setRequestProperty("Content-Type", headers.getString("Content-Type"));
-		httpConn.setRequestProperty("User-Agent", headers.getString("User-Agent"));
-		httpConn.setRequestProperty("Date", headers.getString("Date"));
+	private static void setMandatoryHeaders(HttpRequestBase httpRequest, JSONObject headers) {
+		httpRequest.setHeader("Content-Type", headers.getString("Content-Type"));
+		httpRequest.setHeader("User-Agent", headers.getString("User-Agent"));
+		httpRequest.setHeader("Date", headers.getString("Date"));
+
 		if (headers.opt("Authorization") != null) {
-			httpConn.setRequestProperty("Authorization", headers.getString("Authorization"));
+			httpRequest.setHeader("Authorization", headers.getString("Authorization"));
 		}
 	}
 
 	static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
-										JSONObject headers, String payload) throws IOException {
+			JSONObject headers, String payload) throws IOException {
 		if (debug) {
 			logHttpCall(logger, httpMethod, url, headers, payload);
 		}
-		// --- Make HTTP POST request
-		HttpURLConnection httpConn = (HttpURLConnection) new URL(url).openConnection();
-		httpConn.setRequestMethod(httpMethod.name());
-		setMandatoryHeaders(httpConn, headers);
-		if (httpMethod != HttpMethod.GET) {
-			httpConn.setDoOutput(true);
-			byte[] input = payload.getBytes(StandardCharsets.UTF_8);
-			try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
-				dos.write(input);
+
+		CloseableHttpResponse response = null;
+
+		try {
+			HttpClient httpClient = HttpClients.createDefault();
+			HttpRequestBase httpRequest;
+
+			switch (httpMethod) {
+			case GET:
+				httpRequest = new HttpGet(url);
+				break;
+			case POST:
+				httpRequest = new HttpPost(url);
+				((HttpPost) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+				break;
+			case PATCH:
+				httpRequest = new HttpPatch(url);
+				((HttpPatch) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+				break;
+			case DELETE:
+				httpRequest = new HttpDelete(url);
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported HTTP method: " + httpMethod);
+			}
+
+			// Set headers using the setMandatoryHeaders method
+			setMandatoryHeaders(httpRequest, headers);
+
+			// Execute the request
+			response = (CloseableHttpResponse) httpClient.execute(httpRequest);
+
+			// Read the response
+			String contentType = "";
+			String respText = "";
+			int statusCode = response.getStatusLine().getStatusCode();
+			HttpEntity respEntity = response.getEntity();
+			if (null != respEntity) {
+				if (null != respEntity.getContentType()) {
+					contentType = respEntity.getContentType().getValue();
+				}
+				InputStream ct = respEntity.getContent();
+				if (null != ct) {
+					try (BufferedReader br = new BufferedReader(new InputStreamReader(ct))) {
+						respText = br.lines().collect(Collectors.joining());
+					}
+				}
+			}
+
+			if (debug) {
+				logHttpResponse(logger, statusCode, contentType, respText);
+			}
+
+			// Close the response
+			response.close();
+
+			SuprsendResponse suprsendResponse = new SuprsendResponse(statusCode, respText, contentType);
+			suprsendResponse.parseResponse();
+			return suprsendResponse;
+		} finally {
+			if (response != null) {
+				response.close();
 			}
 		}
-		//
-		int statusCode = httpConn.getResponseCode();
-		BufferedReader br = null;
-		if (statusCode >= 400) {
-			br = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()));
-		} else {
-			br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
-		}
-		String respText = br.lines().collect(Collectors.joining());
-		String contentType = httpConn.getContentType();
-		if (debug) {
-			logHttpResponse(logger, statusCode, contentType, respText);
-		}
-		//
-		SuprsendResponse response = new SuprsendResponse(statusCode, respText, contentType);
-		response.parseResponse();
-		return response;
 	}
 }

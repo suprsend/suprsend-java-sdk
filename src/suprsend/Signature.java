@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 enum HttpMethod {
-	POST, GET
+	POST, GET, PATCH, DELETE
 }
 
 /**
@@ -44,11 +44,11 @@ class Signature {
 	/**
 	 * Get request signature
 	 *
-	 * @param url      Workflow backend URL
+	 * @param url        Workflow backend URL
 	 * @param httpMethod HTTP method
-	 * @param content  Raw content
-	 * @param headers  Raw headers
-	 * @param secret   Workspace secret key given to client by Suprsend
+	 * @param content    Raw content
+	 * @param headers    Raw headers
+	 * @param secret     Workspace secret key given to client by Suprsend
 	 * @return JSON object which contains raw content in string format and
 	 *         signature.
 	 * @throws SuprsendException if error occurs while creating signature
@@ -61,18 +61,22 @@ class Signature {
 		String contentMD5 = "";
 		// In case of GET request, there is no payload body,
 		// so assume contentTxt and contentMD5 to be empty.
-		if (httpMethod != HttpMethod.GET) {
+		if (httpMethod == HttpMethod.GET || (null == content || content.isEmpty())) {
+			content = "";
+			contentMD5 = "";
+		} else {
 			contentMD5 = getMD5(content);
 		}
 		String requestURI = getURI(url);
 		// Create string to sign
 		String stringToSign = String.format(
-			"%s\n%s\n%s\n%s\n%s",
-			httpMethod.name(),
-			contentMD5,
-			headers.get("Content-Type").toString(),
-			headers.get("Date").toString(),
-			requestURI);
+				"%s\n%s\n%s\n%s\n%s",
+				httpMethod.name(),
+				contentMD5,
+				headers.get("Content-Type").toString(),
+				headers.get("Date").toString(),
+				requestURI
+				);
 		//
 		byte[] macData = sha256mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 		String signature = Base64.getEncoder().encodeToString(macData);

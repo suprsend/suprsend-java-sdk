@@ -14,7 +14,8 @@ import java.io.UnsupportedEncodingException;
  */
 public class Suprsend {
 	protected String apiKey, apiSecret, baseUrl;
-	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION, System.getProperty("java.version"));
+	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
+			System.getProperty("java.version"));
 	protected boolean debug = false;
 	//
 	public SubscriberFactory user;
@@ -25,19 +26,23 @@ public class Suprsend {
 	public BulkEventsFactory bulkEvents;
 	public BulkSubscribersFactory bulkUsers;
 	//
+	public TenantsApi tenants;
 	public BrandsApi brands;
+	//
 	public SubscriberListsApi subscriberLists;
 
 	private void initHelpers() {
 		this.workflowTrigger = new WorkflowTrigger(this);
 		this.eventCollector = new EventCollector(this);
 		this.user = new SubscriberFactory(this);
-		// 
+		//
 		this.bulkWorkflows = new BulkWorkflowsFactory(this);
 		this.bulkEvents = new BulkEventsFactory(this);
 		this.bulkUsers = new BulkSubscribersFactory(this);
 		//
+		this.tenants = new TenantsApi(this);
 		this.brands = new BrandsApi(this);
+		//
 		this.subscriberLists = new SubscriberListsApi(this);
 	}
 
@@ -58,7 +63,7 @@ public class Suprsend {
 	 * 
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
-	 * @param baseUrl         custom base-url instead of suprsend platform url
+	 * @param baseUrl   custom base-url instead of suprsend platform url
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl) throws SuprsendException {
@@ -72,7 +77,7 @@ public class Suprsend {
 	 * 
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
-	 * @param debug           print logs of http-request to SuprSend
+	 * @param debug     print logs of http-request to SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, boolean debug) throws SuprsendException {
@@ -83,8 +88,8 @@ public class Suprsend {
 	 * 
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
-	 * @param baseUrl         custom base-url instead of suprsend platform url
-	 * @param debug           print logs of http-request to SuprSend
+	 * @param baseUrl   custom base-url instead of suprsend platform url
+	 * @param debug     print logs of http-request to SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug) throws SuprsendException {
@@ -95,12 +100,13 @@ public class Suprsend {
 	 * 
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
-	 * @param baseUrl         custom base-url instead of suprsend platform url
-	 * @param debug           print logs of http-request to SuprSend
-	 * @param kwargs          extra parameters for SuprSend internal purpose
+	 * @param baseUrl   custom base-url instead of suprsend platform url
+	 * @param debug     print logs of http-request to SuprSend
+	 * @param kwargs    extra parameters for SuprSend internal purpose
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, JSONObject kwargs) throws SuprsendException {
+	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, JSONObject kwargs)
+			throws SuprsendException {
 
 		this.apiKey = apiKey;
 		this.apiSecret = apiSecret;
@@ -164,11 +170,10 @@ public class Suprsend {
 	/**
 	 * @deprecated use workflow.addAttachment() instead
 	 * 
-	 * @param body workflow body
+	 * @param body     workflow body
 	 * @param filePath attachment file path
 	 * @return modified workflow body after adding attachment
-	 * @throws IOException IOException
-	 * @throws SuprsendException IOException
+	 * @throws InputValueException SuprsendException
 	 */
 	@Deprecated
 	public JSONObject addAttachment(JSONObject body, String filePath) throws InputValueException {
@@ -229,21 +234,23 @@ public class Suprsend {
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
 	@Deprecated
-	public JSONObject track(String distinctId, String eventName, JSONObject properties) throws InputValueException, SuprsendException, UnsupportedEncodingException {
+	public JSONObject track(String distinctId, String eventName, JSONObject properties)
+			throws SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctId, eventName, properties, null, null);
 		return this.eventCollector.collect(event);
 	}
 
 	/**
-	 * You can track and send events to SuprSend platform by using trackEvent method.
+	 * You can track and send events to SuprSend platform by using trackEvent
+	 * method.
 	 * 
 	 * @param event instance of Event class
 	 * @return { "success": True, "status": "success", "status_code":
 	 *         resp.status_code, "message": resp.text, }
-	 * @throws SuprsendException SuprsendException
+	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	public JSONObject trackEvent(Event event) throws InputValueException, SuprsendException, UnsupportedEncodingException {
+	public JSONObject trackEvent(Event event) throws SuprsendException, UnsupportedEncodingException {
 		return this.eventCollector.collect(event);
 	}
 

@@ -17,8 +17,9 @@ public class TestHmacGeneratation {
 		System.out.println(output);
 		// prints dHBWYF4oV190o4j-e3eYxB-SCkeHnoaiofe8EmGk9JQ
 	}
-	
-	public String hmacRawURLSafeBase64String(String distinctId, String secret) throws InvalidKeyException, NoSuchAlgorithmException {
+
+	public String hmacRawURLSafeBase64String(String distinctId, String secret)
+			throws InvalidKeyException, NoSuchAlgorithmException {
 		Mac sha256mac = getSha256macInstance(secret);
 		byte[] macData = sha256mac.doFinal(distinctId.getBytes(StandardCharsets.UTF_8));
 		String hmacString = Base64.getUrlEncoder().withoutPadding().encodeToString(macData);

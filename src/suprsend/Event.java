@@ -17,10 +17,10 @@ public class Event {
 	private String eventName;
 	private JSONObject properties;
 	private String idempotencyKey;
-	private String brandId;
+	private String tenantId;
 
 	static List<String> RESERVED_EVENT_NAMES = Arrays.asList("$identify", "$notification_delivered",
-	        "$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", "$user_logout");
+			"$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", "$user_logout");
 
 	public Event(String distinctId, String eventName, JSONObject properties) {
 		this(distinctId, eventName, properties, null, null);
@@ -30,15 +30,15 @@ public class Event {
 		this(distinctId, eventName, properties, idempotencyKey, null);
 	}
 
-	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String brandId) {
+	public Event(String distinctId, String eventName, JSONObject properties, String idempotencyKey, String tenantId) {
 		this.distinctId = distinctId;
 		this.eventName = eventName;
 		this.properties = properties;
 		if (idempotencyKey != null && !idempotencyKey.trim().isEmpty()) {
 			this.idempotencyKey = idempotencyKey.trim();
 		}
-		if (brandId != null && !brandId.trim().isEmpty()) {
-			this.brandId = brandId.trim();
+		if (tenantId != null && !tenantId.trim().isEmpty()) {
+			this.tenantId = tenantId.trim();
 		}
 		if (properties == null) {
 			properties = new JSONObject();
@@ -106,15 +106,15 @@ public class Event {
 		if (null != idempotencyKey) {
 			eventDict.put("$idempotency_key", idempotencyKey);
 		}
-		if (null != brandId) {
-			eventDict.put("brand_id", brandId);
+		if (null != tenantId) {
+			eventDict.put("tenant_id", tenantId);
 		}
 		JSONObject validatedEvent = Utils.validateTrackEventSchema(eventDict);
 		// Check size
 		int apparentSize = Utils.getApparentEventSize(eventDict, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 			String errMsg = String.format("Event size too big - %d Bytes, must not cross %s", apparentSize,
-			        Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", validatedEvent).put("apparent_size", apparentSize);
@@ -128,8 +128,8 @@ public class Event {
 		if (null != idempotencyKey) {
 			eventDict.put("$idempotency_key", idempotencyKey);
 		}
-		if (null != brandId) {
-			eventDict.put("brand_id", brandId);
+		if (null != tenantId) {
+			eventDict.put("tenant_id", tenantId);
 		}
 		return eventDict;
 	}

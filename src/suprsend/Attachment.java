@@ -17,12 +17,13 @@ public class Attachment {
 	public static JSONObject getAttachmentJSON(String filePath) throws InputValueException {
 		return getAttachmentJSON(filePath, null, false);
 	}
-	
+
 	public static JSONObject getAttachmentJSON(String filePath, String fileName) throws InputValueException {
 		return getAttachmentJSON(filePath, fileName, false);
 	}
 
-	public static JSONObject getAttachmentJSON(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
+	public static JSONObject getAttachmentJSON(String filePath, String fileName, boolean ignoreIfError)
+			throws InputValueException {
 		// check for empty filepath
 		if (filePath == null || filePath.trim().isEmpty()) {
 			return null;
@@ -34,7 +35,7 @@ public class Attachment {
 		} else {
 			fileName = fileName.trim();
 		}
-		// 
+		//
 		if (checkIsWebUrl(filePath)) {
 			return getAttachmentJSONForUrl(filePath, fileName, ignoreIfError);
 		} else {
@@ -53,14 +54,15 @@ public class Attachment {
 
 	private static JSONObject getAttachmentJSONForUrl(String fileUrl, String fileName, boolean ignoreIfError) {
 		return new JSONObject()
-		        .put("filename", fileName)
-        		.put("contentType", JSONObject.NULL)
-        		.put("data", JSONObject.NULL)
-        		.put("url", fileUrl)
-        		.put("ignore_if_error", ignoreIfError);
+				.put("filename", fileName)
+				.put("contentType", JSONObject.NULL)
+				.put("data", JSONObject.NULL)
+				.put("url", fileUrl)
+				.put("ignore_if_error", ignoreIfError);
 	}
 
-	private static JSONObject getAttachmentJSONForFile(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
+	private static JSONObject getAttachmentJSONForFile(String filePath, String fileName, boolean ignoreIfError)
+			throws InputValueException {
 		// Handle ~ in path. Ensure that path is expanded and absolute
 		filePath = filePath.replaceFirst("^~", System.getProperty("user.home"));
 		//
@@ -83,11 +85,12 @@ public class Attachment {
 					.put("ignore_if_error", ignoreIfError);
 		} catch (Exception ex) {
 			if (ignoreIfError) {
-				System.out.println(String.format("WARNING: ignoring error while processing attachment file. %s", ex.toString()));
+				System.out.println(
+						String.format("WARNING: ignoring error while processing attachment file. %s", ex.toString()));
 				return null;
 			}
 			throw new InputValueException(ex.toString());
 		}
 	}
-	
+
 }

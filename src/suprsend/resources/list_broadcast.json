@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://github.com/suprsend/suprsend-py-sdk/request_json/list_broadcast.json",
+  "$id": "http://github.com/suprsend/suprsend-java-sdk/request_json/list_broadcast.json",
   "title": "list_broadcast_request",
   "description": "Json schema for list_broadcast request",
   "$comment": "Json schema for list_broadcast request",
@@ -8,8 +8,13 @@
   "properties": {
     "$idempotency_key": {
       "type": ["string", "null"],
-      "maxLength": 64,
+      "maxLength": 255,
       "description": "unique id provided by client for request"
+    },
+    "tenant_id": {
+      "type": ["string", "null"],
+      "maxLength": 64,
+      "description": "tenant id for workflow to be run in context of a tenant"
     },
     "brand_id": {
       "type": ["string", "null"],
@@ -35,7 +40,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger"]
+        "enum": ["androidpush", "iospush", "webpush", "email", "sms", "whatsapp", "slack", "inbox", "messenger", "ms_teams"]
       },
       "minItems": 0,
       "description": "channels on which notification to be broadcast. e.g ['androidpush', 'iospush']"

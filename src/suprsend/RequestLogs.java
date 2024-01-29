@@ -27,28 +27,19 @@ import java.util.stream.Collectors;
  * @author Suprsend
  */
 class RequestLogs {
-	// static {
-	// ConsoleHandler handler = new ConsoleHandler();
-	// handler.setLevel(Level.FINE);
-	// // sun.net.www.protocol.http.HttpUrlConnection
-	// Logger log = LogManager.getLogManager().getLogger("");
-	// log.addHandler(handler);
-	// log.setLevel(Level.FINE);
-	// }
 
-	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers, String payload) {
+	private static void logHttpCall(Logger logger, HttpMethod httpMethod, String url, JSONObject headers,
+			String payload) {
 		logger.log(Level.INFO,
-		        String.format("HTTP Request \n------------------------------->>\n"
-		                + "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n"
-		                + "------------------------------->>",
-		                httpMethod.name(), url, headers.toString(), payload));
+				String.format("HTTP Request \n------------------------------->>\n"
+						+ "METHOD:\t%s\nURL:\t%s\nHEADER:\t%s\nBODY:\t%s\n" + "------------------------------->>",
+						httpMethod.name(), url, headers.toString(), payload));
 	}
 
-	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText){
+	private static void logHttpResponse(Logger logger, int statusCode, String contentType, String responseText) {
 		logger.log(Level.INFO,
-		        String.format("HTTP Response \n<<-------------------------------\n"
-		                + "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n"
-		                + "<<-------------------------------",
+				String.format("HTTP Response \n<<-------------------------------\n"
+						+ "Status Code:\t%d\nContent-Type:\t%s\nResponse:\t%s\n" + "<<-------------------------------",
 						statusCode, contentType, responseText));
 	}
 
@@ -63,73 +54,73 @@ class RequestLogs {
 	}
 
 	static SuprsendResponse makeHttpCall(Logger logger, boolean debug, HttpMethod httpMethod, String url,
-                                         JSONObject headers, String payload) throws IOException {
-        if (debug) {
-            logHttpCall(logger, httpMethod, url, headers, payload);
-        }
+			JSONObject headers, String payload) throws IOException {
+		if (debug) {
+			logHttpCall(logger, httpMethod, url, headers, payload);
+		}
 
-        CloseableHttpResponse response = null;
+		CloseableHttpResponse response = null;
 
-        try {
-            HttpClient httpClient = HttpClients.createDefault();
-            HttpRequestBase httpRequest;
+		try {
+			HttpClient httpClient = HttpClients.createDefault();
+			HttpRequestBase httpRequest;
 
-            switch (httpMethod) {
-                case GET:
-                    httpRequest = new HttpGet(url);
-                    break;
-                case POST:
-                    httpRequest = new HttpPost(url);
-                    ((HttpPost) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
-                    break;
-                case PATCH:
-                    httpRequest = new HttpPatch(url);
-                    ((HttpPatch) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
-                    break;
-                case DELETE:
-                    httpRequest = new HttpDelete(url);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported HTTP method: " + httpMethod);
-            }
+			switch (httpMethod) {
+			case GET:
+				httpRequest = new HttpGet(url);
+				break;
+			case POST:
+				httpRequest = new HttpPost(url);
+				((HttpPost) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+				break;
+			case PATCH:
+				httpRequest = new HttpPatch(url);
+				((HttpPatch) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+				break;
+			case DELETE:
+				httpRequest = new HttpDelete(url);
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported HTTP method: " + httpMethod);
+			}
 
-            // Set headers using the setMandatoryHeaders method
-            setMandatoryHeaders(httpRequest, headers);
+			// Set headers using the setMandatoryHeaders method
+			setMandatoryHeaders(httpRequest, headers);
 
-            // Execute the request
-            response = (CloseableHttpResponse) httpClient.execute(httpRequest);
+			// Execute the request
+			response = (CloseableHttpResponse) httpClient.execute(httpRequest);
 
-            // Read the response
-            String contentType = "";
-            String respText = "";
-            int statusCode = response.getStatusLine().getStatusCode();
-            HttpEntity respEntity = response.getEntity();
-            if (null != respEntity) {
-                if (null != respEntity.getContentType()) {
-                    contentType = respEntity.getContentType().getValue();
-                }
-                InputStream ct = respEntity.getContent();
-                if (null != ct) {
-                    try (BufferedReader br = new BufferedReader(new InputStreamReader(ct))) {
-                        respText = br.lines().collect(Collectors.joining());
-                    }
-                }
-            }
+			// Read the response
+			String contentType = "";
+			String respText = "";
+			int statusCode = response.getStatusLine().getStatusCode();
+			HttpEntity respEntity = response.getEntity();
+			if (null != respEntity) {
+				if (null != respEntity.getContentType()) {
+					contentType = respEntity.getContentType().getValue();
+				}
+				InputStream ct = respEntity.getContent();
+				if (null != ct) {
+					try (BufferedReader br = new BufferedReader(new InputStreamReader(ct))) {
+						respText = br.lines().collect(Collectors.joining());
+					}
+				}
+			}
 
-            if (debug) {
-                logHttpResponse(logger, statusCode, contentType, respText);
-            }
+			if (debug) {
+				logHttpResponse(logger, statusCode, contentType, respText);
+			}
 
-            // Close the response
-            response.close();
+			// Close the response
+			response.close();
 
-            SuprsendResponse suprsendResponse = new SuprsendResponse(statusCode, respText, contentType);
-            suprsendResponse.parseResponse();
-            return suprsendResponse;
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-    }        
+			SuprsendResponse suprsendResponse = new SuprsendResponse(statusCode, respText, contentType);
+			suprsendResponse.parseResponse();
+			return suprsendResponse;
+		} finally {
+			if (response != null) {
+				response.close();
+			}
+		}
+	}
 }

@@ -24,7 +24,7 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body json body of workflow
+	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey) {
@@ -33,9 +33,9 @@ public class Workflow {
 
 	/**
 	 * 
-	 * @param body json body of workflow
+	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
-	 * @param tenantId tenantId for workflow request
+	 * @param tenantId       tenantId for workflow request
 	 */
 	public Workflow(JSONObject body, String idempotencyKey, String tenantId) {
 		if (null == body) {
@@ -49,21 +49,21 @@ public class Workflow {
 			this.tenantId = tenantId.trim();
 		}
 	}
-	
+
 	public void addAttachment(String filePath) throws InputValueException {
 		this.addAttachment(filePath, null, false);
 	}
-	
+
 	public void addAttachment(String filePath, String fileName) throws InputValueException {
 		this.addAttachment(filePath, fileName, false);
 	}
+
 	/**
 	 * 
-	 * @param filePath filePath
-	 * @param fileName fileName
+	 * @param filePath      filePath
+	 * @param fileName      fileName
 	 * @param ignoreIfError ignoreIfError
-	 * @throws IOException IOException
-	 * @throws SuprsendException SuprsendException
+	 * @throws InputValueException SuprsendException
 	 */
 	public void addAttachment(String filePath, String fileName, boolean ignoreIfError) throws InputValueException {
 		if (this.body.opt("data") == null) {
@@ -94,8 +94,8 @@ public class Workflow {
 		// Check body size
 		int apparentSize = Utils.getApparentWorkflowBodySize(body, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-		    String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
-		            Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+			String errMsg = String.format("workflow body too big - %d Bytes, must not cross %s", apparentSize,
+					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new SuprsendException(errMsg);
 		}
 		return new JSONObject().put("event", validatedBody).put("apparent_size", apparentSize);

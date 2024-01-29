@@ -5,10 +5,10 @@ import suprsend.SuprsendException;
 
 public class TestHelper {
 
-    public static Suprsend getClientInstance() throws SuprsendException {
-        String apiKey = "apikey";
-        String apiSecret = "apiSecret";
-        return new Suprsend(apiKey, apiSecret);
-    }
+	public static Suprsend getClientInstance() throws SuprsendException {
+		String apiKey = "apikey";
+		String apiSecret = "apiSecret";
+		return new Suprsend(apiKey, apiSecret);
+	}
 
 }

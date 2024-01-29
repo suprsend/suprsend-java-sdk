@@ -33,10 +33,8 @@ class WorkflowTrigger {
 	 * @return Headers as JSON object
 	 */
 	private JSONObject getHeaders() {
-		return new JSONObject()
-				.put("Content-Type", "application/json; charset=utf-8")
-		        .put("User-Agent", this.config.userAgent)
-				.put("Date", Utils.getCurrentDateTimeHeader());
+		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
 	/**
@@ -46,8 +44,7 @@ class WorkflowTrigger {
 	 * @throws SuprsendException
 	 * @throws UnsupportedEncodingException
 	 */
-	JSONObject trigger(Workflow workflow)
-			throws SuprsendException, UnsupportedEncodingException {
+	JSONObject trigger(Workflow workflow) throws SuprsendException, UnsupportedEncodingException {
 		JSONObject o = workflow.getFinalJson(config, false);
 		JSONObject validatedBody = o.getJSONObject("event");
 		// int apparentSize = o.getInt("apparent_size");
@@ -60,31 +57,25 @@ class WorkflowTrigger {
 		try {
 			String contentText;
 			// Signature and Authorization Header
-			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, workflowBody.toString(), headers,
-					this.config.apiSecret);
+			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, workflowBody.toString(),
+					headers, this.config.apiSecret);
 			contentText = sigResult.getString("contentTxt");
 			headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url, headers, contentText);
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
+					headers, contentText);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true)
-				.put("status", "success")
-				.put("status_code", statusCode)
-				.put("message", responseText);
+				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
+						responseText);
 			} else {
-				response.put("success", false)
-				.put("status", "fail")
-				.put("status_code", statusCode)
-				.put("message", responseText);
+				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
+						responseText);
 			}
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false)
-			.put("status", "fail")
-			.put("status_code", 500)
-			.put("message", e.toString());
+			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
 		}
 		return response;
 	}

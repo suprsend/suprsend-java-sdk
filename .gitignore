@@ -51,6 +51,6 @@ target/
 
 # Visual Studio Code
 .vscode
-
+.classpath
 # Test scripts
 src/test/TestManual*

@@ -20,7 +20,7 @@ public class Event {
 	private String tenantId;
 
 	static List<String> RESERVED_EVENT_NAMES = Arrays.asList("$identify", "$notification_delivered",
-	        "$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", "$user_logout");
+			"$notification_dismiss", "$notification_clicked", "$app_launched", "$user_login", "$user_logout");
 
 	public Event(String distinctId, String eventName, JSONObject properties) {
 		this(distinctId, eventName, properties, null, null);
@@ -114,7 +114,7 @@ public class Event {
 		int apparentSize = Utils.getApparentEventSize(eventDict, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
 			String errMsg = String.format("Event size too big - %d Bytes, must not cross %s", apparentSize,
-			        Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", validatedEvent).put("apparent_size", apparentSize);

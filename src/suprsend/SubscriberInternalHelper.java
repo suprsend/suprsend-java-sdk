@@ -25,10 +25,11 @@ class SubscriberInternalHelper {
 
 	public static final String KEY_PUSHVENDOR = "$pushvendor";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
+	public static final String KEY_TIMEZONE = "$timezone";
 
 	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_PUSHVENDOR,
 			"$device_id", "$insert_id", "$time", "$set", "$set_once", "$add", "$append", "$remove", "$unset",
-			"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE, "$notification_delivered",
+			"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE, KEY_TIMEZONE, "$notification_delivered",
 			"$notification_dismiss", "$notification_clicked");
 
 	public static final List<String> SUPER_PROPERTY_KEYS = Arrays.asList("$app_version_string", "$app_build_number",
@@ -283,6 +284,10 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictSet.put(KEY_PREFERRED_LANGUAGE, langCode);
+	}
+
+	void setTimezone(String timezone, String caller) {
+		this.dictSet.put(KEY_TIMEZONE, timezone);
 	}
 
 	private void addIdentity(String key, String value, JSONObject kwargs, String caller) {

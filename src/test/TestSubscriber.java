@@ -197,6 +197,17 @@ public class TestSubscriber {
 		System.out.println(res);
 	}
 
+	public static void testTimezone() throws Exception {
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String distinctId = "__distinct_id__";
+		Subscriber user = suprClient.user.getInstance(distinctId);
+		//
+		user.setTimezone("America/Los_Angeles");
+		JSONObject res = user.save();
+		System.out.println(res);
+	}
+
 	public static void testRemove() throws Exception {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//

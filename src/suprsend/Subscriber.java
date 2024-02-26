@@ -310,6 +310,14 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	// =========================================== Timezone
+
+	public void setTimezone(String timezone) {
+		String caller = "set_timezone";
+		this.helper.setTimezone(timezone, caller);
+		collectEvent();
+	}
+
 	// =========================================================== Email
 
 	public void addEmail(String value) {

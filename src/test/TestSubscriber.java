@@ -23,6 +23,7 @@ public class TestSubscriber {
 		testAddMSTeams();
 		testRemoveMSTeams();
 		testPreferredLanguage();
+		testTimezone();
 		testRemove();
 		testAddHelperFunctions();
 		testRemoveHelperFunctions();

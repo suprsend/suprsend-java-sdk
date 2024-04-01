@@ -320,10 +320,10 @@ System.out.println(response);
 
 - You can also set timezone of user using `setTimezone(timezone)`. Value for timezone
   must be from amongst the IANA timezones as maintained in the latest release here:
-  https://data.iana.org/time-zones/releases/.
+  https://data.iana.org/time-zones/tzdb-2024a/zonenow.tab.
 ```java
 # --- Set timezone property at user level in IANA timezone format
-user.setTimeone("America/Los_Angeles")
+user.setTimezone("America/Los_Angeles")
 JSONObject response = user.save()
 System.out.println(response);
 ```

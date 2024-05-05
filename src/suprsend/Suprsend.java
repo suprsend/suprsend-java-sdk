@@ -2,8 +2,6 @@ package suprsend;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -28,6 +26,7 @@ public class Suprsend {
 	//
 	public TenantsApi tenants;
 	public BrandsApi brands;
+	public WorkflowsApi workflows;
 	//
 	public SubscriberListsApi subscriberLists;
 
@@ -42,6 +41,7 @@ public class Suprsend {
 		//
 		this.tenants = new TenantsApi(this);
 		this.brands = new BrandsApi(this);
+		this.workflows = new WorkflowsApi(this);
 		//
 		this.subscriberLists = new SubscriberListsApi(this);
 	}
@@ -168,7 +168,7 @@ public class Suprsend {
 	}
 
 	/**
-	 * @deprecated use workflow.addAttachment() instead
+	 * @deprecated use WorkflowTriggerRequest.addAttachment() instead
 	 * 
 	 * @param body     workflow body
 	 * @param filePath attachment file path
@@ -223,7 +223,7 @@ public class Suprsend {
 
 	/**
 	 * @deprecated You can track and send events to SuprSend platform by using track
-	 *             method.
+	 *             method. Use trackEvent() instead.
 	 * 
 	 * @param distinctId uniquely Identifiable User id
 	 * @param eventName  event name to track

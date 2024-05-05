@@ -188,6 +188,28 @@ class Utils {
 	}
 
 	/**
+	 * Validate data against the workflowTriggerRequest JSON schema
+	 *
+	 * @param body worflow payload
+	 * @return Validated data
+	 * @throws SuprsendException if schema not found.
+	 */
+	static JSONObject validateWorkflowTriggerBodySchema(JSONObject body) throws SuprsendException {
+		// --- In case data is not provided, set it to empty dict
+		if (body.opt("data") == null) {
+			body.put("data", new JSONObject());
+		}
+		Schema schemaValidator = RequestSchema.getSchemaValidator("workflow_trigger");
+		try {
+			schemaValidator.validate(body);
+		} catch (ValidationException e) {
+			String msg = String.format("%s\n%s", e.getMessage(), String.join("\n", e.getAllMessages()));
+			throw new SuprsendException(msg, e);
+		}
+		return body;
+	}
+
+	/**
 	 * Validate data against the event JSON schema
 	 * 
 	 * @param data event payload

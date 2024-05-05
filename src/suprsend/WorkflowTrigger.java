@@ -7,10 +7,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 
 /**
- * This class makes Dynamic Workflow URL call to SuprSend platform.
+ * @deprecated This class makes Dynamic Workflow URL call to SuprSend platform.
  * 
  * @author Suprsend
  */
+@Deprecated
 class WorkflowTrigger {
 	private static final Logger logger = Logger.getLogger(WorkflowTrigger.class.getName());
 

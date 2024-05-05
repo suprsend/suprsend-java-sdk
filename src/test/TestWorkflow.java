@@ -3,10 +3,10 @@ package test;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import suprsend.BulkResponse;
-import suprsend.BulkWorkflows;
+import suprsend.BulkWorkflowTrigger;
 import suprsend.Suprsend;
 import suprsend.SuprsendException;
-import suprsend.Workflow;
+import suprsend.WorkflowTriggerRequest;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -15,51 +15,51 @@ import java.util.Arrays;
 public class TestWorkflow {
 
 	public static void main(String[] args) throws Exception {
-		testWorkflow();
-		testWorkflowWithIdempotencyKey();
-		testWorkflowBulk();
+		testWorkflowTrigger();
+		testWorkflowTriggerWithIdempotencyKey();
+		testWorkflowBulkTrigger();
 	}
 
-	private static void testWorkflow() throws SuprsendException, UnsupportedEncodingException {
+	private static void testWorkflowTrigger() throws SuprsendException, UnsupportedEncodingException {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		// payload
 		JSONObject body = getWorkflowBody();
-		Workflow wf = new Workflow(body);
+		WorkflowTriggerRequest wf = new WorkflowTriggerRequest(body);
 		//
-		JSONObject resp = suprClient.triggerWorkflow(wf);
+		JSONObject resp = suprClient.workflows.trigger(wf);
 		System.out.println(resp);
 	}
 
-	public static void testWorkflowWithIdempotencyKey() throws SuprsendException, IOException {
+	public static void testWorkflowTriggerWithIdempotencyKey() throws SuprsendException, IOException {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		// payload
 		JSONObject body = getWorkflowBody();
 		String idempotencyKey = "__uniq_id_like_uuid__";
 		String tenantId = "default";
-		Workflow wf = new Workflow(body, idempotencyKey, tenantId);
+		WorkflowTriggerRequest wf = new WorkflowTriggerRequest(body, idempotencyKey, tenantId);
 		// String filePath = "https://lightning.network/lightning-network-paper.pdf";
 		// String filePath = "~/Downloads/gfs-sosp2003.pdf";
 		// wf.addAttachment(filePath, "MyFile.pdf", true);
 		//
-		JSONObject resp = suprClient.triggerWorkflow(wf);
+		JSONObject resp = suprClient.workflows.trigger(wf);
 		System.out.println(resp);
 	}
 
-	private static void testWorkflowBulk() throws SuprsendException {
+	private static void testWorkflowBulkTrigger() throws SuprsendException {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		// payload
-		BulkWorkflows bulkIns = suprClient.bulkWorkflows.newInstance();
+		BulkWorkflowTrigger bulkIns = suprClient.workflows.bulkTriggerInstance();
 		for (int i = 0; i < 3; i++) {
-			Workflow wf = getWorkflow();
+			WorkflowTriggerRequest wf = getWorkflow();
 			bulkIns.append(wf);
 		}
 		BulkResponse resp = bulkIns.trigger();
 		System.out.println(resp);
 	}
 
-	private static Workflow getWorkflow() throws SuprsendException {
+	private static WorkflowTriggerRequest getWorkflow() throws SuprsendException {
 		JSONObject body = getWorkflowBody();
-		Workflow wf = new Workflow(body);
+		WorkflowTriggerRequest wf = new WorkflowTriggerRequest(body);
 		// String filePath = "https://lightning.network/lightning-network-paper.pdf";
 		// String filePath = "~/Downloads/gfs-sosp2003.pdf";
 		// wf.addAttachment(filePath, "MyFile.pdf", true);
@@ -69,17 +69,22 @@ public class TestWorkflow {
 
 	private static JSONObject getWorkflowBody() {
 		JSONObject body = new JSONObject()
-				.put("name", "Booking Confirmed")
-				.put("template", "template-booking")
-				.put("notification_category", "transactional")
-				.put("users", new JSONArray()
+				.put("workflow", "__workflow_slug__")
+				.put("actor", new JSONObject()
+								.put("distinct_id", "__actor_id__")
+								.put("$email", "actor@example.com")
+								.put("name", "Actor Name")
+					)
+				.put("recipients", new JSONArray()
 						.put(new JSONObject()
-								.put("distinct_id", "__distinct_id__")
+								.put("distinct_id", "__recipient_id_1__")
 								// .put("is_transient", true)
-								.put("$channels", Arrays.asList("slack"))
-								.put("$slack", new JSONObject()
-										.put("incoming_webhook", new JSONObject()
-												.put("url", "https://hooks.slack.com/services/T0XXXXX/B0XXXXXX/XXXXXXX")))
+								// .put("$channels", Arrays.asList("email"))
+								.put("$email", Arrays.asList("recp1@example.com"))
+								.put("name", "Recipient 1 Name")
+								// .put("$slack", new JSONObject()
+								// 		.put("incoming_webhook", new JSONObject()
+								// 				.put("url", "https://hooks.slack.com/services/T0XXXXX/B0XXXXXX/XXXXXXX")))
 								// .put("$whatsapp", new JSONArray().put("+91__mobile_no__"))
 				))
 				.put("data", new JSONObject()

@@ -1,11 +1,11 @@
 package suprsend;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
 
 public class BulkSubscribers {
 	private static final Logger logger = Logger.getLogger(BulkSubscribers.class.getName());

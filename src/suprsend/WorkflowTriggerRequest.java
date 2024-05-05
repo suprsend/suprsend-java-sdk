@@ -7,12 +7,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class WorkflowTriggerRequest {
-    private static final Logger logger = Logger.getLogger(WorkflowTriggerRequest.class.getName());
+	private static final Logger logger = Logger.getLogger(WorkflowTriggerRequest.class.getName());
 
 	private JSONObject body;
 	private String idempotencyKey;
 	private String tenantId;
-    private String cancellationKey;
+	private String cancellationKey;
 
 	/**
 	 * 
@@ -31,11 +31,11 @@ public class WorkflowTriggerRequest {
 		this(body, idempotencyKey, null, null);
 	}
 
-    /**
+	/**
 	 * 
 	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
-     * @param tenantId tenantId for workflow request
+	 * @param tenantId       tenantId for workflow request
 	 */
 	public WorkflowTriggerRequest(JSONObject body, String idempotencyKey, String tenantId) {
 		this(body, idempotencyKey, tenantId, null);
@@ -43,10 +43,10 @@ public class WorkflowTriggerRequest {
 
 	/**
 	 * 
-	 * @param body           json body of workflow
-	 * @param idempotencyKey idempotency-key for workflow request
-	 * @param tenantId       tenantId for workflow request
-     * @param cancellationKey       cancellationKey for workflow request
+	 * @param body            json body of workflow
+	 * @param idempotencyKey  idempotency-key for workflow request
+	 * @param tenantId        tenantId for workflow request
+	 * @param cancellationKey cancellationKey for workflow request
 	 */
 	public WorkflowTriggerRequest(JSONObject body, String idempotencyKey, String tenantId, String cancellationKey) {
 		if (null == body) {
@@ -59,7 +59,7 @@ public class WorkflowTriggerRequest {
 		if (tenantId != null && !tenantId.trim().isEmpty()) {
 			this.tenantId = tenantId.trim();
 		}
-        if (cancellationKey != null && !cancellationKey.trim().isEmpty()) {
+		if (cancellationKey != null && !cancellationKey.trim().isEmpty()) {
 			this.cancellationKey = cancellationKey.trim();
 		}
 	}
@@ -103,7 +103,7 @@ public class WorkflowTriggerRequest {
 		if (null != tenantId) {
 			this.body.put("tenant_id", tenantId);
 		}
-        if (null != cancellationKey) {
+		if (null != cancellationKey) {
 			this.body.put("cancellation_key", cancellationKey);
 		}
 		//
@@ -126,7 +126,7 @@ public class WorkflowTriggerRequest {
 		if (null != tenantId) {
 			obj.put("tenant_id", tenantId);
 		}
-        if (null != cancellationKey) {
+		if (null != cancellationKey) {
 			obj.put("cancellation_key", cancellationKey);
 		}
 		return obj;

@@ -1,16 +1,17 @@
 package suprsend;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.json.JSONObject;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
 
 enum HttpMethod {
 	POST, GET, PATCH, DELETE

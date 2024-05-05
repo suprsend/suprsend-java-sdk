@@ -1,10 +1,10 @@
 package suprsend;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @deprecated. Use WorkflowTriggerRequest() instead

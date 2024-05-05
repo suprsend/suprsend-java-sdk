@@ -1,8 +1,9 @@
 package suprsend;
 
+import java.io.UnsupportedEncodingException;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.UnsupportedEncodingException;
 
 /**
  * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK allows

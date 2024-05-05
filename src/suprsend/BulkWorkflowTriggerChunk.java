@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.json.JSONObject;
 
 public class BulkWorkflowTriggerChunk {
-    private static final Logger logger = Logger.getLogger(BulkWorkflowTriggerChunk.class.getName());
+	private static final Logger logger = Logger.getLogger(BulkWorkflowTriggerChunk.class.getName());
 
 	private static final int chunkApparentSizeInBytes = Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES;
 	private static final int maxRecordsInChunk = Constants.MAX_WORKFLOWS_IN_BULK_API;
@@ -35,7 +35,7 @@ public class BulkWorkflowTriggerChunk {
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
 				.put("User-Agent", this.config.userAgent)
-                .put("Date", Utils.getCurrentDateTimeHeader());
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
 	private void addBodyToChunk(JSONObject body, int bodySize) {

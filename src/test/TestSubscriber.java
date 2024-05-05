@@ -1,13 +1,14 @@
 package test;
 
+import java.util.Arrays;
+
 import org.json.JSONObject;
+
 import suprsend.BulkResponse;
 import suprsend.BulkSubscribers;
 import suprsend.Subscriber;
 import suprsend.Suprsend;
 import suprsend.SuprsendException;
-
-import java.util.Arrays;
 
 public class TestSubscriber {
 

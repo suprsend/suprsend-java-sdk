@@ -1,10 +1,5 @@
 package suprsend;
 
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +10,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 class Utils {
 	private static ZoneId zone = ZoneId.of("UTC");

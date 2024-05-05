@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.json.JSONObject;
 
 public class BulkWorkflowTrigger {
-    private static final Logger logger = Logger.getLogger(BulkWorkflowTrigger.class.getName());
+	private static final Logger logger = Logger.getLogger(BulkWorkflowTrigger.class.getName());
 
 	private Suprsend config;
 

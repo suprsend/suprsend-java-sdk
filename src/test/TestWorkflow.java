@@ -1,16 +1,17 @@
 package test;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import suprsend.BulkResponse;
 import suprsend.BulkWorkflowTrigger;
 import suprsend.Suprsend;
 import suprsend.SuprsendException;
 import suprsend.WorkflowTriggerRequest;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 public class TestWorkflow {
 

@@ -1,14 +1,14 @@
 package suprsend;
 
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class takes care of loading the JSON schema which will be used to

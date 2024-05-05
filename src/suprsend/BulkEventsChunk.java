@@ -1,12 +1,12 @@
 package suprsend;
 
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.json.JSONObject;
 
 class BulkEventsChunk {
 	private static final Logger logger = Logger.getLogger(BulkEventsChunk.class.getName());

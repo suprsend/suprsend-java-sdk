@@ -1,8 +1,5 @@
 package suprsend;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
@@ -10,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Subscriber {
 	private static final Logger logger = Logger.getLogger(Subscriber.class.getName());

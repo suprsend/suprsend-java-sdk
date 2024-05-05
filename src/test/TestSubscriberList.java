@@ -1,14 +1,15 @@
 package test;
 
-import org.json.JSONObject;
-import suprsend.SubscriberListBroadcast;
-import suprsend.Suprsend;
-import suprsend.SuprsendException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
+
+import suprsend.SubscriberListBroadcast;
+import suprsend.Suprsend;
+import suprsend.SuprsendException;
 
 public class TestSubscriberList {
 	private static final Logger logger = Logger.getLogger(TestSubscriberList.class.getName());

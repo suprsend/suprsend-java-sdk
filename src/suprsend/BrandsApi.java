@@ -1,11 +1,11 @@
 package suprsend;
 
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
 
 public class BrandsApi {
 	private static final Logger logger = Logger.getLogger(BrandsApi.class.getName());

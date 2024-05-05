@@ -7,64 +7,54 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-public class BulkSubscribers {
-	private static final Logger logger = Logger.getLogger(BulkSubscribers.class.getName());
+public class BulkWorkflowTrigger {
+	private static final Logger logger = Logger.getLogger(BulkWorkflowTrigger.class.getName());
 
-	private final Suprsend config;
+	private Suprsend config;
 
-	private List<Subscriber> __subscribers;
+	private List<WorkflowTriggerRequest> __workflows;
 	private List<JSONObject> __pendingRecords;
 
-	private List<BulkSubscribersChunk> chunks;
+	private List<BulkWorkflowTriggerChunk> chunks;
 	private BulkResponse response;
 
-	// invalid_record json: {"record": event-json, "error": error_str, "code": 500}
 	private List<JSONObject> __invalidRecords;
 
-	BulkSubscribers(Suprsend config) {
+	BulkWorkflowTrigger(Suprsend config) {
 		this.config = config;
-		this.__subscribers = new ArrayList<Subscriber>();
+		this.__workflows = new ArrayList<WorkflowTriggerRequest>();
 		this.__pendingRecords = new ArrayList<JSONObject>();
-		// invalid_record json: {"record": event-json, "error": error_str, "code": 500}
-		this.__invalidRecords = new ArrayList<JSONObject>();
 		this.chunks = new ArrayList<>();
 		this.response = new BulkResponse();
-
+		// invalid_record json: {"record": event-json, "error": error_str, "code": 500}
+		this.__invalidRecords = new ArrayList<>();
 	}
 
-	private void validateSubscribers() {
-		for (Subscriber s : this.__subscribers) {
+	private void validateWorkflows() {
+		for (WorkflowTriggerRequest wf : this.__workflows) {
 			try {
-				// check if there is any error/warning, if so add it to warnings list of
-				// BulkResponse
-				List<String> warningsList = s.validateBody(true);
-				if (!warningsList.isEmpty())
-					this.response.warnings.addAll(warningsList);
-				//
-				JSONObject ev = s.getEvent();
 				// {"event", validatedEvent, "apparent_size", apparentSize}
-				JSONObject evJson = s.validateEventSize(ev);
-				this.__pendingRecords.add(evJson);
-
+				JSONObject wfJson = wf.getFinalJson(this.config, true);
+				this.__pendingRecords.add(wfJson);
 			} catch (Exception ex) {
 				// invalid_record json: {"record": event-json, "error": error_str, "code": 500}
-				JSONObject invRec = Utils.invalidRecordJson(s.asJson(), ex);
+				JSONObject invRec = Utils.invalidRecordJson(wf.asJson(), ex);
 				this.__invalidRecords.add(invRec);
 			}
 		}
 	}
 
 	private void chunkify(int startIdx) throws InputValueException {
-		BulkSubscribersChunk currChunk = new BulkSubscribersChunk(this.config);
+		BulkWorkflowTriggerChunk currChunk = new BulkWorkflowTriggerChunk(this.config);
 		this.chunks.add(currChunk);
 		// loop on slice pendingRecords[startIdx:]
 		int recordsLen = this.__pendingRecords.size();
 		List<JSONObject> slice = this.__pendingRecords.subList(startIdx, recordsLen);
 		//
 		for (int idx = 0; idx < slice.size(); idx++) {
-			JSONObject evJson = slice.get(idx);
-			boolean isAdded = currChunk.tryToAddIntoChunk(evJson.getJSONObject("event"),
-					evJson.getInt("apparent_size"));
+			JSONObject wfJson = slice.get(idx);
+			boolean isAdded = currChunk.tryToAddIntoChunk(wfJson.getJSONObject("event"),
+					wfJson.getInt("apparent_size"));
 			if (!isAdded) {
 				// create chunks from remaining records
 				chunkify(startIdx + idx);
@@ -74,25 +64,20 @@ public class BulkSubscribers {
 		}
 	}
 
-	public void append(Subscriber... subscribers) {
-		if (subscribers.length == 0) {
+	public void append(WorkflowTriggerRequest... workflows) {
+		if (workflows.length == 0) {
 			return;
 		}
-		for (Subscriber obj : subscribers) {
+		for (WorkflowTriggerRequest obj : workflows) {
 			if (obj == null) {
 				continue;
 			}
-			// TODO: deep copy
-			this.__subscribers.add(obj);
+			this.__workflows.add(obj);
 		}
 	}
 
 	public BulkResponse trigger() throws InputValueException {
-		return save();
-	}
-
-	public BulkResponse save() throws InputValueException {
-		validateSubscribers();
+		validateWorkflows();
 		if (this.__invalidRecords.size() > 0) {
 			JSONObject chResponse = BulkResponse.invalidRecordsChunkResponse(this.__invalidRecords);
 			this.response.mergeChunkResponse(chResponse);
@@ -100,7 +85,7 @@ public class BulkSubscribers {
 		if (this.__pendingRecords.size() > 0) {
 			chunkify(0);
 			for (int cIdx = 0; cIdx < this.chunks.size(); cIdx++) {
-				BulkSubscribersChunk chunk = this.chunks.get(cIdx);
+				BulkWorkflowTriggerChunk chunk = this.chunks.get(cIdx);
 				if (this.config.debug) {
 					logger.log(Level.INFO, "DEBUG: triggering api call for chunk: " + cIdx);
 				}
@@ -116,8 +101,6 @@ public class BulkSubscribers {
 				this.response.mergeChunkResponse(BulkResponse.emptyChunkSuccessResponse());
 			}
 		}
-		// -----
 		return this.response;
 	}
-
 }

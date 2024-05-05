@@ -1,10 +1,9 @@
 package suprsend;
 
+import java.io.UnsupportedEncodingException;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 /**
  * This class is the entry point to suprsend-java-sdk. Suprsend Java SDK allows
@@ -28,6 +27,7 @@ public class Suprsend {
 	//
 	public TenantsApi tenants;
 	public BrandsApi brands;
+	public WorkflowsApi workflows;
 	//
 	public SubscriberListsApi subscriberLists;
 
@@ -42,6 +42,7 @@ public class Suprsend {
 		//
 		this.tenants = new TenantsApi(this);
 		this.brands = new BrandsApi(this);
+		this.workflows = new WorkflowsApi(this);
 		//
 		this.subscriberLists = new SubscriberListsApi(this);
 	}
@@ -168,14 +169,13 @@ public class Suprsend {
 	}
 
 	/**
-	 * @deprecated use workflow.addAttachment() instead
+	 * @deprecated use WorkflowTriggerRequest.addAttachment() instead
 	 * 
 	 * @param body     workflow body
 	 * @param filePath attachment file path
 	 * @return modified workflow body after adding attachment
 	 * @throws InputValueException SuprsendException
 	 */
-	@Deprecated
 	public JSONObject addAttachment(JSONObject body, String filePath) throws InputValueException {
 		// if data key not present, add it and set value={}.
 		if (body.opt("data") == null) {
@@ -203,7 +203,6 @@ public class Suprsend {
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	@Deprecated
 	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, UnsupportedEncodingException {
 		Workflow wfIns = new Workflow(data, null, null);
 		return this.workflowTrigger.trigger(wfIns);
@@ -223,7 +222,7 @@ public class Suprsend {
 
 	/**
 	 * @deprecated You can track and send events to SuprSend platform by using track
-	 *             method.
+	 *             method. Use trackEvent() instead.
 	 * 
 	 * @param distinctId uniquely Identifiable User id
 	 * @param eventName  event name to track
@@ -233,7 +232,6 @@ public class Suprsend {
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	@Deprecated
 	public JSONObject track(String distinctId, String eventName, JSONObject properties)
 			throws SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctId, eventName, properties, null, null);

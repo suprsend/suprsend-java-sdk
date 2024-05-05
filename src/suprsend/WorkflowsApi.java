@@ -6,16 +6,14 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-class EventCollector {
-	private static final Logger logger = Logger.getLogger(EventCollector.class.getName());
+public class WorkflowsApi {
+    private static final Logger logger = Logger.getLogger(WorkflowsApi.class.getName());
+    
+    private Suprsend config;
 
-	private Suprsend config;
-	private String url;
-
-	EventCollector(Suprsend config) {
-		this.config = config;
-		this.url = String.format("%sevent/", this.config.baseUrl);
-	}
+    WorkflowsApi(Suprsend config) {
+        this.config = config;
+    }
 
 	/**
 	 * Headers required to trigger workflow request
@@ -24,27 +22,25 @@ class EventCollector {
 	 */
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
+				.put("User-Agent", this.config.userAgent)
+                .put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
-	JSONObject collect(Event event) throws InputValueException, SuprsendException, UnsupportedEncodingException {
-		JSONObject finalJson = event.getFinalJson(config, false);
-		JSONObject eventDict = finalJson.getJSONObject("event");
-		// int eventSize = finalJson.getInt("apparent_size");
-		return send(eventDict);
-	}
-
-	private JSONObject send(JSONObject event) {
-		JSONObject headers = getHeaders();
+    public JSONObject trigger(WorkflowTriggerRequest workflow) throws SuprsendException, UnsupportedEncodingException {
+		JSONObject o = workflow.getFinalJson(config, false);
+		JSONObject workflowBody = o.getJSONObject("event");
+		// int apparentSize = o.getInt("apparent_size");
+        JSONObject headers = getHeaders();
 		JSONObject response = new JSONObject();
+        String url = String.format("%strigger/", this.config.baseUrl);
 		try {
 			// Signature and Authorization Header
-			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, event.toString(), headers,
-					this.config.apiSecret);
+			JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, workflowBody.toString(),
+					headers, this.config.apiSecret);
 			String contentText = sigResult.getString("contentTxt");
 			headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
+			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url,
 					headers, contentText);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
@@ -61,4 +57,8 @@ class EventCollector {
 		}
 		return response;
 	}
+
+    public BulkWorkflowTrigger bulkTriggerInstance() {
+        return new BulkWorkflowTrigger(config);
+    }
 }

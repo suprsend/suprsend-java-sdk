@@ -8,7 +8,7 @@ import suprsend.Suprsend;
 import suprsend.SuprsendException;
 
 public class TestTenant {
-	private static final Logger logger = Logger.getLogger(TestSubscriberList.class.getName());
+	private static final Logger logger = Logger.getLogger(TestTenant.class.getName());
 
 	public static void main(String[] args) throws Exception {
 		list();

@@ -1,12 +1,11 @@
 package suprsend;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.UUID;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SubscriberListBroadcast {
 

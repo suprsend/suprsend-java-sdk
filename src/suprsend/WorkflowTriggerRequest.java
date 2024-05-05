@@ -6,22 +6,20 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/**
- * @deprecated Use WorkflowTriggerRequest() instead
- */
-public class Workflow {
-	private static final Logger logger = Logger.getLogger(Workflow.class.getName());
+public class WorkflowTriggerRequest {
+	private static final Logger logger = Logger.getLogger(WorkflowTriggerRequest.class.getName());
 
 	private JSONObject body;
 	private String idempotencyKey;
 	private String tenantId;
+	private String cancellationKey;
 
 	/**
 	 * 
 	 * @param body json body of workflow
 	 */
-	public Workflow(JSONObject body) {
-		this(body, null, null);
+	public WorkflowTriggerRequest(JSONObject body) {
+		this(body, null, null, null);
 	}
 
 	/**
@@ -29,8 +27,8 @@ public class Workflow {
 	 * @param body           json body of workflow
 	 * @param idempotencyKey idempotency-key for workflow request
 	 */
-	public Workflow(JSONObject body, String idempotencyKey) {
-		this(body, idempotencyKey, null);
+	public WorkflowTriggerRequest(JSONObject body, String idempotencyKey) {
+		this(body, idempotencyKey, null, null);
 	}
 
 	/**
@@ -39,7 +37,18 @@ public class Workflow {
 	 * @param idempotencyKey idempotency-key for workflow request
 	 * @param tenantId       tenantId for workflow request
 	 */
-	public Workflow(JSONObject body, String idempotencyKey, String tenantId) {
+	public WorkflowTriggerRequest(JSONObject body, String idempotencyKey, String tenantId) {
+		this(body, idempotencyKey, tenantId, null);
+	}
+
+	/**
+	 * 
+	 * @param body            json body of workflow
+	 * @param idempotencyKey  idempotency-key for workflow request
+	 * @param tenantId        tenantId for workflow request
+	 * @param cancellationKey cancellationKey for workflow request
+	 */
+	public WorkflowTriggerRequest(JSONObject body, String idempotencyKey, String tenantId, String cancellationKey) {
 		if (null == body) {
 			body = new JSONObject();
 		}
@@ -49,6 +58,9 @@ public class Workflow {
 		}
 		if (tenantId != null && !tenantId.trim().isEmpty()) {
 			this.tenantId = tenantId.trim();
+		}
+		if (cancellationKey != null && !cancellationKey.trim().isEmpty()) {
+			this.cancellationKey = cancellationKey.trim();
 		}
 	}
 
@@ -91,8 +103,11 @@ public class Workflow {
 		if (null != tenantId) {
 			this.body.put("tenant_id", tenantId);
 		}
+		if (null != cancellationKey) {
+			this.body.put("cancellation_key", cancellationKey);
+		}
 		//
-		JSONObject validatedBody = Utils.validateWorkflowBodySchema(this.body);
+		JSONObject validatedBody = Utils.validateWorkflowTriggerBodySchema(this.body);
 		// Check body size
 		int apparentSize = Utils.getApparentWorkflowBodySize(body, isPartOfBulk);
 		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
@@ -111,7 +126,9 @@ public class Workflow {
 		if (null != tenantId) {
 			obj.put("tenant_id", tenantId);
 		}
+		if (null != cancellationKey) {
+			obj.put("cancellation_key", cancellationKey);
+		}
 		return obj;
 	}
-
 }

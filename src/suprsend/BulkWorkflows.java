@@ -1,12 +1,15 @@
 package suprsend;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
+/**
+ * @deprecated This class is deprecated, please use the WorkflowsApi.bulkTriggerInstance() class instead.
+ */
 public class BulkWorkflows {
 	private static final Logger logger = Logger.getLogger(BulkWorkflows.class.getName());
 

@@ -8,13 +8,11 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
-class BulkEventsChunk {
-	private static final Logger logger = Logger.getLogger(BulkEventsChunk.class.getName());
+public class BulkWorkflowTriggerChunk {
+	private static final Logger logger = Logger.getLogger(BulkWorkflowTriggerChunk.class.getName());
 
 	private static final int chunkApparentSizeInBytes = Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES;
-	// private static final String chunkApparentSizeInBytesReadable =
-	// Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES_READABLE;
-	private static final int maxRecordsInChunk = Constants.MAX_EVENTS_IN_BULK_API;
+	private static final int maxRecordsInChunk = Constants.MAX_WORKFLOWS_IN_BULK_API;
 
 	private final Suprsend config;
 	private List<JSONObject> chunk;
@@ -24,10 +22,10 @@ class BulkEventsChunk {
 
 	JSONObject response;
 
-	BulkEventsChunk(Suprsend config) {
+	BulkWorkflowTriggerChunk(Suprsend config) {
 		this.config = config;
 		this.chunk = new ArrayList<JSONObject>();
-		this.url = String.format("%sevent/", this.config.baseUrl);
+		this.url = String.format("%strigger/", this.config.baseUrl);
 		//
 		this.runningSize = 0;
 		this.runningLength = 0;
@@ -36,44 +34,45 @@ class BulkEventsChunk {
 
 	private JSONObject getHeaders() {
 		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
+				.put("User-Agent", this.config.userAgent)
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
-	private void addEventToChunk(JSONObject event, int eventSize) {
-		this.runningSize += eventSize;
-		this.chunk.add(event);
+	private void addBodyToChunk(JSONObject body, int bodySize) {
+		this.runningSize += bodySize;
+		this.chunk.add(body);
 		this.runningLength += 1;
 	}
 
 	private boolean checkLimitReached() {
-		return (this.runningLength >= BulkEventsChunk.maxRecordsInChunk
-				|| this.runningSize >= BulkEventsChunk.chunkApparentSizeInBytes);
+		return (this.runningLength >= BulkWorkflowTriggerChunk.maxRecordsInChunk
+				|| this.runningSize >= BulkWorkflowTriggerChunk.chunkApparentSizeInBytes);
 	}
 
-	/*
-	 * returns whether passed event was able to get added to this chunk or not, if
-	 * true, event gets added to chunk
+	/**
+	 * returns whether passed body was able to get added to this chunk or not, if
+	 * true, body gets added to chunk
 	 */
-	boolean tryToAddIntoChunk(JSONObject event, int eventSize) throws InputValueException {
-		if (event == null) {
+	boolean tryToAddIntoChunk(JSONObject body, int bodySize) throws InputValueException {
+		if (body == null) {
 			return true;
 		}
 		if (checkLimitReached()) {
 			return false;
 		}
-		if (eventSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			throw new InputValueException(String.format("Event properties too big - %d Bytes, must not cross %s",
-					eventSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
+		if (bodySize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
+			throw new InputValueException(String.format("workflow body too big - %d Bytes, must not cross %s", bodySize,
+					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
 		}
-		// if apparent_size of event crosses limit
-		if (this.runningSize + eventSize > BulkEventsChunk.chunkApparentSizeInBytes) {
+		// if apparent_size of body crosses limit
+		if (this.runningSize + bodySize > BulkWorkflowTriggerChunk.chunkApparentSizeInBytes) {
 			return false;
 		}
 		if (!Constants.ALLOW_ATTACHMENTS_IN_BULK_API) {
-			event.getJSONObject("properties").remove("$attachments");
+			body.getJSONObject("data").remove("$attachments");
 		}
-		// Add Event to chunk
-		addEventToChunk(event, eventSize);
+		// Add workflow to chunk
+		addBodyToChunk(body, bodySize);
 		return true;
 	}
 

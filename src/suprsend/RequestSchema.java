@@ -1,12 +1,14 @@
 package suprsend;
 
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
-import java.io.InputStream;
 
 /**
  * This class takes care of loading the JSON schema which will be used to
@@ -15,59 +17,22 @@ import java.io.InputStream;
  * @author Suprsend
  */
 class RequestSchema {
-	static JSONObject JSON_SCHEMA;
-	static Schema workflowSchemaValidator;
-	static Schema eventSchemaValidator;
-	static Schema listBroadcastSchemaValidator;
+	static Map<String, Schema> JSON_SCHEMA = new HashMap<>();
 
 	static Schema getSchemaValidator(String schemaName) throws SuprsendException {
-		if (schemaName == "workflow") {
-			if (null == workflowSchemaValidator) {
-				JSONObject jsonSchema = RequestSchema.getSchema("workflow");
-				workflowSchemaValidator = SchemaLoader.load(jsonSchema);
+		switch (schemaName) {
+		case "workflow":
+		case "workflow_trigger":
+		case "event":
+		case "list_broadcast":
+			if (JSON_SCHEMA.get(schemaName) == null) {
+				Schema jsonSchema = RequestSchema.loadJSONSchema(schemaName);
+				JSON_SCHEMA.put(schemaName, jsonSchema);
 			}
-			return workflowSchemaValidator;
-
-		} else if (schemaName == "event") {
-			if (null == eventSchemaValidator) {
-				JSONObject jsonSchema = RequestSchema.getSchema("event");
-				eventSchemaValidator = SchemaLoader.load(jsonSchema);
-			}
-			return eventSchemaValidator;
-
-		} else if (schemaName == "list_broadcast") {
-			if (null == listBroadcastSchemaValidator) {
-				JSONObject jsonSchema = RequestSchema.getSchema("list_broadcast");
-				listBroadcastSchemaValidator = SchemaLoader.load(jsonSchema);
-			}
-			return listBroadcastSchemaValidator;
-
-		} else {
+			return JSON_SCHEMA.get(schemaName);
+		default:
 			return null;
 		}
-	}
-
-	/**
-	 * get JSON schema from existing JSON object or from respective file.
-	 * 
-	 * @param schemaName Name of schema which needs to be loaded
-	 * @return JSON object of the loaded schema
-	 * @throws SuprsendException Throw custom exception
-	 */
-	private static JSONObject getSchema(String schemaName) throws SuprsendException {
-		if (JSON_SCHEMA == null) {
-			JSON_SCHEMA = new JSONObject();
-		}
-		JSONObject schemaBody = JSON_SCHEMA.optJSONObject(schemaName);
-		if (schemaBody == null) {
-			schemaBody = loadJSONSchema(schemaName);
-			if (schemaBody == null) {
-				throw new SuprsendException("Error occured while loading schema with name " + schemaName);
-			} else {
-				JSON_SCHEMA.put(schemaName, schemaBody);
-			}
-		}
-		return schemaBody;
 	}
 
 	/**
@@ -77,15 +42,16 @@ class RequestSchema {
 	 * @return Return JSON object of schema
 	 * @throws SuprsendException
 	 */
-	private static JSONObject loadJSONSchema(String schemaName) throws SuprsendException {
-		JSONObject jsonObject;
+	private static Schema loadJSONSchema(String schemaName) throws SuprsendException {
+		Schema jsonSchema;
 		String relativePath = String.format("/%s.json", schemaName);
 		InputStream schemaStream = RequestSchema.class.getResourceAsStream(relativePath);
 		try {
-			jsonObject = new JSONObject(new JSONTokener(schemaStream));
+			JSONObject jsonObject = new JSONObject(new JSONTokener(schemaStream));
+			jsonSchema = SchemaLoader.load(jsonObject);
 		} catch (JSONException e) {
 			throw new SuprsendException("Error occured while loading schema with name " + schemaName, e);
 		}
-		return jsonObject;
+		return jsonSchema;
 	}
 }

@@ -176,7 +176,6 @@ public class Suprsend {
 	 * @return modified workflow body after adding attachment
 	 * @throws InputValueException SuprsendException
 	 */
-	@Deprecated
 	public JSONObject addAttachment(JSONObject body, String filePath) throws InputValueException {
 		// if data key not present, add it and set value={}.
 		if (body.opt("data") == null) {
@@ -204,7 +203,6 @@ public class Suprsend {
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	@Deprecated
 	public JSONObject triggerWorkflow(JSONObject data) throws SuprsendException, UnsupportedEncodingException {
 		Workflow wfIns = new Workflow(data, null, null);
 		return this.workflowTrigger.trigger(wfIns);
@@ -234,7 +232,6 @@ public class Suprsend {
 	 * @throws SuprsendException            SuprsendException
 	 * @throws UnsupportedEncodingException if utf-8 encoding not supported
 	 */
-	@Deprecated
 	public JSONObject track(String distinctId, String eventName, JSONObject properties)
 			throws SuprsendException, UnsupportedEncodingException {
 		Event event = new Event(distinctId, eventName, properties, null, null);

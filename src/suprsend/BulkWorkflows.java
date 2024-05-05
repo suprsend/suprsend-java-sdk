@@ -7,7 +7,9 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
-@Deprecated
+/**
+ * @deprecated This class is deprecated, please use the WorkflowsApi.bulkTriggerInstance() class instead.
+ */
 public class BulkWorkflows {
 	private static final Logger logger = Logger.getLogger(BulkWorkflows.class.getName());
 

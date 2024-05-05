@@ -7,9 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * @deprecated. Use WorkflowTriggerRequest() instead
+ * @deprecated Use WorkflowTriggerRequest() instead
  */
-@Deprecated
 public class Workflow {
 	private static final Logger logger = Logger.getLogger(Workflow.class.getName());
 

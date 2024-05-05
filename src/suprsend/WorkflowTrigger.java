@@ -11,7 +11,6 @@ import org.json.JSONObject;
  * 
  * @author Suprsend
  */
-@Deprecated
 class WorkflowTrigger {
 	private static final Logger logger = Logger.getLogger(WorkflowTrigger.class.getName());
 

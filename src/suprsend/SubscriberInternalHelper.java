@@ -23,11 +23,11 @@ class SubscriberInternalHelper {
 			IDENT_KEY_ANDROIDPUSH, IDENT_KEY_IOSPUSH, IDENT_KEY_WHATSAPP, IDENT_KEY_WEBPUSH, IDENT_KEY_SLACK,
 			IDENT_KEY_MS_TEAMS);
 
-	public static final String KEY_PUSHVENDOR = "$pushvendor";
+	public static final String KEY_ID_PROVIDER = "$id_provider";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
 	public static final String KEY_TIMEZONE = "$timezone";
 
-	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_PUSHVENDOR,
+	public static final List<String> OTHER_RESERVED_KEYS = Arrays.asList("$messenger", "$inbox", KEY_ID_PROVIDER,
 			"$device_id", "$insert_id", "$time", "$set", "$set_once", "$add", "$append", "$remove", "$unset",
 			"$identify", "$anon_id", "$identified_id", KEY_PREFERRED_LANGUAGE, KEY_TIMEZONE, "$notification_delivered",
 			"$notification_dismiss", "$notification_clicked");
@@ -302,10 +302,10 @@ class SubscriberInternalHelper {
 			addWhatsapp(value, newCaller);
 
 		} else if (IDENT_KEY_ANDROIDPUSH.equals(key)) {
-			addAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			addAndroidpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			addIospush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			addIospush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		}
 	}
@@ -313,7 +313,7 @@ class SubscriberInternalHelper {
 	private void addIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
 		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_WEBPUSH.equals(key)) {
-			addWebpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			addWebpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_SLACK.equals(key)) {
 			addSlack(value, newCaller);
@@ -336,10 +336,10 @@ class SubscriberInternalHelper {
 			removeWhatsapp(value, newCaller);
 
 		} else if (IDENT_KEY_ANDROIDPUSH.equals(key)) {
-			removeAndroidpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			removeAndroidpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			removeIospush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			removeIospush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		}
 	}
@@ -347,7 +347,7 @@ class SubscriberInternalHelper {
 	private void removeIdentity(String key, JSONObject value, JSONObject kwargs, String caller) {
 		String newCaller = String.format("%s:%s", caller, key);
 		if (IDENT_KEY_WEBPUSH.equals(key)) {
-			removeWebpush(value, kwargs.optString(KEY_PUSHVENDOR), newCaller);
+			removeWebpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_SLACK.equals(key)) {
 			removeSlack(value, newCaller);
@@ -519,7 +519,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictAppend.put(IDENT_KEY_ANDROIDPUSH, res.getString("value"));
-		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictAppend.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	void removeAndroidpush(String value, String provider, String caller) {
@@ -529,7 +529,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictRemove.put(IDENT_KEY_ANDROIDPUSH, res.getString("value"));
-		this.dictRemove.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	// ------------------------ Iospush [providers: apns]
@@ -564,7 +564,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictAppend.put(IDENT_KEY_IOSPUSH, res.getString("value"));
-		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictAppend.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	void removeIospush(String value, String provider, String caller) {
@@ -574,7 +574,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictRemove.put(IDENT_KEY_IOSPUSH, res.getString("value"));
-		this.dictRemove.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	// ------------------------ Webpush [providers: vapid]
@@ -607,7 +607,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictAppend.put(IDENT_KEY_WEBPUSH, res.getJSONObject("value"));
-		this.dictAppend.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictAppend.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	void removeWebpush(JSONObject value, String provider, String caller) {
@@ -617,7 +617,7 @@ class SubscriberInternalHelper {
 			return;
 		}
 		this.dictRemove.put(IDENT_KEY_WEBPUSH, res.getJSONObject("value"));
-		this.dictRemove.put(KEY_PUSHVENDOR, res.getString("provider"));
+		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
 	// ------------------------ Slack

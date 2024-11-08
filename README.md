@@ -14,7 +14,7 @@ You can include the jar using following two ways:
         <dependency>
           <groupId>com.suprsend</groupId>
           <artifactId>suprsend-java-sdk</artifactId>
-          <version>0.7.0</version>
+          <version>0.7.1</version>
 	    </dependency>
       </dependencies>
     ```

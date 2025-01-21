@@ -14,7 +14,7 @@ You can include the jar using following two ways:
         <dependency>
           <groupId>com.suprsend</groupId>
           <artifactId>suprsend-java-sdk</artifactId>
-          <version>0.7.1</version>
+          <version>0.7.2</version>
 	    </dependency>
       </dependencies>
     ```
@@ -22,7 +22,7 @@ You can include the jar using following two ways:
 2. As a jar file for non maven projects:
 
    Please download jar from releases section.
-   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.7.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
+   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.7.2-jar-with-dependencies.jar` and add it as an External Jar in your build path.
 
 ### Usage
 Initialize the Suprsend library using the following:

@@ -1,15 +1,14 @@
 package test;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 
 import org.json.JSONObject;
 
-import suprsend.Objects;
+import suprsend.ObjectEdit;
 import suprsend.Suprsend;
 
-public class TestObjects {
+public class TestObjectsApi {
 
 	public static void main(String[] args) throws Exception {
         // crud operations
@@ -18,12 +17,13 @@ public class TestObjects {
         testGet();
         testEdit();
         testDelete();
-        testCreateSubscriptions();
-        testDeleteSubscriptions();
-        testGetSubscriptions();
         testBulkDelete();
+		testGetSubscriptions();
+		testCreateSubscriptions();
+        testDeleteSubscriptions();
+		testGetObjectsSubscribedTo();
 		// Call the relevant function to test after adding valid values.
-		testSave();
+		testEditHelper();
 		testAddWebpush();
 		testRemoveWebpush();
 		testAddAndroidpush();
@@ -37,13 +37,13 @@ public class TestObjects {
 		testRemove();
 		testAddHelperFunctions();
 		testRemoveHelperFunctions();
+		testUnsetKey();
+		testUnsetKeyMulti();
 		testObjectPropertySet();
 		testObjectPropertySetOnce();
 		testObjectPropertyIncrement();
 		testObjectPropertyAppend();
 		testObjectPropertyRemove();
-		testUnsetKey();
-		testUnsetKeyMulti();
 	}
 
     public static void testUpsert() throws Exception {
@@ -65,7 +65,7 @@ public class TestObjects {
 		String objectType = "__objecttype__";
         HashMap<String, Object> opts = new HashMap<String, Object>() {
 			{
-				put("limit", 2);
+				put("limit", 10);
 			}
 		};
         JSONObject object = suprClient.objects.list(objectType, opts);	
@@ -91,14 +91,11 @@ public class TestObjects {
 		JSONObject payload = new JSONObject()
 		.put("operations", new JSONObject[] {
 			new JSONObject()
-				.put("$set", new JSONObject()
-					.put("name", "John Doe")
-				)
+				.put("$set", new JSONObject().put("name", "John Doe"))
 		});
 		JSONObject object = suprClient.objects.edit(objectType, objectId, payload);	
 		System.out.println(object);
 	}
-
 
     public static void testDelete() throws Exception {
 		// SDK instance
@@ -110,28 +107,15 @@ public class TestObjects {
 		System.out.println(response);
 	}
 
-    public static void testCreateSubscriptions() throws Exception {
+    public static void testBulkDelete() throws Exception {
 		// SDK instance
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String objectType = "__objecttype__";
-        String objectId = "__objectid__";
         JSONObject payload = new JSONObject()
-                .put("recipients", Arrays.asList("praveen@suprsend.com", "anjali@suprsend.com"));
-		JSONObject object = suprClient.objects.createSubscriptions(objectType, objectId, payload);	
-		System.out.println(object);
-	}
-
-    public static void testDeleteSubscriptions() throws Exception {
-		// SDK instance
-		Suprsend suprClient = TestHelper.getClientInstance();
-		//
-		String objectType = "__objecttype__";
-        String objectId = "__objectid__";
-        JSONObject payload = new JSONObject()
-                .put("recipients", Arrays.asList("praveen@suprsend.com"));
-		JSONObject object = suprClient.objects.createSubscriptions(objectType, objectId, payload);	
-		System.out.println(object);
+                .put("object_ids", Arrays.asList("__objectid__"));
+		JSONObject response = suprClient.objects.bulkDelete(objectType, payload);	
+		System.out.println(response);
 	}
 
     public static void testGetSubscriptions() throws Exception {
@@ -142,38 +126,73 @@ public class TestObjects {
         String objectId = "__objectid__";
         HashMap<String, Object> opts = new HashMap<String, Object>() {
 			{
-				put("limit", 2);
+				put("limit", 10);
 			}
 		};
-        JSONObject object = suprClient.objects.getSubscriptions(objectType, objectId, opts);	
-		System.out.println(object);
+        JSONObject response = suprClient.objects.getSubscriptions(objectType, objectId, opts);	
+		System.out.println(response);
 	}
 
-    public static void testBulkDelete() throws Exception {
+    public static void testCreateSubscriptions() throws Exception {
 		// SDK instance
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
         JSONObject payload = new JSONObject()
-                .put("object_ids", Arrays.asList("__objectid__"));
-		JSONObject object = suprClient.objects.bulkDelete(objectType, objectId, payload);	
-		System.out.println(object);
+                .put("recipients", Arrays.asList(
+					"__recipient_id_1__",
+					new JSONObject().put("distinct_id", "__recipient_id_2__"),
+					new JSONObject().put("object_type", "__objecttype__").put("id", "__objectid_2_")
+				));
+		JSONObject response = suprClient.objects.createSubscriptions(objectType, objectId, payload);	
+		System.out.println(response);
 	}
 
-	public static void testSave() throws Exception {
+    public static void testDeleteSubscriptions() throws Exception {
 		// SDK instance
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+        JSONObject payload = new JSONObject()
+				.put("recipients", Arrays.asList(
+					"__recipient_id_1__",
+					new JSONObject().put("distinct_id", "__recipient_id_2__"),
+					new JSONObject().put("object_type", "__objecttype__").put("id", "__objectid_2_")
+				));
+		JSONObject response = suprClient.objects.deleteSubscriptions(objectType, objectId, payload);	
+		System.out.println(response);
+	}
+
+    public static void testGetObjectsSubscribedTo() throws Exception {
+		// SDK instance
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String objectType = "__objecttype__";
+        String objectId = "__objectid__";
+        HashMap<String, Object> opts = new HashMap<String, Object>() {
+			{
+				put("limit", 10);
+			}
+		};
+        JSONObject response = suprClient.objects.getObjectsSubscribedTo(objectType, objectId, opts);	
+		System.out.println(response);
+	}
+
+	public static void testEditHelper() throws Exception {
+		// SDK instance
+		Suprsend suprClient = TestHelper.getClientInstance();
+		//
+		String objectType = "__objecttype__";
+        String objectId = "__objectid__";
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		// Add properties
 		object.addEmail("example@example.com");
 		object.addSms("+919999999999");
 		object.addWhatsapp("+919999999999");
-		// Save
-		JSONObject res = object.save();
+		// Call edit api
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -181,8 +200,8 @@ public class TestObjects {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String objectType = "__objecttype__";
-        String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+        String objectId = "__objectid1__";
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		// Webpush token json (VAPID)
 		JSONObject webpush = new JSONObject()
 				.put("endpoint", "__end_point__")
@@ -193,7 +212,8 @@ public class TestObjects {
 						);
 		//
 		object.addWebpush(webpush, "vapid");
-		JSONObject res = object.save();
+		// 
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -202,7 +222,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		// Webpush token json (VAPID)
 		JSONObject webpush = new JSONObject()
 				.put("endpoint", "__end_point__")
@@ -213,7 +233,7 @@ public class TestObjects {
 						);
 		//
 		object.removeWebpush(webpush, "vapid");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -222,10 +242,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.addAndroidpush("__androidpush_token__", "fcm");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -234,10 +254,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.removeAndroidpush("__androidpush_token__");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -246,17 +266,17 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		JSONObject slackIdent = new JSONObject()
 				.put("access_token", "xoxb-asdadasda")
-				.put("objects_id", "u88998989")
-				.put("email", "objects@example.com")
+				// .put("user_id", "u88998989")
+				// .put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
 				.put("incoming_webhook", new JSONObject().put("url", "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"));
 
 		object.addSlack(slackIdent);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -265,17 +285,17 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		JSONObject slackIdent = new JSONObject()
 				.put("access_token", "xoxb-asdadasda")
-				// .put("objects_id", "u88998989")
-				// .put("email", "objects@example.com")
+				// .put("user_id", "u88998989")
+				// .put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
 				// .put("incoming_webhook", new JSONObject().put("url", "https://google.com"))
 				;
 		object.removeSlack(slackIdent);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -284,19 +304,19 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		JSONObject teamsIdent = new JSONObject()
 				.put("tenant_id", "XXXXXXX")
 				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
 				.put("conversation_id", "XXXXXXXXXXXX")
-				// .put("objects_id", "XXXXXXXXXXXX")
+				// .put("user_id", "XXXXXXXXXXXX")
 				// .put("incoming_webhook", new JSONObject().put("url",
 				// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
 		;
 
 		object.addMSTeams(teamsIdent);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -305,18 +325,18 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		JSONObject teamsIdent = new JSONObject()
 				.put("tenant_id", "XXXXXXX")
 				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
 				.put("conversation_id", "XXXXXXXXXXXX")
-			// .put("objects_id", "XXXXXXXXXXXX")
+			// .put("user_id", "XXXXXXXXXXXX")
 			// .put("incoming_webhook", new JSONObject().put("url",
 			// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
 		;
 		object.removeMSTeams(teamsIdent);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -325,10 +345,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.setPreferredLanguage("es");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -337,10 +357,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.setTimezone("America/Los_Angeles");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -349,10 +369,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.removeSms("+919999999999");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -361,12 +381,12 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.addEmail("example@example.com");
 		object.addSms("+919999999999");
 		object.addWhatsapp("+919999999999");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -375,12 +395,12 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.removeEmail("example@example.com");
 		object.removeSms("+919999999999");
 		object.removeWhatsapp("+919999999999");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -389,11 +409,11 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.unset("$email");
 		object.unset("$sms");
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -402,10 +422,10 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.unset(Arrays.asList(new String[] { "$sms", "$email" }));
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -414,7 +434,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.set("prop1", "val1");
 		JSONObject objectsProperties = new JSONObject()
@@ -426,7 +446,7 @@ public class TestObjects {
 		object.set("prop4", 100);
 		object.set("prop5", new Integer[] { 1, 2 });
 		object.set("prop6", 10.02);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -435,7 +455,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.setOnce("prop1", "val1");
 		JSONObject objectsProperties = new JSONObject()
@@ -444,7 +464,7 @@ public class TestObjects {
 		object.setOnce(objectsProperties);
 		object.setOnce("prop4", 100);
 		object.setOnce("prop5", 2.00);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -453,7 +473,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.increment("prop1", "1");
 		JSONObject objectsProperties = new JSONObject()
@@ -462,7 +482,7 @@ public class TestObjects {
 		object.increment(objectsProperties);
 		object.increment("prop4", 1);
 		object.increment("prop5", 2.0);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -471,7 +491,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.append("prop1", "1");
 		JSONObject objectsProperties = new JSONObject()
@@ -479,7 +499,7 @@ public class TestObjects {
 				.put("prop_append2", "23");
 		object.append(objectsProperties);
 		object.append("prop4", 1.0);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 
@@ -488,7 +508,7 @@ public class TestObjects {
 		//
 		String objectType = "__objecttype__";
         String objectId = "__objectid__";
-		Objects object = suprClient.objects.getInstance(objectType, objectId);
+		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
 		object.remove("prop1", "1");
 		JSONObject objectsProperties = new JSONObject()
@@ -496,7 +516,7 @@ public class TestObjects {
 				.put("prop_append2", "23");
 		object.remove(objectsProperties);
 		object.remove("prop4", 1.0);
-		JSONObject res = object.save();
+		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}
 }

@@ -88,7 +88,7 @@ public class Subscriber {
 		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
 	}
 
-	List<String> validateBody(boolean isPartOfBulk) throws InputValueException {
+	List<String> validateBody(boolean isPartOfBulk) {
 		this.__warningsList = new ArrayList<String>();
 		if (!this.info.isEmpty()) {
 			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.info));
@@ -105,7 +105,8 @@ public class Subscriber {
 				System.out.println(errMsg);
 			} else {
 				// raise error in case of single api
-				throw new InputValueException(errMsg);
+				// throw new InputValueException(errMsg); // Removed exception throwing, let backend handle it
+				System.out.println(errMsg);
 			}
 		}
 		//

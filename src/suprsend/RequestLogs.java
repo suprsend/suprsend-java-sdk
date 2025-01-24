@@ -4,22 +4,51 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClients;
+import java.util.concurrent.TimeUnit;
 import org.json.JSONObject;
+
+
+class CustomHttpClient {
+    private static CloseableHttpClient client;
+
+    static synchronized CloseableHttpClient getInstance() {
+		if (client == null) {
+			RequestConfig config = RequestConfig.custom()
+				.setConnectTimeout(30000)
+				.setSocketTimeout(60000)
+				.build();
+
+			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        	cm.setMaxTotal(100);
+        	CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .evictExpiredConnections()
+                .evictIdleConnections(5L, TimeUnit.MINUTES)
+				.setDefaultRequestConfig(config)
+                .build();
+			client = httpclient;
+		}
+		return client;
+    }
+}
 
 /**
  * Initialize HTTP request logs when debug is sent as true
@@ -62,7 +91,7 @@ class RequestLogs {
 		CloseableHttpResponse response = null;
 
 		try {
-			HttpClient httpClient = HttpClients.createDefault();
+			CloseableHttpClient httpClient = CustomHttpClient.getInstance();
 			HttpRequestBase httpRequest;
 
 			switch (httpMethod) {
@@ -78,7 +107,10 @@ class RequestLogs {
 				((HttpPatch) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
 				break;
 			case DELETE:
-				httpRequest = new HttpDelete(url);
+				httpRequest = new HttpDeleteWithBody(url);
+				if (payload != null && !payload.isEmpty()) {
+					((HttpDeleteWithBody) httpRequest).setEntity(new StringEntity(payload, StandardCharsets.UTF_8));
+				}
 				break;
 			default:
 				throw new IllegalArgumentException("Unsupported HTTP method: " + httpMethod);
@@ -88,7 +120,7 @@ class RequestLogs {
 			setMandatoryHeaders(httpRequest, headers);
 
 			// Execute the request
-			response = (CloseableHttpResponse) httpClient.execute(httpRequest);
+			response = httpClient.execute(httpRequest);
 
 			// Read the response
 			String contentType = "";
@@ -122,5 +154,29 @@ class RequestLogs {
 				response.close();
 			}
 		}
+	}
+}
+
+class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
+
+    public static final String METHOD_NAME = "DELETE";
+	
+	public HttpDeleteWithBody() { 
+		super(); 
+	}
+	
+	public HttpDeleteWithBody(final URI uri) {
+        super();
+        setURI(uri);
+    }
+	
+	public HttpDeleteWithBody(final String uri) {
+        super();
+        setURI(URI.create(uri));
+    }
+
+	@Override
+    public String getMethod() {
+		return METHOD_NAME; 
 	}
 }

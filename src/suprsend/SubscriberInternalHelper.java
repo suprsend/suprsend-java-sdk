@@ -3,8 +3,6 @@ package suprsend;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.json.JSONObject;
 
@@ -44,11 +42,6 @@ class SubscriberInternalHelper {
 		allReservedKeys.addAll(SUPER_PROPERTY_KEYS);
 		return allReservedKeys;
 	}
-
-	private static final String EMAIL_REGEX = "^\\S+@\\S+\\.\\S+$";
-	private static final String MOBILE_REGEX = "^\\+[0-9\\s]+";
-	private static final Pattern emailPatternCompiled = Pattern.compile(EMAIL_REGEX);
-	private static final Pattern mobilePatternCompiled = Pattern.compile(MOBILE_REGEX);
 
 	// --------------
 	private JSONObject dictSet, dictSetOnce, dictIncrement, dictAppend, dictRemove;
@@ -374,120 +367,65 @@ class SubscriberInternalHelper {
 
 	// ------------------------------- Email
 
-	private JSONObject validateEmail(String email, String caller) throws PatternSyntaxException {
-		JSONObject res = checkIdentValString(email, caller);
-		boolean isError = false;
-		if (!res.getBoolean("is_valid")) {
-			isError = true;
-		} else {
-			email = res.getString("value");
-			//
-			String msg = "value in email format required. e.g. user@example.com";
-			int minLength = 6;
-			int maxLength = 127;
-			//
-			boolean isValidEmail = emailPatternCompiled.matcher(email).matches();
-			if (!isValidEmail) {
-				this.errors.add(String.format("[%s] invalid value %s. %s", caller, email, msg));
-				isError = true;
-			} else {
-				if (email.length() < minLength || email.length() > maxLength) {
-					this.errors.add(
-							String.format("[%s] invalid value %s. must be 6 <= len(email) <= 127", caller, email, msg));
-					isError = true;
-				}
-			}
-		}
-		return new JSONObject().put("email", email).put("is_valid", !isError);
-	}
-
 	void addEmail(String value, String caller) {
-		JSONObject res = validateEmail(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictAppend.put(IDENT_KEY_EMAIL, res.getString("email"));
+		this.dictAppend.put(IDENT_KEY_EMAIL, res.getString("value"));
 	}
 
 	void removeEmail(String value, String caller) {
-		JSONObject res = validateEmail(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictRemove.put(IDENT_KEY_EMAIL, res.getString("email"));
-	}
-
-	// ------------------------------- Mobile no
-
-	private JSONObject validateMobileNo(String mobileNo, String caller) {
-		JSONObject res = checkIdentValString(mobileNo, caller);
-		boolean isError = false;
-		if (!res.getBoolean("is_valid")) {
-			isError = true;
-		} else {
-			mobileNo = res.getString("value");
-			//
-			String msg = "number must start with + and must contain country code. e.g. +41446681800";
-			int minLength = 8;
-			//
-			boolean isValidMobileNo = mobilePatternCompiled.matcher(mobileNo).matches();
-			if (!isValidMobileNo) {
-				this.errors.add(String.format("[%s] invalid value %s. %s", caller, mobileNo, msg));
-				isError = true;
-			} else {
-				if (mobileNo.length() < minLength) {
-					this.errors.add(
-							String.format("[%s] invalid value %s. len(mobile_no) must be >= 8", caller, mobileNo, msg));
-					isError = true;
-				}
-			}
-		}
-		return new JSONObject().put("mobile", mobileNo).put("is_valid", !isError);
+		this.dictRemove.put(IDENT_KEY_EMAIL, res.getString("value"));
 	}
 
 	// ------------------------------- SMS
 
 	void addSms(String value, String caller) {
-		JSONObject res = validateMobileNo(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictAppend.put(IDENT_KEY_SMS, res.getString("mobile"));
+		this.dictAppend.put(IDENT_KEY_SMS, res.getString("value"));
 	}
 
 	void removeSms(String value, String caller) {
-		JSONObject res = validateMobileNo(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictRemove.put(IDENT_KEY_SMS, res.getString("mobile"));
+		this.dictRemove.put(IDENT_KEY_SMS, res.getString("value"));
 	}
 
 	// ------------------------------- Whatsapp
 
 	void addWhatsapp(String value, String caller) {
-		JSONObject res = validateMobileNo(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictAppend.put(IDENT_KEY_WHATSAPP, res.getString("mobile"));
+		this.dictAppend.put(IDENT_KEY_WHATSAPP, res.getString("value"));
 	}
 
 	void removeWhatsapp(String value, String caller) {
-		JSONObject res = validateMobileNo(value, caller);
+		JSONObject res = checkIdentValString(value, caller);
 		boolean isValid = res.getBoolean("is_valid");
 		if (!isValid) {
 			return;
 		}
-		this.dictRemove.put(IDENT_KEY_WHATSAPP, res.getString("mobile"));
+		this.dictRemove.put(IDENT_KEY_WHATSAPP, res.getString("value"));
 	}
 
-	// ------------------------------- Androidpush [providers: fcm / xiaomi / oppo]
+	// ------------------------------- Androidpush
 
 	private JSONObject checkAndroidpushValue(String value, String provider, String caller) {
 		JSONObject res = checkIdentValString(value, caller);
@@ -496,18 +434,10 @@ class SubscriberInternalHelper {
 		if (!res.getBoolean("is_valid")) {
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
-				provider = "fcm";
+			if (provider == null) {
+				provider = "";
 			}
-			provider = provider.trim();
-			//
-			List<String> providers = Arrays.asList("fcm", "xiaomi", "oppo");
-			if (providers.contains(provider) == false) {
-				this.errors.add(String.format("[%s] unsupported androidpush provider %s", caller, provider));
-				isError = true;
-			} else {
-				value = res.getString("value");
-			}
+			provider = provider.trim().toLowerCase();
 		}
 		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
@@ -532,7 +462,7 @@ class SubscriberInternalHelper {
 		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
-	// ------------------------ Iospush [providers: apns]
+	// ------------------------ Iospush
 
 	private JSONObject checkIospushValue(String value, String provider, String caller) {
 		JSONObject res = checkIdentValString(value, caller);
@@ -541,18 +471,10 @@ class SubscriberInternalHelper {
 		if (!res.getBoolean("is_valid")) {
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
-				provider = "apns";
+			if (provider == null) {
+				provider = "";
 			}
-			provider = provider.trim();
-			//
-			List<String> providers = Arrays.asList("apns");
-			if (providers.contains(provider) == false) {
-				this.errors.add(String.format("[%s] unsupported iospush provider %s", caller, provider));
-				isError = true;
-			} else {
-				value = res.getString("value");
-			}
+			provider = provider.trim().toLowerCase();
 		}
 		return new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 	}
@@ -577,7 +499,7 @@ class SubscriberInternalHelper {
 		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
-	// ------------------------ Webpush [providers: vapid]
+	// ------------------------ Webpush
 
 	private JSONObject checkWebpushDict(JSONObject value, String provider, String caller) {
 		boolean isError = false;
@@ -585,16 +507,10 @@ class SubscriberInternalHelper {
 			this.errors.add(String.format("[%s] value must be a valid json representing webpush-token", caller));
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
-				provider = "vapid";
+			if (provider == null) {
+				provider = "";
 			}
-			provider = provider.trim();
-			//
-			List<String> providers = Arrays.asList("vapid");
-			if (providers.contains(provider) == false) {
-				this.errors.add(String.format("[%s] unsupported webpush provider %s", caller, provider));
-				isError = true;
-			}
+			provider = provider.trim().toLowerCase();
 		}
 		JSONObject response = new JSONObject().put("value", value).put("provider", provider).put("is_valid", !isError);
 		return response;

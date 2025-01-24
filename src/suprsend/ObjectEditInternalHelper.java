@@ -3,12 +3,10 @@ package suprsend;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.json.JSONObject;
 
-class ObjectInternalHelper {
+class ObjectEditInternalHelper {
 	// -------------- Constants
 	public static final String IDENT_KEY_EMAIL = "$email";
 	public static final String IDENT_KEY_SMS = "$sms";
@@ -49,7 +47,7 @@ class ObjectInternalHelper {
 	private JSONObject dictSet, dictSetOnce, dictIncrement, dictAppend, dictRemove;
 	private List<String> listUnset, errors, info;
 
-	ObjectInternalHelper() {
+	ObjectEditInternalHelper() {
 		this.dictSet = new JSONObject();
 		this.dictSetOnce = new JSONObject();
 		this.dictIncrement = new JSONObject();
@@ -73,34 +71,34 @@ class ObjectInternalHelper {
 		this.info = new ArrayList<String>();
 	}
 
-	JSONObject getIdentityEvent() {
-		JSONObject payload = formPayload();
-		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("payload", payload);
+	JSONObject getOperationResult() {
+		JSONObject operation = formOperation();
+		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("operation", operation);
 		reset();
 		return retValue;
 	}
 
-	private JSONObject formPayload() {
-		JSONObject payload = new JSONObject();
+	private JSONObject formOperation() {
+		JSONObject ops = new JSONObject();
 		if (this.dictSet.length() > 0) {
-			payload.put("$set", this.dictSet);
+			ops.put("$set", this.dictSet);
 		}
 		if (this.dictSetOnce.length() > 0) {
-			payload.put("$set_once", this.dictSetOnce);
+			ops.put("$set_once", this.dictSetOnce);
 		}
 		if (this.dictIncrement.length() > 0) {
-			payload.put("$add", this.dictIncrement);
+			ops.put("$add", this.dictIncrement);
 		}
 		if (this.dictAppend.length() > 0) {
-			payload.put("$append", this.dictAppend);
+			ops.put("$append", this.dictAppend);
 		}
 		if (this.dictRemove.length() > 0) {
-			payload.put("$remove", this.dictRemove);
+			ops.put("$remove", this.dictRemove);
 		}
 		if (this.listUnset.size() > 0) {
-			payload.put("$unset", this.listUnset);
+			ops.put("$unset", this.listUnset);
 		}
-		return payload;
+		return ops;
 	}
 
 	private JSONObject validateKeyBasic(String key, String caller) {
@@ -427,7 +425,7 @@ class ObjectInternalHelper {
 		this.dictRemove.put(IDENT_KEY_WHATSAPP, res.getString("value"));
 	}
 
-	// ------------------------------- Androidpush 
+	// ------------------------------- Androidpush
 
 	private JSONObject checkAndroidpushValue(String value, String provider, String caller) {
 		JSONObject res = checkIdentValString(value, caller);
@@ -436,9 +434,8 @@ class ObjectInternalHelper {
 		if (!res.getBoolean("is_valid")) {
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
+			if (provider == null) {
 				provider = "";
-				isError = true;
 			}
 			provider = provider.trim().toLowerCase();
 		}
@@ -465,7 +462,7 @@ class ObjectInternalHelper {
 		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
-	// ------------------------ Iospush 
+	// ------------------------ Iospush
 
 	private JSONObject checkIospushValue(String value, String provider, String caller) {
 		JSONObject res = checkIdentValString(value, caller);
@@ -474,9 +471,8 @@ class ObjectInternalHelper {
 		if (!res.getBoolean("is_valid")) {
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
+			if (provider == null) {
 				provider = "";
-				isError = true;
 			}
 			provider = provider.trim().toLowerCase();
 		}
@@ -503,7 +499,7 @@ class ObjectInternalHelper {
 		this.dictRemove.put(KEY_ID_PROVIDER, res.getString("provider"));
 	}
 
-	// ------------------------ Webpush 
+	// ------------------------ Webpush
 
 	private JSONObject checkWebpushDict(JSONObject value, String provider, String caller) {
 		boolean isError = false;
@@ -511,9 +507,8 @@ class ObjectInternalHelper {
 			this.errors.add(String.format("[%s] value must be a valid json representing webpush-token", caller));
 			isError = true;
 		} else {
-			if (provider == null || provider.trim().isEmpty()) {
+			if (provider == null) {
 				provider = "";
-				isError = true;
 			}
 			provider = provider.trim().toLowerCase();
 		}

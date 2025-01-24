@@ -251,6 +251,9 @@ class Utils {
 	}
 
 	static String buildQueryParams(HashMap<String, Object> params) throws UnsupportedEncodingException {
+		if (params == null || params.isEmpty()) {
+			return "";
+		}
 		StringBuilder sb = new StringBuilder();
 		Iterator<?> iter = params.entrySet().iterator();
 		while (iter.hasNext()) {

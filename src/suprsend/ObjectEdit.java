@@ -1,55 +1,41 @@
 package suprsend;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Subscriber {
-	private static final Logger logger = Logger.getLogger(Subscriber.class.getName());
+public class ObjectEdit {
+	private static final Logger logger = Logger.getLogger(ObjectEdit.class.getName());
 
 	private Suprsend config;
-	private String distinctId, url;
-	private JSONObject superProperties;
+	private String objectType, objectId;
 	//
 	private List<String> errors, info;
-	private List<JSONObject> userOperations;
+	private List<JSONObject> operations;
 
-	private SubscriberInternalHelper helper;
+	private ObjectEditInternalHelper helper;
 
-	private List<String> __warningsList;
-
-	Subscriber(Suprsend config, String distinctId) {
+	ObjectEdit(Suprsend config, String objectType, String objectId) {
 		this.config = config;
-		this.distinctId = distinctId;
-		this.url = String.format("%sevent/", this.config.baseUrl);
-		this.superProperties = getSuperProperties();
+		this.objectType = objectType;
+		this.objectId = objectId;
 		//
 		this.errors = new ArrayList<String>();
 		this.info = new ArrayList<String>();
 		//
-		this.userOperations = new ArrayList<JSONObject>();
-		this.helper = new SubscriberInternalHelper();
-		//
-		this.__warningsList = new ArrayList<String>();
+		this.operations = new ArrayList<JSONObject>();
+		this.helper = new ObjectEditInternalHelper();
 	}
 
-	/**
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
+	String getObjectType() {
+		return this.objectType;
 	}
 
-	private JSONObject getSuperProperties() {
-		return new JSONObject().put("$ss_sdk_version", this.config.userAgent);
+	String getObjectId() {
+		return this.objectId;
 	}
 
 	public List<String> getWarnings() {
@@ -60,97 +46,26 @@ public class Subscriber {
 		return this.errors;
 	}
 
-	public JSONObject getEvent() {
-		return new JSONObject()
-				.put("$schema", "2")
-				.put("$insert_id", UUID.randomUUID().toString())
-				.put("$time", Instant.now().getEpochSecond() * 1000)
-				.put("env", this.config.apiKey)
-				.put("distinct_id", this.distinctId)
-				.put("$user_operations", this.userOperations)
-				.put("properties", this.superProperties);
+	public JSONObject getPayload() {
+		return new JSONObject().put("operations", this.operations);
 	}
 
-	public JSONObject asJson() {
-		return new JSONObject()
-				.put("distinct_id", this.distinctId)
-				.put("$user_operations", this.userOperations)
-				.put("warnings", this.__warningsList);
-	}
-
-	JSONObject validateEventSize(JSONObject eventDict) throws UnsupportedEncodingException, InputValueException {
-		int apparentSize = Utils.getApparentIdentityEventSize(eventDict);
-		if (apparentSize > Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			String errMsg = String.format("User Event size too big - %d Bytes, must not cross %s", apparentSize,
-					Constants.IDENTITY_SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
-			throw new InputValueException(errMsg);
-		}
-		return new JSONObject().put("event", eventDict).put("apparent_size", apparentSize);
-	}
-
-	List<String> validateBody(boolean isPartOfBulk) {
-		this.__warningsList = new ArrayList<String>();
+	void validateBody() {
 		if (!this.info.isEmpty()) {
-			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.info));
-			this.__warningsList.add(msg);
-			// print on console as well
+			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId,
+					String.join("\n", this.info));
 			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
-			String msg = String.format("[distinct_id: %s] %s", this.distinctId, String.join("\n", this.errors));
-			this.__warningsList.add(msg);
-			String errMsg = String.format("ERROR: %s", msg);
-			if (isPartOfBulk) {
-				// print on console in case of bulk-api
-				System.out.println(errMsg);
-			} else {
-				// raise error in case of single api
-				// throw new InputValueException(errMsg); // Removed exception throwing, let backend handle it
-				System.out.println(errMsg);
-			}
+			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId,
+					String.join("\n", this.errors));
+			// throw new InputValueException(String.format("ERROR: %s", msg));
+			System.out.println(String.format("ERROR: %s", msg));
 		}
-		//
-		return this.__warningsList;
 	}
 
-	public JSONObject save() {
-		JSONObject response = new JSONObject();
-		try {
-			validateBody(false);
-			JSONObject headers = getHeaders();
-			JSONObject eventTemp = getEvent();
-			// # --- validate event size
-			JSONObject ev = validateEventSize(eventTemp);
-			//
-			JSONObject validatedEvent = ev.getJSONObject("event");
-			// int apparentSize = ev.getInt("apparent_size");
-			//
-			// Signature and Authorization Header
-			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, validatedEvent.toString(),
-					headers, this.config.apiSecret);
-			String contentText = sigResult.getString("contentTxt");
-			headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
-			// --- Make HTTP POST request
-			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
-					headers, contentText);
-			int statusCode = resp.statusCode;
-			String responseText = resp.responseText;
-			//
-			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						responseText);
-			} else {
-				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						responseText);
-			}
-		} catch (SuprsendException | IOException e) {
-			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
-		}
-		return response;
-	}
-
-	private void collectEvent() {
-		JSONObject response = this.helper.getIdentityEvent();
+	private void collectOperation() {
+		JSONObject response = this.helper.getOperationResult();
 
 		JSONArray errors = response.optJSONArray("errors");
 		if (errors != null && !errors.isEmpty()) {
@@ -164,9 +79,9 @@ public class Subscriber {
 				this.info.add(info.getString(i));
 			}
 		}
-		JSONObject event = response.optJSONObject("event");
-		if (event != null && !event.isEmpty()) {
-			this.userOperations.add(event);
+		JSONObject ops = response.optJSONObject("operation");
+		if (ops != null && !ops.isEmpty()) {
+			this.operations.add(ops);
 		}
 	}
 
@@ -183,25 +98,25 @@ public class Subscriber {
 				this.helper.appendKV(key, arg1.get(key), arg1, caller);
 			}
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	public void append(String arg1, String arg2) {
 		String caller = "append";
 		this.helper.appendKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void append(String arg1, JSONObject arg2) {
 		String caller = "append";
 		this.helper.appendKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void append(String arg1, Object arg2) {
 		String caller = "append";
 		this.helper.appendKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Set
@@ -211,14 +126,14 @@ public class Subscriber {
 		for (String key : keys) {
 			this.helper.setKV(key, arg1.get(key), arg1, caller);
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	// TODO: should use a JSON serializable type instead of Object
 	public void set(String arg1, Object arg2) {
 		String caller = "set";
 		this.helper.setKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== SetOnce
@@ -228,13 +143,13 @@ public class Subscriber {
 		for (String key : keys) {
 			this.helper.setOnceKV(key, arg1.get(key), arg1, caller);
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	public void setOnce(String arg1, Object arg2) {
 		String caller = "set_once";
 		this.helper.setOnceKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Increment
@@ -244,13 +159,13 @@ public class Subscriber {
 		for (String key : keys) {
 			this.helper.incrementKV(key, arg1.get(key), arg1, caller);
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	public void increment(String arg1, Object arg2) {
 		String caller = "increment";
 		this.helper.incrementKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Remove
@@ -266,25 +181,25 @@ public class Subscriber {
 				this.helper.removeKV(key, arg1.get(key), arg1, caller);
 			}
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	public void remove(String arg1, String arg2) {
 		String caller = "remove";
 		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void remove(String arg1, JSONObject arg2) {
 		String caller = "remove";
 		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void remove(String arg1, Object arg2) {
 		String caller = "remove";
 		this.helper.removeKV(arg1, arg2, new JSONObject(), caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Unset
@@ -292,7 +207,7 @@ public class Subscriber {
 	public void unset(String key) {
 		String caller = "unset";
 		this.helper.unsetK(key, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void unset(List<String> key) {
@@ -300,7 +215,7 @@ public class Subscriber {
 		for (String k : key) {
 			this.helper.unsetK(k, caller);
 		}
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================== Preferred language
@@ -308,7 +223,7 @@ public class Subscriber {
 	public void setPreferredLanguage(String langCode) {
 		String caller = "set_preferred_language";
 		this.helper.setPreferredLanguage(langCode, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================== Timezone
@@ -316,7 +231,7 @@ public class Subscriber {
 	public void setTimezone(String timezone) {
 		String caller = "set_timezone";
 		this.helper.setTimezone(timezone, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Email
@@ -324,13 +239,13 @@ public class Subscriber {
 	public void addEmail(String value) {
 		String caller = "add_email";
 		this.helper.addEmail(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeEmail(String value) {
 		String caller = "remove_email";
 		this.helper.removeEmail(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== SMS
@@ -338,13 +253,13 @@ public class Subscriber {
 	public void addSms(String value) {
 		String caller = "add_sms";
 		this.helper.addSms(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeSms(String value) {
 		String caller = "remove_sms";
 		this.helper.removeSms(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Whatsapp
@@ -352,13 +267,13 @@ public class Subscriber {
 	public void addWhatsapp(String value) {
 		String caller = "add_whatsapp";
 		this.helper.addWhatsapp(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeWhatsapp(String value) {
 		String caller = "remove_whatsapp";
 		this.helper.removeWhatsapp(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Androidpush
@@ -366,101 +281,101 @@ public class Subscriber {
 	public void addAndroidpush(String value) {
 		String caller = "add_androidpush";
 		this.helper.addAndroidpush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void addAndroidpush(String value, String provider) {
 		String caller = "add_androidpush";
 		this.helper.addAndroidpush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeAndroidpush(String value) {
 		String caller = "remove_androidpush";
 		this.helper.removeAndroidpush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeAndroidpush(String value, String provider) {
 		String caller = "remove_androidpush";
 		this.helper.removeAndroidpush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Iospush
 	public void addIospush(String value) {
 		String caller = "add_iospush";
 		this.helper.addIospush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void addIospush(String value, String provider) {
 		String caller = "add_iospush";
 		this.helper.addIospush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeIospush(String value) {
 		String caller = "remove_iospush";
 		this.helper.removeIospush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeIospush(String value, String provider) {
 		String caller = "remove_iospush";
 		this.helper.removeIospush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Webpush
 	public void addWebpush(JSONObject value) {
 		String caller = "add_webpush";
 		this.helper.addWebpush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void addWebpush(JSONObject value, String provider) {
 		String caller = "add_webpush";
 		this.helper.addWebpush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeWebpush(JSONObject value) {
 		String caller = "remove_webpush";
 		this.helper.removeWebpush(value, null, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeWebpush(JSONObject value, String provider) {
 		String caller = "remove_webpush";
 		this.helper.removeWebpush(value, provider, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== Slack
 	public void addSlack(JSONObject value) {
 		String caller = "add_slack";
 		this.helper.addSlack(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeSlack(JSONObject value) {
 		String caller = "remove_slack";
 		this.helper.removeSlack(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	// =========================================================== MS Teams
 	public void addMSTeams(JSONObject value) {
 		String caller = "add_ms_teams";
 		this.helper.addMSTeams(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 	public void removeMSTeams(JSONObject value) {
 		String caller = "remove_ms_teams";
 		this.helper.removeMSTeams(value, caller);
-		collectEvent();
+		collectOperation();
 	}
 
 }

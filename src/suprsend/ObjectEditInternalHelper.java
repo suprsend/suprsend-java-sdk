@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-class SubscriberInternalHelper {
+class ObjectEditInternalHelper {
 	// -------------- Constants
 	public static final String IDENT_KEY_EMAIL = "$email";
 	public static final String IDENT_KEY_SMS = "$sms";
@@ -47,7 +47,7 @@ class SubscriberInternalHelper {
 	private JSONObject dictSet, dictSetOnce, dictIncrement, dictAppend, dictRemove;
 	private List<String> listUnset, errors, info;
 
-	SubscriberInternalHelper() {
+	ObjectEditInternalHelper() {
 		this.dictSet = new JSONObject();
 		this.dictSetOnce = new JSONObject();
 		this.dictIncrement = new JSONObject();
@@ -71,34 +71,35 @@ class SubscriberInternalHelper {
 		this.info = new ArrayList<String>();
 	}
 
-	JSONObject getIdentityEvent() {
-		JSONObject event = formEvent();
-		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("event", event);
+	JSONObject getOperationResult() {
+		JSONObject operation = formOperation();
+		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("operation",
+				operation);
 		reset();
 		return retValue;
 	}
 
-	private JSONObject formEvent() {
-		JSONObject event = new JSONObject();
+	private JSONObject formOperation() {
+		JSONObject ops = new JSONObject();
 		if (this.dictSet.length() > 0) {
-			event.put("$set", this.dictSet);
+			ops.put("$set", this.dictSet);
 		}
 		if (this.dictSetOnce.length() > 0) {
-			event.put("$set_once", this.dictSetOnce);
+			ops.put("$set_once", this.dictSetOnce);
 		}
 		if (this.dictIncrement.length() > 0) {
-			event.put("$add", this.dictIncrement);
+			ops.put("$add", this.dictIncrement);
 		}
 		if (this.dictAppend.length() > 0) {
-			event.put("$append", this.dictAppend);
+			ops.put("$append", this.dictAppend);
 		}
 		if (this.dictRemove.length() > 0) {
-			event.put("$remove", this.dictRemove);
+			ops.put("$remove", this.dictRemove);
 		}
 		if (this.listUnset.size() > 0) {
-			event.put("$unset", this.listUnset);
+			ops.put("$unset", this.listUnset);
 		}
-		return event;
+		return ops;
 	}
 
 	private JSONObject validateKeyBasic(String key, String caller) {

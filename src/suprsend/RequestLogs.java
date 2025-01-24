@@ -25,29 +25,21 @@ import org.apache.http.impl.client.HttpClients;
 import java.util.concurrent.TimeUnit;
 import org.json.JSONObject;
 
-
 class CustomHttpClient {
-    private static CloseableHttpClient client;
+	private static CloseableHttpClient client;
 
-    static synchronized CloseableHttpClient getInstance() {
+	static synchronized CloseableHttpClient getInstance() {
 		if (client == null) {
-			RequestConfig config = RequestConfig.custom()
-				.setConnectTimeout(30000)
-				.setSocketTimeout(60000)
-				.build();
+			RequestConfig config = RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build();
 
 			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        	cm.setMaxTotal(100);
-        	CloseableHttpClient httpclient = HttpClients.custom()
-                .setConnectionManager(cm)
-                .evictExpiredConnections()
-                .evictIdleConnections(5L, TimeUnit.MINUTES)
-				.setDefaultRequestConfig(config)
-                .build();
+			cm.setMaxTotal(100);
+			CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(cm).evictExpiredConnections()
+					.evictIdleConnections(5L, TimeUnit.MINUTES).setDefaultRequestConfig(config).build();
 			client = httpclient;
 		}
 		return client;
-    }
+	}
 }
 
 /**
@@ -159,24 +151,24 @@ class RequestLogs {
 
 class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
 
-    public static final String METHOD_NAME = "DELETE";
-	
-	public HttpDeleteWithBody() { 
-		super(); 
+	public static final String METHOD_NAME = "DELETE";
+
+	public HttpDeleteWithBody() {
+		super();
 	}
-	
+
 	public HttpDeleteWithBody(final URI uri) {
-        super();
-        setURI(uri);
-    }
-	
+		super();
+		setURI(uri);
+	}
+
 	public HttpDeleteWithBody(final String uri) {
-        super();
-        setURI(URI.create(uri));
-    }
+		super();
+		setURI(URI.create(uri));
+	}
 
 	@Override
-    public String getMethod() {
-		return METHOD_NAME; 
+	public String getMethod() {
+		return METHOD_NAME;
 	}
 }

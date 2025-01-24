@@ -73,7 +73,8 @@ class ObjectEditInternalHelper {
 
 	JSONObject getOperationResult() {
 		JSONObject operation = formOperation();
-		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("operation", operation);
+		JSONObject retValue = new JSONObject().put("errors", this.errors).put("info", this.info).put("operation",
+				operation);
 		reset();
 		return retValue;
 	}

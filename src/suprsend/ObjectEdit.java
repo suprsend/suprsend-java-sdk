@@ -53,17 +53,19 @@ public class ObjectEdit {
 
 	void validateBody() {
 		if (!this.info.isEmpty()) {
-			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId, String.join("\n", this.info));
+			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId,
+					String.join("\n", this.info));
 			System.out.println(String.format("WARNING: %s", msg));
 		}
 		if (!this.errors.isEmpty()) {
-			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId, String.join("\n", this.errors));
+			String msg = String.format("[Object: %s/%s] %s", this.objectType, this.objectId,
+					String.join("\n", this.errors));
 			// throw new InputValueException(String.format("ERROR: %s", msg));
 			System.out.println(String.format("ERROR: %s", msg));
 		}
 	}
 
-	public JSONObject save() throws IOException, SuprsendException{
+	public JSONObject save() throws IOException, SuprsendException {
 		validateBody();
 		return this.config.objects.edit(objectType, objectId, getPayload());
 	}

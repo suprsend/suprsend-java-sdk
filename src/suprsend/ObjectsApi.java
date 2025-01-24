@@ -33,7 +33,8 @@ public class ObjectsApi {
 	public JSONObject list(String objectType, HashMap<String, Object> opts) throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
 		String encodedParams = Utils.buildQueryParams(opts);
-		String url = String.format("%s%s/%s", this.listUrl, Utils.urlEncode(objectType), (encodedParams == "" ? "" : String.format("?%s", encodedParams)));
+		String url = String.format("%s%s/%s", this.listUrl, Utils.urlEncode(objectType),
+				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
@@ -88,10 +89,11 @@ public class ObjectsApi {
 		return resp.jsonResponse;
 	}
 
-	public JSONObject upsert(String objectType, String objectId, JSONObject payload) throws IOException, SuprsendException {
+	public JSONObject upsert(String objectType, String objectId, JSONObject payload)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
-        String url = detailUrl(objectType, objectId);
+		objectId = validateObjectId(objectId);
+		String url = detailUrl(objectType, objectId);
 		if (payload == null) {
 			payload = new JSONObject();
 		}
@@ -115,7 +117,7 @@ public class ObjectsApi {
 		if (editInstance == null) {
 			throw new SuprsendException("instance is required");
 		}
-        editInstance.validateBody();
+		editInstance.validateBody();
 		String url = detailUrl(editInstance.getObjectType(), editInstance.getObjectId());
 		JSONObject payload = editInstance.getPayload();
 		//
@@ -134,10 +136,11 @@ public class ObjectsApi {
 		return resp.jsonResponse;
 	}
 
-	public JSONObject edit(String objectType, String objectId, JSONObject payload) throws IOException, SuprsendException {
+	public JSONObject edit(String objectType, String objectId, JSONObject payload)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
-        String url = detailUrl(objectType, objectId);
+		objectId = validateObjectId(objectId);
+		String url = detailUrl(objectType, objectId);
 		if (payload == null) {
 			payload = new JSONObject();
 		}
@@ -159,8 +162,8 @@ public class ObjectsApi {
 
 	public JSONObject delete(String objectType, String objectId) throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
-        String url = detailUrl(objectType, objectId);
+		objectId = validateObjectId(objectId);
+		String url = detailUrl(objectType, objectId);
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
@@ -180,7 +183,7 @@ public class ObjectsApi {
 
 	public JSONObject bulkDelete(String objectType, JSONObject payload) throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        String url = String.format("%s%s/", this.bulkUrl, Utils.urlEncode(objectType));
+		String url = String.format("%s%s/", this.bulkUrl, Utils.urlEncode(objectType));
 		if (payload == null) {
 			payload = new JSONObject();
 		}
@@ -201,12 +204,14 @@ public class ObjectsApi {
 		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
 	}
 
-	public JSONObject getSubscriptions(String objectType, String objectId, HashMap<String, Object> opts) throws IOException, SuprsendException {
+	public JSONObject getSubscriptions(String objectType, String objectId, HashMap<String, Object> opts)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
+		objectId = validateObjectId(objectId);
 		String encodedParams = Utils.buildQueryParams(opts);
 		String detailUrl = this.detailUrl(objectType, objectId);
-		String url = String.format("%ssubscription/%s", detailUrl, (encodedParams == "" ? "" : String.format("?%s", encodedParams)));
+		String url = String.format("%ssubscription/%s", detailUrl,
+				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
@@ -214,14 +219,16 @@ public class ObjectsApi {
 		String contentText = sigResult.getString("contentTxt");
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
-		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers, contentText);
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+				contentText);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
 		return resp.jsonResponse;
 	}
 
-	public JSONObject createSubscriptions(String objectType, String objectId, JSONObject payload) throws IOException, SuprsendException {
+	public JSONObject createSubscriptions(String objectType, String objectId, JSONObject payload)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
 		objectId = validateObjectId(objectId);
 		String detailUrl = this.detailUrl(objectType, objectId);
@@ -232,21 +239,24 @@ public class ObjectsApi {
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
-		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers, this.config.apiSecret);
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
+				this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
-		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers, contentText);
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
+				contentText);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
 		return resp.jsonResponse;
 	}
 
-	public JSONObject deleteSubscriptions(String objectType, String objectId, JSONObject payload) throws IOException, SuprsendException {
+	public JSONObject deleteSubscriptions(String objectType, String objectId, JSONObject payload)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
-        String detailUrl = detailUrl(objectType, objectId);
+		objectId = validateObjectId(objectId);
+		String detailUrl = detailUrl(objectType, objectId);
 		String url = String.format("%ssubscription/", detailUrl);
 		if (payload == null) {
 			payload = new JSONObject();
@@ -268,12 +278,14 @@ public class ObjectsApi {
 		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
 	}
 
-	public JSONObject getObjectsSubscribedTo(String objectType, String objectId, HashMap<String, Object> opts) throws IOException, SuprsendException {
+	public JSONObject getObjectsSubscribedTo(String objectType, String objectId, HashMap<String, Object> opts)
+			throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
+		objectId = validateObjectId(objectId);
 		String encodedParams = Utils.buildQueryParams(opts);
-        String detailUrl = detailUrl(objectType, objectId);
-		String url = String.format("%ssubscribed_to/object/%s", detailUrl, (encodedParams == "" ? "" : String.format("?%s", encodedParams)));
+		String detailUrl = detailUrl(objectType, objectId);
+		String url = String.format("%ssubscribed_to/object/%s", detailUrl,
+				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
 		JSONObject headers = getHeaders();
 		// Signature and Authorization-header
@@ -281,7 +293,8 @@ public class ObjectsApi {
 		String contentText = sigResult.getString("contentTxt");
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
-		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers, contentText);
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+				contentText);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
@@ -290,7 +303,7 @@ public class ObjectsApi {
 
 	public ObjectEdit getInstance(String objectType, String objectId) throws IOException, SuprsendException {
 		objectType = validateObjectType(objectType);
-        objectId = validateObjectId(objectId);
+		objectId = validateObjectId(objectId);
 		return new ObjectEdit(this.config, objectType, objectId);
 	}
 }

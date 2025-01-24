@@ -1,6 +1,5 @@
 package suprsend;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -63,11 +62,6 @@ public class ObjectEdit {
 			// throw new InputValueException(String.format("ERROR: %s", msg));
 			System.out.println(String.format("ERROR: %s", msg));
 		}
-	}
-
-	public JSONObject save() throws IOException, SuprsendException {
-		validateBody();
-		return this.config.objects.edit(objectType, objectId, getPayload());
 	}
 
 	private void collectOperation() {

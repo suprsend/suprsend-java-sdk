@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-class ObjectEditInternalHelper {
+class UserEditInternalHelper {
 	// -------------- Constants
 	public static final String IDENT_KEY_EMAIL = "$email";
 	public static final String IDENT_KEY_SMS = "$sms";
@@ -29,7 +29,7 @@ class ObjectEditInternalHelper {
 	private JSONObject dictSet, dictSetOnce, dictIncrement, dictAppend, dictRemove;
 	private List<String> listUnset, errors, info;
 
-	ObjectEditInternalHelper() {
+	UserEditInternalHelper() {
 		this.dictSet = new JSONObject();
 		this.dictSetOnce = new JSONObject();
 		this.dictIncrement = new JSONObject();

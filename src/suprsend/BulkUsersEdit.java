@@ -18,7 +18,8 @@ public class BulkUsersEdit {
 	private List<BulkUsersEditChunk> chunks;
 	private BulkResponse response;
 
-	// invalid_record json: {"record": payload-json, "error": error_str, "code": 500}
+	// invalid_record json: {"record": payload-json, "error": error_str, "code":
+	// 500}
 	private List<JSONObject> __invalidRecords;
 
 	BulkUsersEdit(Suprsend config) {
@@ -46,7 +47,8 @@ public class BulkUsersEdit {
 				this.__pendingRecords.add(plJson);
 
 			} catch (Exception ex) {
-				// invalid_record json: {"record": payload-json, "error": error_str, "code": 500}
+				// invalid_record json: {"record": payload-json, "error": error_str, "code":
+				// 500}
 				JSONObject invRec = Utils.invalidRecordJson(u.asJsonAsync(), ex);
 				this.__invalidRecords.add(invRec);
 			}
@@ -63,7 +65,7 @@ public class BulkUsersEdit {
 		for (int idx = 0; idx < slice.size(); idx++) {
 			JSONObject plJson = slice.get(idx);
 			boolean isAdded = currChunk.tryToAddIntoChunk(plJson.getJSONObject("payload"),
-			plJson.getInt("apparent_size"));
+					plJson.getInt("apparent_size"));
 			if (!isAdded) {
 				// create chunks from remaining records
 				chunkify(startIdx + idx);

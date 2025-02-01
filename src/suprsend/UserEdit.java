@@ -32,7 +32,7 @@ public class UserEdit {
 		//
 		this.operations = new ArrayList<JSONObject>();
 		this.helper = new UserEditInternalHelper();
-		// 
+		//
 		this.__warningsList = new ArrayList<String>();
 	}
 
@@ -53,8 +53,7 @@ public class UserEdit {
 	}
 
 	public JSONObject getAsyncPayload() {
-		return new JSONObject()
-				.put("$schema", "2")
+		return new JSONObject().put("$schema", "2")
 				.put("$insert_id", UUID.randomUUID().toString())
 				.put("$time", Instant.now().getEpochSecond() * 1000)
 				.put("env", this.config.apiKey)
@@ -64,8 +63,7 @@ public class UserEdit {
 	}
 
 	public JSONObject asJsonAsync() {
-		return new JSONObject()
-				.put("distinct_id", this.distinctId)
+		return new JSONObject().put("distinct_id", this.distinctId)
 				.put("$user_operations", this.operations)
 				.put("warnings", this.__warningsList);
 	}

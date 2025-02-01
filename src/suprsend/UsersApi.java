@@ -106,10 +106,10 @@ public class UsersApi {
 		}
 		editInstance.validateBody();
 		JSONObject aPayload = editInstance.getAsyncPayload();
-		// # --- validate event size
+		// --- validate payload size
 		JSONObject aPl = editInstance.validatPayloadSize(aPayload);
 		aPayload = aPl.getJSONObject("payload");
-		// 
+		//
 		String url = String.format("%sevent/", this.config.baseUrl);
 		//
 		JSONObject headers = getHeaders();
@@ -125,9 +125,8 @@ public class UsersApi {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
 		// if no error, return success response
-		return new JSONObject().put("success", true)
-			.put("status", "success").put("status_code", resp.statusCode)
-			.put("message", resp.responseText);
+		return new JSONObject().put("success", true).put("status", "success").put("status_code", resp.statusCode)
+				.put("message", resp.responseText);
 	}
 
 	public JSONObject edit(UserEdit editInstance) throws IOException, SuprsendException {
@@ -240,7 +239,8 @@ public class UsersApi {
 		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
 	}
 
-	public JSONObject getObjectsSubscribedTo(String distinctId, HashMap<String, Object> opts) throws IOException, SuprsendException {
+	public JSONObject getObjectsSubscribedTo(String distinctId, HashMap<String, Object> opts)
+			throws IOException, SuprsendException {
 		distinctId = validateDistinctId(distinctId);
 		String encodedParams = Utils.buildQueryParams(opts);
 		String detailUrl = detailUrl(distinctId);
@@ -261,7 +261,8 @@ public class UsersApi {
 		return resp.jsonResponse;
 	}
 
-	public JSONObject getListsSubscribedTo(String distinctId, HashMap<String, Object> opts) throws IOException, SuprsendException {
+	public JSONObject getListsSubscribedTo(String distinctId, HashMap<String, Object> opts)
+			throws IOException, SuprsendException {
 		distinctId = validateDistinctId(distinctId);
 		String encodedParams = Utils.buildQueryParams(opts);
 		String detailUrl = detailUrl(distinctId);

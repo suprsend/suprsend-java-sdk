@@ -11,7 +11,7 @@ import suprsend.Suprsend;
 import suprsend.SuprsendException;
 import suprsend.UserEdit;
 
-public class TestUserApi {
+public class TestUsersApi {
 
 	public static void main(String[] args) throws Exception {
 		testGet();
@@ -78,8 +78,7 @@ public class TestUserApi {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String distinctId = "101";
-		JSONObject payload = new JSONObject().put("name", "John Doe")
-			.put("$email", "101+test@example.com");
+		JSONObject payload = new JSONObject().put("name", "John Doe").put("$email", "101+test@example.com");
 		JSONObject user = suprClient.users.upsert(distinctId, payload);
 		System.out.println(user);
 	}
@@ -91,7 +90,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		user.addEmail("101+123@example.com");
 		user.set(new JSONObject().put("name", "John Doe"));
-		// 
+		//
 		JSONObject res = suprClient.users.asyncEdit(user);
 		System.out.println(res);
 	}
@@ -117,23 +116,23 @@ public class TestUserApi {
 		user.addEmail("example@example.com");
 		user.addSms("+919999999999");
 		user.addWhatsapp("+919999999999");
-		// 
+		//
 		user.append("arr_key", "v1");
 		user.append(new JSONObject().put("arr_key", "v2"));
 		user.append("arr_key", 12);
-		// 
+		//
 		user.set("key1", "v1");
 		user.set(new JSONObject().put("key2", "v2"));
-		// 
+		//
 		user.setOnce("once_key1", "v1");
 		user.setOnce(new JSONObject().put("once_key1", "v2"));
-		// 
+		//
 		user.increment("increment_key", 1);
 		user.increment(new JSONObject().put("increment_key", -1));
 		//
 		user.remove("arr_key", "v2");
 		user.remove(new JSONObject().put("arr_key", "v3"));
-		// 
+		//
 		user.unset("key4");
 		// Call edit api
 		JSONObject res = suprClient.users.edit(user);
@@ -204,13 +203,9 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		// Webpush token json (VAPID)
-		JSONObject webpush = new JSONObject()
-				.put("endpoint", "__end_point__")
+		JSONObject webpush = new JSONObject().put("endpoint", "__end_point__")
 				.put("expirationTime", "")
-				.put("keys", new JSONObject()
-						.put("p256dh", "__p256dh__")
-						.put("auth", "__auth_key__")
-						);
+				.put("keys", new JSONObject().put("p256dh", "__p256dh__").put("auth", "__auth_key__"));
 		//
 		user.addWebpush(webpush, "vapid");
 		JSONObject res = suprClient.users.edit(user);
@@ -223,16 +218,12 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		// Webpush token json (VAPID)
-		JSONObject webpush = new JSONObject()
-				.put("endpoint", "__end_point__")
+		JSONObject webpush = new JSONObject().put("endpoint", "__end_point__")
 				.put("expirationTime", "")
-				.put("keys", new JSONObject()
-						.put("p256dh", "__p256dh__")
-						.put("auth", "__auth_key__")
-						);
+				.put("keys", new JSONObject().put("p256dh", "__p256dh__").put("auth", "__auth_key__"));
 		//
 		user.removeWebpush(webpush, "vapid");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -243,7 +234,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.addAndroidpush("__androidpush_token__");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -254,7 +245,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.removeAndroidpush("__androidpush_token__");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -264,15 +255,14 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
-		JSONObject slackIdent = new JSONObject()
-				.put("access_token", "xoxb-asdadasda")
+		JSONObject slackIdent = new JSONObject().put("access_token", "xoxb-asdadasda")
 				.put("user_id", "u88998989")
 				.put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
 				.put("incoming_webhook", new JSONObject().put("url", "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"));
 
 		user.addSlack(slackIdent);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -282,13 +272,13 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
-		JSONObject slackIdent = new JSONObject()
-				.put("access_token", "xoxb-asdadasda")
+		JSONObject slackIdent = new JSONObject().put("access_token", "xoxb-asdadasda")
 				// .put("user_id", "u88998989")
 				// .put("email", "user@example.com")
 				.put("channel_id", "CXXXXXXX")
-				// .put("incoming_webhook", new JSONObject().put("url", "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"))
-				;
+		// .put("incoming_webhook", new JSONObject().put("url",
+		// "https://hooks.slack.com/T0XXX/U0XXX/XXXXX"))
+		;
 		user.removeSlack(slackIdent);
 		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
@@ -300,17 +290,16 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
-		JSONObject teamsIdent = new JSONObject()
-				.put("tenant_id", "XXXXXXX")
+		JSONObject teamsIdent = new JSONObject().put("tenant_id", "XXXXXXX")
 				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
 				.put("conversation_id", "XXXXXXXXXXXX")
-				// .put("user_id", "XXXXXXXXXXXX")
-				// .put("incoming_webhook", new JSONObject().put("url",
-				// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
+		// .put("user_id", "XXXXXXXXXXXX")
+		// .put("incoming_webhook", new JSONObject().put("url",
+		// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
 		;
 
 		user.addMSTeams(teamsIdent);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -320,16 +309,15 @@ public class TestUserApi {
 		String distinctId = "__distinct_id__";
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
-		JSONObject teamsIdent = new JSONObject()
-				.put("tenant_id", "XXXXXXX")
+		JSONObject teamsIdent = new JSONObject().put("tenant_id", "XXXXXXX")
 				.put("service_url", "https://smba.trafficmanager.net/XXXXXXXXXX")
 				.put("conversation_id", "XXXXXXXXXXXX")
-			// .put("user_id", "XXXXXXXXXXXX")
-			// .put("incoming_webhook", new JSONObject().put("url",
-			// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
+		// .put("user_id", "XXXXXXXXXXXX")
+		// .put("incoming_webhook", new JSONObject().put("url",
+		// "https://XXXXX.webhook.office.com/webhookb2/XXXXXXXXXX@XXXXXXXXXX/IncomingWebhook/XXXXXXXXXX/XXXXXXXXXX"))
 		;
 		user.removeMSTeams(teamsIdent);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -340,7 +328,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.setPreferredLanguage("es");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -351,7 +339,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.setTimezone("America/Los_Angeles");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -362,7 +350,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.removeSms("+919999999999");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -375,7 +363,7 @@ public class TestUserApi {
 		user.addEmail("example@example.com");
 		user.addSms("+919999999999");
 		user.addWhatsapp("+919999999999");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -388,7 +376,7 @@ public class TestUserApi {
 		user.removeEmail("example@example.com");
 		user.removeSms("+919999999999");
 		user.removeWhatsapp("+919999999999");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -399,8 +387,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.set("prop1", "val1");
-		JSONObject userProperties = new JSONObject()
-				.put("prop2", "val2")
+		JSONObject userProperties = new JSONObject().put("prop2", "val2")
 				.put("prop3", "val3")
 				.put("some", 1)
 				.put("key", 1.0);
@@ -408,7 +395,7 @@ public class TestUserApi {
 		user.set("prop4", 100);
 		user.set("prop5", new Integer[] { 1, 2 });
 		user.set("prop6", 10.02);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -419,13 +406,11 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.setOnce("prop1", "val1");
-		JSONObject userProperties = new JSONObject()
-				.put("prop2", "val2")
-				.put("prop3", 1);
+		JSONObject userProperties = new JSONObject().put("prop2", "val2").put("prop3", 1);
 		user.setOnce(userProperties);
 		user.setOnce("prop4", 100);
 		user.setOnce("prop5", 2.00);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -436,13 +421,11 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.increment("prop1", "1");
-		JSONObject userProperties = new JSONObject()
-				.put("prop2", "2")
-				.put("prop3", 3);
+		JSONObject userProperties = new JSONObject().put("prop2", "2").put("prop3", 3);
 		user.increment(userProperties);
 		user.increment("prop4", 1);
 		user.increment("prop5", 2.0);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -453,12 +436,10 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.append("prop1", "1");
-		JSONObject userProperties = new JSONObject()
-				.put("prop_append", "val_append")
-				.put("prop_append2", "23");
+		JSONObject userProperties = new JSONObject().put("prop_append", "val_append").put("prop_append2", "23");
 		user.append(userProperties);
 		user.append("prop4", 1.0);
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -469,9 +450,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.remove("prop1", "1");
-		JSONObject userProperties = new JSONObject()
-				.put("prop_append", "val_append")
-				.put("prop_append2", "23");
+		JSONObject userProperties = new JSONObject().put("prop_append", "val_append").put("prop_append2", "23");
 		user.remove(userProperties);
 		user.remove("prop4", 1.0);
 		JSONObject res = suprClient.users.edit(user);
@@ -486,7 +465,7 @@ public class TestUserApi {
 		//
 		user.unset("$email");
 		user.unset("$sms");
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 
@@ -497,7 +476,7 @@ public class TestUserApi {
 		UserEdit user = suprClient.users.getEditInstance(distinctId);
 		//
 		user.unset(Arrays.asList(new String[] { "$sms", "$email" }));
-		JSONObject res = suprClient.users.edit(user);;
+		JSONObject res = suprClient.users.edit(user);
 		System.out.println(res);
 	}
 

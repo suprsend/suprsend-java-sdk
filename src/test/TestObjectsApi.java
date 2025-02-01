@@ -67,8 +67,8 @@ public class TestObjectsApi {
 				put("limit", 10);
 			}
 		};
-		JSONObject object = suprClient.objects.list(objectType, opts);
-		System.out.println(object);
+		JSONObject response = suprClient.objects.list(objectType, opts);
+		System.out.println(response);
 	}
 
 	public static void testGet() throws Exception {

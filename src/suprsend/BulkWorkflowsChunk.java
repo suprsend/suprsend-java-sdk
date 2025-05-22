@@ -61,10 +61,6 @@ class BulkWorkflowsChunk {
 		if (checkLimitReached()) {
 			return false;
 		}
-		if (bodySize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			throw new InputValueException(String.format("workflow body too big - %d Bytes, must not cross %s", bodySize,
-					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
-		}
 		// if apparent_size of body crosses limit
 		if (this.runningSize + bodySize > BulkWorkflowsChunk.chunkApparentSizeInBytes) {
 			return false;

@@ -61,10 +61,6 @@ class BulkEventsChunk {
 		if (checkLimitReached()) {
 			return false;
 		}
-		if (eventSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
-			throw new InputValueException(String.format("Event properties too big - %d Bytes, must not cross %s",
-					eventSize, Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE));
-		}
 		// if apparent_size of event crosses limit
 		if (this.runningSize + eventSize > BulkEventsChunk.chunkApparentSizeInBytes) {
 			return false;

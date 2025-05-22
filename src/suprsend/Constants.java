@@ -8,10 +8,6 @@ public final class Constants {
 	// Suprsend default Url
 	public static final String DEFAULT_URL = "https://hub.suprsend.com/";
 
-	// an Event should not have apparent body size of more than 100KB
-	public static final int SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES = 100 * 1024;
-	public static final String SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE = "100KB";
-
 	// a API call should not have apparent body size of more than 800KB
 	public static final int BODY_MAX_APPARENT_SIZE_IN_BYTES = 800 * 1024;
 	public static final String BODY_MAX_APPARENT_SIZE_IN_BYTES_READABLE = "800KB";

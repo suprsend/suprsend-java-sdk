@@ -112,9 +112,9 @@ public class Event {
 		JSONObject validatedEvent = Utils.validateTrackEventSchema(eventDict);
 		// Check size
 		int apparentSize = Utils.getApparentEventSize(eventDict, isPartOfBulk);
-		if (apparentSize > Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES) {
+		if (apparentSize > Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES) {
 			String errMsg = String.format("Event size too big - %d Bytes, must not cross %s", apparentSize,
-					Constants.SINGLE_EVENT_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
+					Constants.BODY_MAX_APPARENT_SIZE_IN_BYTES_READABLE);
 			throw new InputValueException(errMsg);
 		}
 		return new JSONObject().put("event", validatedEvent).put("apparent_size", apparentSize);

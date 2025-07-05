@@ -64,7 +64,7 @@ public class BrandsApi {
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
 		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
-				contentText);
+				contentText, this.config.httpClient);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
@@ -94,7 +94,7 @@ public class BrandsApi {
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
 		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
-				contentText);
+				contentText, this.config.httpClient);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}
@@ -116,7 +116,7 @@ public class BrandsApi {
 		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 		//
 		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
-				contentText);
+				contentText, this.config.httpClient);
 		if (resp.statusCode >= 400) {
 			throw new SuprsendException(resp.errMsg, resp.statusCode);
 		}

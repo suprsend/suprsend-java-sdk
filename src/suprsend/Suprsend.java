@@ -1,7 +1,7 @@
 package suprsend;
 
 import java.io.UnsupportedEncodingException;
-
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,6 +16,8 @@ public class Suprsend {
 	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
 			System.getProperty("java.version"));
 	protected boolean debug = false;
+	protected ProxyConfig proxyConfig;
+	protected CloseableHttpClient httpClient;
 	//
 	public SubscriberFactory user;
 	private EventCollector eventCollector;
@@ -59,7 +61,7 @@ public class Suprsend {
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret) throws SuprsendException {
-		this(apiKey, apiSecret, null, false, new JSONObject());
+		this(apiKey, apiSecret, null, false, null, new JSONObject());
 	}
 
 	/**
@@ -72,7 +74,7 @@ public class Suprsend {
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl) throws SuprsendException {
-		this(apiKey, apiSecret, baseUrl, false, new JSONObject());
+		this(apiKey, apiSecret, baseUrl, false, null, new JSONObject());
 	}
 
 	/**
@@ -86,7 +88,7 @@ public class Suprsend {
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, boolean debug) throws SuprsendException {
-		this(apiKey, apiSecret, null, debug, new JSONObject());
+		this(apiKey, apiSecret, null, debug, null, new JSONObject());
 	}
 
 	/**
@@ -98,7 +100,7 @@ public class Suprsend {
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug) throws SuprsendException {
-		this(apiKey, apiSecret, baseUrl, debug, new JSONObject());
+		this(apiKey, apiSecret, baseUrl, debug, null, new JSONObject());
 	}
 
 	/**
@@ -112,17 +114,42 @@ public class Suprsend {
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, JSONObject kwargs)
 			throws SuprsendException {
+		this(apiKey, apiSecret, baseUrl, debug, null, kwargs);
+	}
 
+	/**
+	 *
+	 * @param apiKey    api_key provided by SuprSend
+	 * @param apiSecret api_secret provided by SuprSend
+	 * @param baseUrl   custom base-url instead of suprsend platform url
+	 * @param debug     print logs of http-request to SuprSend
+	 * @param proxyConfig    proxy config
+	 * @param kwargs    extra parameters for SuprSend internal purpose
+	 * @throws SuprsendException Custom exception thrown by SDK
+	 */
+	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, ProxyConfig proxyConfig, JSONObject kwargs)
+			throws SuprsendException {
 		this.apiKey = apiKey;
 		this.apiSecret = apiSecret;
-		//
 		this.baseUrl = getUrl(baseUrl);
-		//
 		this.debug = debug;
 		//
 		cleanup();
 		validate();
+		//
+		this.proxyConfig = proxyConfig;
+		this.httpClient = CustomHttpClient.initializeHttpClient(proxyConfig);
+		//
 		initHelpers();
+	}
+
+	/**
+	 * Set proxy config for the SDK
+	 * @param proxyConfig ProxyConfig object
+	 */
+	public void setProxyConfig(ProxyConfig proxyConfig) {
+		this.proxyConfig = proxyConfig;
+		this.httpClient = CustomHttpClient.initializeHttpClient(proxyConfig);
 	}
 
 	private void cleanup() {

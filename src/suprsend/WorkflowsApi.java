@@ -41,7 +41,7 @@ public class WorkflowsApi {
 			headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
 			// --- Make HTTP POST request
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url,
-					headers, contentText);
+					headers, contentText, this.config.httpClient);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
 			//

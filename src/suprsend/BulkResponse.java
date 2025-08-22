@@ -15,6 +15,7 @@ public class BulkResponse {
 	public int success = 0;
 	public int failure = 0;
 	public List<String> warnings = new ArrayList<String>();
+	public List<JSONObject> rawResponse = new ArrayList<JSONObject>();
 
 	@Override
 	public String toString() {
@@ -56,7 +57,8 @@ public class BulkResponse {
 				.put("total", 0)
 				.put("success", 0)
 				.put("failure", 0)
-				.put("failed_records", new ArrayList<>());
+				.put("failed_records", new ArrayList<>())
+				.put("raw_response", new ArrayList<>());
 	}
 
 	static JSONObject invalidRecordsChunkResponse(List<JSONObject> invalidRecords) {
@@ -66,7 +68,7 @@ public class BulkResponse {
 				.put("total", invalidRecords.size())
 				.put("success", 0)
 				.put("failure", invalidRecords.size())
-				.put("failed_records", invalidRecords);
+				.put("failed_records", invalidRecords)
+				.put("raw_response", new ArrayList<>());
 	}
-
 }

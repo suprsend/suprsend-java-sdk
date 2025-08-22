@@ -14,7 +14,7 @@ class EventCollector {
 
 	EventCollector(Suprsend config) {
 		this.config = config;
-		this.url = String.format("%sevent/", this.config.baseUrl);
+		this.url = String.format("%sv2/event/", this.config.baseUrl);
 	}
 
 	/**
@@ -51,13 +51,13 @@ class EventCollector {
 			//
 			if (statusCode >= 200 && statusCode < 300) {
 				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						responseText);
+						responseText).put("raw_response", responseText);
 			} else {
 				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						responseText);
+						responseText).put("raw_response",  responseText);
 			}
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
+			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString()).put("raw_response", "");
 		}
 		return response;
 	}

@@ -89,18 +89,20 @@ public class BulkWorkflowTriggerChunk {
 			if (statusCode >= 200 && statusCode < 300) {
 				this.response.put("status", "success").put("status_code", statusCode).put("total", this.chunk.size())
 						.put("success", this.chunk.size()).put("failure", 0)
-						.put("failed_records", new ArrayList<JSONObject>());
+						.put("failed_records", new ArrayList<JSONObject>())
+						.put("raw_response", responseText);
 			} else {
 				this.response.put("status", "fail").put("status_code", statusCode).put("total", this.chunk.size())
 						.put("success", 0).put("failure", this.chunk.size())
-						.put("failed_records", getFailedRecords(statusCode, responseText));
+						.put("failed_records", getFailedRecords(statusCode, responseText))
+						.put("raw_response", responseText);
 			}
 		} catch (SuprsendException | IOException e) {
 			this.response.put("status", "fail").put("status_code", 500).put("total", this.chunk.size())
 					.put("success", 0).put("failure", this.chunk.size())
-					.put("failed_records", getFailedRecords(500, e.toString()));
+					.put("failed_records", getFailedRecords(500, e.toString()))
+					.put("raw_response", new ArrayList<JSONObject>());
 		}
-
 	}
 
 	private List<JSONObject> getFailedRecords(int statusCode, String errMsg) {

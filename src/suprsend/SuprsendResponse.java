@@ -30,12 +30,10 @@ public class SuprsendResponse {
 				if (this.jsonResponse != null) {
 					String msgStr = this.jsonResponse.optString("message");
 					String dtlStr = this.jsonResponse.optString("detail");
-					String errStr = this.jsonResponse.optString("error");
+					JSONObject errObj = this.jsonResponse.optJSONObject("error");
 					String finalErrMsg = msgStr.isEmpty() ? dtlStr : msgStr;
-					if (finalErrMsg.isEmpty() && errStr != null) {
-						JSONObject errObj = new JSONObject(errStr);
-						errStr = errObj.optString("message");
-						finalErrMsg = errStr;
+					if (finalErrMsg.isEmpty() && errObj != null) {
+						finalErrMsg = errObj.optString("message");
 					}
 					this.errMsg = finalErrMsg;
 				} else {

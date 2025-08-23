@@ -85,23 +85,24 @@ public class BulkWorkflowTriggerChunk {
 					headers, contentText, this.config.httpClient);
 			int statusCode = resp.statusCode;
 			String responseText = resp.responseText;
+			JSONObject parsedResponse = BulkResponse.parseBulkApiV2Response(resp.jsonResponse);
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				this.response.put("status", "success").put("status_code", statusCode).put("total", this.chunk.size())
-						.put("success", this.chunk.size()).put("failure", 0)
-						.put("failed_records", new ArrayList<JSONObject>())
-						.put("raw_response", responseText);
+				this.response.put("status", parsedResponse.optString("status")).put("status_code", statusCode).put("total", parsedResponse.optString("total"))
+						.put("success", parsedResponse.optString("succcess")).put("failure", parsedResponse.optString("failure"))
+						.put("failed_records", getFailedRecords(statusCode, responseText))
+						.put("raw_response", resp.jsonResponse);
 			} else {
 				this.response.put("status", "fail").put("status_code", statusCode).put("total", this.chunk.size())
 						.put("success", 0).put("failure", this.chunk.size())
 						.put("failed_records", getFailedRecords(statusCode, responseText))
-						.put("raw_response", responseText);
+						.put("raw_response", resp.jsonResponse);
 			}
 		} catch (SuprsendException | IOException e) {
 			this.response.put("status", "fail").put("status_code", 500).put("total", this.chunk.size())
 					.put("success", 0).put("failure", this.chunk.size())
 					.put("failed_records", getFailedRecords(500, e.toString()))
-					.put("raw_response", new ArrayList<JSONObject>());
+					.put("raw_response", JSONObject.NULL);
 		}
 	}
 

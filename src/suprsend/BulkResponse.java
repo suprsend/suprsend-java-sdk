@@ -15,7 +15,7 @@ public class BulkResponse {
 	public int success = 0;
 	public int failure = 0;
 	public List<String> warnings = new ArrayList<String>();
-	public List<JSONObject> rawResponse = new ArrayList<JSONObject>();
+	public JSONObject rawResponse;
 
 	@Override
 	public String toString() {
@@ -35,6 +35,9 @@ public class BulkResponse {
 				if (newStatus == "fail") {
 					this.status = "partial";
 				}
+				if (newStatus == "partial") {
+					this.status = "partial";
+				}
 			} else if (this.status == "fail") {
 				if (newStatus == "success") {
 					this.status = "partial";
@@ -48,9 +51,9 @@ public class BulkResponse {
 		for (Iterator<Object> iterator = failedRecs.iterator(); iterator.hasNext();) {
 			this.failedRecords.add((JSONObject) iterator.next());
 		}
-		JSONArray rawResponse = chResponse.optJSONArray("raw_response");
-		for (Iterator<Object> iterator = rawResponse.iterator(); iterator.hasNext();) {
-			this.rawResponse.add((JSONObject) iterator.next());
+		JSONObject rawResponse = chResponse.optJSONObject("raw_response");
+		if (rawResponse != null) {
+			this.rawResponse = rawResponse; 
 		}
 	}
 
@@ -77,7 +80,7 @@ public class BulkResponse {
 	}
 
 	static JSONObject parseBulkApiV2Response(JSONObject response) {
-		JSONArray records = response.optJSONArray("records");
+		JSONArray records = response.optJSONArray("records", new JSONArray());
 		int successCount = 0;
 		for (int i = 0; i < records.length(); i++) {
 			JSONObject record = records.getJSONObject(i);
@@ -86,7 +89,7 @@ public class BulkResponse {
 			}
 		}
 		JSONObject derivedResponse = new JSONObject().put("status", "success")
-		.put("total", response.optJSONArray("records").length())
+		.put("total", records.length())
 		.put("success", successCount);
 		
 		int failureCount = records.length() - successCount;

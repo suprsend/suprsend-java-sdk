@@ -35,6 +35,9 @@ public class SuprsendResponse {
 					if (finalErrMsg.isEmpty() && errObj != null) {
 						finalErrMsg = errObj.optString("message");
 					}
+					if (finalErrMsg.isEmpty()) {
+						finalErrMsg = this.responseText;
+					}
 					this.errMsg = finalErrMsg;
 				} else {
 					this.errMsg = this.responseText;

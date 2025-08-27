@@ -88,8 +88,8 @@ public class BulkWorkflowTriggerChunk {
 			JSONObject parsedResponse = BulkResponse.parseBulkApiV2Response(resp.jsonResponse);
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				this.response.put("status", parsedResponse.optString("status")).put("status_code", statusCode).put("total", parsedResponse.optString("total"))
-						.put("success", parsedResponse.optString("succcess")).put("failure", parsedResponse.optString("failure"))
+				this.response.put("status", parsedResponse.getString("status")).put("status_code", statusCode).put("total", parsedResponse.getInt("total"))
+						.put("success", parsedResponse.getInt("succcess")).put("failure", parsedResponse.getInt("failure"))
 						.put("failed_records", getFailedRecords(statusCode, responseText))
 						.put("raw_response", resp.jsonResponse);
 			} else {

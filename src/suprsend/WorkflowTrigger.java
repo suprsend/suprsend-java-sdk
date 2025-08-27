@@ -69,11 +69,11 @@ class WorkflowTrigger {
 			//
 			if (statusCode >= 200 && statusCode < 300) {
 				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						resp.jsonResponse.optString("message_id")).put("raw_response", resp.jsonResponse);
+						responseText);
 			} else {
 				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						resp.errMsg).put("raw_response", responseText);
-			}
+						responseText);
+			}	
 		} catch (SuprsendException | IOException e) {
 			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
 		}

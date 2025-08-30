@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 class BulkEventsChunk {
@@ -85,18 +86,18 @@ class BulkEventsChunk {
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
 					headers, contentText, this.config.httpClient);
 			int statusCode = resp.statusCode;
-			String responseText = resp.responseText;
 			JSONObject parsedResponse = BulkResponse.parseBulkApiV2Response(resp.jsonResponse);
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				this.response.put("status", parsedResponse.getString("status")).put("status_code", statusCode).put("total", parsedResponse.getInt("total"))
+				this.response.put("status", parsedResponse.getString("status")).put("status_code", statusCode)
+						.put("total", parsedResponse.getInt("total"))
 						.put("success", parsedResponse.getInt("success")).put("failure", parsedResponse.getInt("failure"))
-						.put("failed_records", getFailedRecords(statusCode, responseText))
+						.put("failed_records", extractFailedRecords(parsedResponse))
 						.put("raw_response", resp.jsonResponse);
 			} else {
 				this.response.put("status", "fail").put("status_code", statusCode).put("total", this.chunk.size())
 						.put("success", 0).put("failure", this.chunk.size())
-						.put("failed_records", getFailedRecords(statusCode, responseText))
+						.put("failed_records", getFailedRecords(statusCode, resp.errMsg))
 						.put("raw_response", resp.jsonResponse);
 			}
 		} catch (SuprsendException | IOException e) {
@@ -111,5 +112,25 @@ class BulkEventsChunk {
 		return this.chunk.stream()
 				.map(c -> new JSONObject().put("record", c).put("error", errMsg).put("code", statusCode))
 				.collect(Collectors.toList());
+	}
+
+	private List<JSONObject> extractFailedRecords(JSONObject parsedResponse) {
+		List<JSONObject> failedRecords = new ArrayList<>();
+		// [{"status_code": xxx, "status": "error", "error": {"message": "xxx", "type": "xxx"}},
+		// {"status_code": xxx, "status": "success", "message_id": "message_id"},
+		// ...]
+		JSONArray respRecords = parsedResponse.getJSONArray("records");
+		for (int i = 0; i < respRecords.length(); i++) {
+			JSONObject respRec = respRecords.getJSONObject(i);
+			if ("error".equals(respRec.optString("status"))) {
+				JSONObject reqRec = i < this.chunk.size() ? this.chunk.get(i) : null;
+				JSONObject e = new JSONObject().put("record", reqRec)
+						.put("error", respRec.getJSONObject("error").getString("message"))
+						.put("code", respRec.getInt("status_code"));
+				//
+				failedRecords.add(e);
+			}
+		}
+		return failedRecords;
 	}
 }

@@ -73,7 +73,7 @@ class WorkflowTrigger {
 			} else {
 				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
 						responseText);
-			}	
+			}
 		} catch (SuprsendException | IOException e) {
 			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
 		}

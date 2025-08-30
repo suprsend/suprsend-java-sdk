@@ -31,11 +31,10 @@ public class BulkResponse {
 		if (this.status == null || this.status.isEmpty()) {
 			this.status = newStatus;
 		} else {
-			if (this.status == "success") {
+			if (newStatus == "partial") {
+				this.status = "partial";
+			} else if (this.status == "success") {
 				if (newStatus == "fail") {
-					this.status = "partial";
-				}
-				if (newStatus == "partial") {
 					this.status = "partial";
 				}
 			} else if (this.status == "fail") {
@@ -50,10 +49,6 @@ public class BulkResponse {
 		JSONArray failedRecs = chResponse.optJSONArray("failed_records");
 		for (Iterator<Object> iterator = failedRecs.iterator(); iterator.hasNext();) {
 			this.failedRecords.add((JSONObject) iterator.next());
-		}
-		JSONObject rawResponse = chResponse.optJSONObject("raw_response");
-		if (rawResponse != null) {
-			this.rawResponse = rawResponse; 
 		}
 	}
 
@@ -81,23 +76,21 @@ public class BulkResponse {
 
 	static JSONObject parseBulkApiV2Response(JSONObject response) {
 		JSONArray records = response.optJSONArray("records", new JSONArray());
+		int totalCount = records.length();
 		int successCount = 0;
-		for (int i = 0; i < records.length(); i++) {
-			JSONObject record = records.getJSONObject(i);
-			if ("success".equals(record.optString("status"))) {
+		for (Iterator<Object> iterator = records.iterator(); iterator.hasNext();) {
+			JSONObject rec = (JSONObject) iterator.next();
+			if ("success".equals(rec.optString("status"))) {
 				successCount++;
 			}
 		}
-		JSONObject derivedResponse = new JSONObject().put("status", "success")
-		.put("total", records.length())
-		.put("success", successCount);
-		
-		int failureCount = records.length() - successCount;
-		derivedResponse.put("failure", failureCount);
-		if (failureCount > 0) {
-			String newStatus = (successCount > 0) ? "partial" : "fail";
-			derivedResponse.put("status", newStatus);
-		}
+		int failureCount = totalCount - successCount;
+		String netStatus = (failureCount > 0) ? (successCount > 0 ? "partial": "fail") : "success";
+		//
+		JSONObject derivedResponse = new JSONObject().put("status", netStatus)
+				.put("total", totalCount)
+				.put("success", successCount)
+				.put("failure", failureCount);
 		return derivedResponse;
 	}
 }

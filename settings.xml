@@ -1,9 +1,9 @@
 <settings>
     <servers>
         <server>
-            <id>ossrh</id>
-            <username>${env.OSSRH_USER_TOKEN}</username>
-            <password>${env.OSSRH_PWD_TOKEN}</password>
+            <id>central</id>
+            <username>${env.MVN_CENTRAL_TOKEN_USER}</username>
+            <password>${env.MVN_CENTRAL_TOKEN_PASS}</password>
         </server>
     </servers>
     <profiles>

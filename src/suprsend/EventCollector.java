@@ -49,14 +49,18 @@ class EventCollector {
 			int statusCode = resp.statusCode;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						resp.jsonResponse.optString("message_id")).put("raw_response", resp.jsonResponse);
+				response.put("success", true).put("status", "success").put("status_code", statusCode)
+						.put("message", resp.jsonResponse.optString("message_id"))
+						.put("raw_response", resp.jsonResponse);
 			} else {
-				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						resp.errMsg).put("raw_response",  resp.jsonResponse);
+				response.put("success", false).put("status", "fail").put("status_code", statusCode)
+						.put("message", resp.errMsg)
+						.put("raw_response",  resp.jsonResponse);
 			}
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString()).put("raw_response", JSONObject.NULL);
+			response.put("success", false).put("status", "fail").put("status_code", 500)
+					.put("message", e.toString())
+					.put("raw_response", JSONObject.NULL);
 		}
 		return response;
 	}

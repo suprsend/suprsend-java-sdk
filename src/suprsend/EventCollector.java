@@ -14,7 +14,7 @@ class EventCollector {
 
 	EventCollector(Suprsend config) {
 		this.config = config;
-		this.url = String.format("%sevent/", this.config.baseUrl);
+		this.url = String.format("%sv2/event/", this.config.baseUrl);
 	}
 
 	/**
@@ -47,17 +47,20 @@ class EventCollector {
 			SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, this.url,
 					headers, contentText, this.config.httpClient);
 			int statusCode = resp.statusCode;
-			String responseText = resp.responseText;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						responseText);
+				response.put("success", true).put("status", "success").put("status_code", statusCode)
+						.put("message", resp.jsonResponse.optString("message_id"))
+						.put("raw_response", resp.jsonResponse);
 			} else {
-				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						responseText);
+				response.put("success", false).put("status", "fail").put("status_code", statusCode)
+						.put("message", resp.errMsg)
+						.put("raw_response",  resp.jsonResponse);
 			}
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
+			response.put("success", false).put("status", "fail").put("status_code", 500)
+					.put("message", e.toString())
+					.put("raw_response", JSONObject.NULL);
 		}
 		return response;
 	}

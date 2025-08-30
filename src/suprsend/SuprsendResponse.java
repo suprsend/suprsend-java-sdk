@@ -21,28 +21,32 @@ public class SuprsendResponse {
 	}
 
 	void parseResponse() {
-		if (this.contentType != null && this.contentType.contains("application/json")) {
-			try {
-				this.jsonResponse = new JSONObject(this.responseText);
-			} catch (JSONException ex) {
-			}
-			if (this.statusCode >= 400) {
-				if (this.jsonResponse != null) {
-					String msgStr = this.jsonResponse.optString("message");
-					String dtlStr = this.jsonResponse.optString("detail");
-					String finalErrMsg = msgStr.isEmpty() ? dtlStr : msgStr;
-					if (finalErrMsg.isEmpty()) {
-						finalErrMsg = this.responseText;
-					}
-					this.errMsg = finalErrMsg;
-				} else {
-					this.errMsg = this.responseText;
+		// if (this.contentType != null && this.contentType.contains("application/json")) {
+		try {
+			this.jsonResponse = new JSONObject(this.responseText);
+		} catch (JSONException ex) {
+		}
+		if (this.statusCode >= 400) {
+			if (this.jsonResponse != null) {
+				String msgStr = this.jsonResponse.optString("message");
+				String dtlStr = this.jsonResponse.optString("detail");
+				JSONObject errObj = this.jsonResponse.optJSONObject("error");
+				String finalErrMsg = msgStr.isEmpty() ? dtlStr : msgStr;
+				if (finalErrMsg.isEmpty() && errObj != null) {
+					finalErrMsg = errObj.optString("message");
 				}
-			}
-		} else {
-			if (this.statusCode >= 400) {
+				if (finalErrMsg.isEmpty()) {
+					finalErrMsg = this.responseText;
+				}
+				this.errMsg = finalErrMsg;
+			} else {
 				this.errMsg = this.responseText;
 			}
 		}
+		// } else {
+		// 	if (this.statusCode >= 400) {
+		// 		this.errMsg = this.responseText;
+		// 	}
+		// }
 	}
 }

@@ -46,14 +46,19 @@ public class WorkflowsApi {
 			String responseText = resp.responseText;
 			//
 			if (statusCode >= 200 && statusCode < 300) {
-				response.put("success", true).put("status", "success").put("status_code", statusCode).put("message",
-						responseText);
+				response.put("success", true).put("status", "success").put("status_code", statusCode)
+						.put("message", (resp.jsonResponse != null ? resp.jsonResponse.optString("message_id") : responseText))
+						.put("raw_response", resp.jsonResponse);
 			} else {
-				response.put("success", false).put("status", "fail").put("status_code", statusCode).put("message",
-						responseText);
+				response.put("success", false).put("status", "fail").put("status_code", statusCode)
+						.put("message", resp.errMsg)
+						.put("raw_response", resp.jsonResponse);
 			}
+	
 		} catch (SuprsendException | IOException e) {
-			response.put("success", false).put("status", "fail").put("status_code", 500).put("message", e.toString());
+			response.put("success", false).put("status", "fail").put("status_code", 500)
+					.put("message", e.toString())
+					.put("raw_response", JSONObject.NULL);
 		}
 		return response;
 	}

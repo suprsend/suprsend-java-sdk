@@ -25,7 +25,6 @@ public class SuprsendResponse {
 		try {
 			this.jsonResponse = new JSONObject(this.responseText);
 		} catch (JSONException ex) {
-			System.out.println("JSONException: " + ex.getMessage());
 		}
 		if (this.statusCode >= 400) {
 			if (this.jsonResponse != null) {

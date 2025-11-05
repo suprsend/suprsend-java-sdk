@@ -226,6 +226,14 @@ public class ObjectEdit {
 		collectOperation();
 	}
 
+	// =========================================== Locale
+
+	public void setLocale(String locale) {
+		String caller = "set_locale";
+		this.helper.setLocale(locale, caller);
+		collectOperation();
+	}
+
 	// =========================================== Timezone
 
 	public void setTimezone(String timezone) {

@@ -23,6 +23,7 @@ class SubscriberInternalHelper {
 
 	public static final String KEY_ID_PROVIDER = "$id_provider";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
+	public static final String KEY_LOCALE = "$locale";
 	public static final String KEY_TIMEZONE = "$timezone";
 
 	// --------------
@@ -215,6 +216,10 @@ class SubscriberInternalHelper {
 
 	void setPreferredLanguage(String langCode, String caller) {
 		this.dictSet.put(KEY_PREFERRED_LANGUAGE, langCode);
+	}
+
+	void setLocale(String locale, String caller) {
+		this.dictSet.put(KEY_LOCALE, locale);
 	}
 
 	void setTimezone(String timezone, String caller) {

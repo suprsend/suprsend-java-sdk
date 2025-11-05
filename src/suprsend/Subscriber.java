@@ -311,6 +311,12 @@ public class Subscriber {
 		collectEvent();
 	}
 
+	public void setLocale(String locale) {
+		String caller = "set_locale";
+		this.helper.setLocale(locale, caller);
+		collectEvent();
+	}
+
 	// =========================================== Timezone
 
 	public void setTimezone(String timezone) {

@@ -228,9 +228,9 @@ public class ObjectEdit {
 
 	// =========================================== Locale
 
-	public void setLocale(String locale) {
+	public void setLocale(String localeCode) {
 		String caller = "set_locale";
-		this.helper.setLocale(locale, caller);
+		this.helper.setLocale(localeCode, caller);
 		collectOperation();
 	}
 

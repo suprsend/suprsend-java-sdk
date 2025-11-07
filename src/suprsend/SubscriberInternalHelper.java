@@ -218,8 +218,8 @@ class SubscriberInternalHelper {
 		this.dictSet.put(KEY_PREFERRED_LANGUAGE, langCode);
 	}
 
-	void setLocale(String locale, String caller) {
-		this.dictSet.put(KEY_LOCALE, locale);
+	void setLocale(String localeCode, String caller) {
+		this.dictSet.put(KEY_LOCALE, localeCode);
 	}
 
 	void setTimezone(String timezone, String caller) {

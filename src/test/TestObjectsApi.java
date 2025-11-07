@@ -32,7 +32,7 @@ public class TestObjectsApi {
 		testRemoveSlack();
 		testAddMSTeams();
 		testRemoveMSTeams();
-		testPreferredLanguage();
+		testLocale();
 		testTimezone();
 		testRemove();
 		testAddHelperFunctions();
@@ -313,14 +313,14 @@ public class TestObjectsApi {
 		System.out.println(res);
 	}
 
-	public static void testPreferredLanguage() throws Exception {
+	public static void testLocale() throws Exception {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		//
 		String objectType = "__objecttype__";
 		String objectId = "__objectid__";
 		ObjectEdit object = suprClient.objects.getInstance(objectType, objectId);
 		//
-		object.setPreferredLanguage("es");
+		object.setLocale("es");
 		JSONObject res = suprClient.objects.edit(object);
 		System.out.println(res);
 	}

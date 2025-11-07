@@ -14,7 +14,7 @@ You can include the jar using following two ways:
         <dependency>
           <groupId>com.suprsend</groupId>
           <artifactId>suprsend-java-sdk</artifactId>
-          <version>0.12.0</version>
+          <version>0.13.0</version>
 	    </dependency>
       </dependencies>
     ```
@@ -22,7 +22,7 @@ You can include the jar using following two ways:
 2. As a jar file for non maven projects:
 
    Please download jar from releases section.
-   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.12.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
+   `suprsend-java-sdk` is available as a JAR with name - `suprsend-java-sdk-0.13.0-jar-with-dependencies.jar` and add it as an External Jar in your build path.
 
 ### Usage
 Initialize the Suprsend library using the following:
@@ -187,12 +187,13 @@ JSONObject response = user.save()
 
 ```
 
-- You can also set preferred language of user using `setPreferredLanguage(langCode)`. Value for langCode
-  must be 2-letter code in the `ISO 639-1 Alpha-2 code` format.
-  e.g. en (for English), es (for Spanish), fr (for French) etc.
+- You can also set locale of user using `setLocale(localeCode)`. Value for localeCode must be either in
+  - [ISO 639-1 2-letter] format. (e.g `en`, `fr`), OR
+  - `languageCode`-`regionCode` format. (e.g `en-US`, `en-GB`, `fr-FR`). Combines language code (ISO 639-1 2-letter) and a country code (ISO 3166-1 alpha-2), separated by a hyphen.
+
 ```java
-# --- Set 2-letter language code in "ISO 639-1 Alpha-2" format
-user.setPreferredLanguage("en")
+# --- Set locale
+user.setLocate("en-US")
 JSONObject response = user.save()
 System.out.println(response);
 ```

@@ -239,6 +239,84 @@ public class UsersApi {
 		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
 	}
 
+	private String validateTenantId(String tenantId) throws SuprsendException {
+		if (tenantId == null || tenantId.trim().isEmpty()) {
+			throw new SuprsendException("missing tenant_id");
+		} else {
+			return tenantId.trim();
+		}
+	}
+
+	private String tenantBaseUrl(String distinctId) throws UnsupportedEncodingException {
+		return String.format("%stenant/", detailUrl(distinctId));
+	}
+
+	private String tenantDetailUrl(String distinctId, String tenantId) throws UnsupportedEncodingException {
+		return String.format("%s%s/", tenantBaseUrl(distinctId), Utils.urlEncode(tenantId));
+	}
+
+	public JSONObject getTenants(String distinctId) throws IOException, SuprsendException {
+		distinctId = validateDistinctId(distinctId);
+		String url = tenantBaseUrl(distinctId);
+		//
+		JSONObject headers = getHeaders();
+		// Signature and Authorization-header
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
+		String contentText = sigResult.getString("contentTxt");
+		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+		//
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+				contentText, this.config.httpClient);
+		if (resp.statusCode >= 400) {
+			throw new SuprsendException(resp.errMsg, resp.statusCode);
+		}
+		return resp.jsonResponse;
+	}
+
+	public JSONObject upsertTenant(String distinctId, String tenantId, JSONObject payload)
+			throws IOException, SuprsendException {
+		distinctId = validateDistinctId(distinctId);
+		tenantId = validateTenantId(tenantId);
+		if (payload == null) {
+			payload = new JSONObject();
+		}
+		String url = tenantDetailUrl(distinctId, tenantId);
+		//
+		JSONObject headers = getHeaders();
+		// Signature and Authorization-header
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
+				this.config.apiSecret);
+		String contentText = sigResult.getString("contentTxt");
+		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+		//
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.POST, url, headers,
+				contentText, this.config.httpClient);
+		if (resp.statusCode >= 400) {
+			throw new SuprsendException(resp.errMsg, resp.statusCode);
+		}
+		return resp.jsonResponse;
+	}
+
+	public JSONObject deleteTenant(String distinctId, String tenantId) throws IOException, SuprsendException {
+		distinctId = validateDistinctId(distinctId);
+		tenantId = validateTenantId(tenantId);
+		String url = tenantDetailUrl(distinctId, tenantId);
+		//
+		JSONObject headers = getHeaders();
+		// Signature and Authorization-header
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, "", headers,
+				this.config.apiSecret);
+		String contentText = sigResult.getString("contentTxt");
+		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+		//
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.DELETE, url, headers,
+				contentText, this.config.httpClient);
+		if (resp.statusCode >= 400) {
+			throw new SuprsendException(resp.errMsg, resp.statusCode);
+		}
+		return new JSONObject().put("success", true).put("status_code", resp.statusCode);
+	}
+
 	public JSONObject getObjectsSubscribedTo(String distinctId, HashMap<String, Object> opts)
 			throws IOException, SuprsendException {
 		distinctId = validateDistinctId(distinctId);

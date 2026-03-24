@@ -7,9 +7,6 @@ on:
   push:
     tags:
       - 'v*.*.*'
-    branches:
-      - wf/*
-  workflow_dispatch:
 
 jobs:
   build:

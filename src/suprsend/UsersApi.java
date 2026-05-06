@@ -273,6 +273,25 @@ public class UsersApi {
 		return resp.jsonResponse;
 	}
 
+	public JSONObject getTenantDetail(String distinctId, String tenantId) throws IOException, SuprsendException {
+		distinctId = validateDistinctId(distinctId);
+		tenantId = validateTenantId(tenantId);
+		String url = tenantDetailUrl(distinctId, tenantId);
+		//
+		JSONObject headers = getHeaders();
+		// Signature and Authorization-header
+		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
+		String contentText = sigResult.getString("contentTxt");
+		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+		//
+		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+				contentText, this.config.httpClient);
+		if (resp.statusCode >= 400) {
+			throw new SuprsendException(resp.errMsg, resp.statusCode);
+		}
+		return resp.jsonResponse;
+	}
+
 	public JSONObject upsertTenant(String distinctId, String tenantId, JSONObject payload)
 			throws IOException, SuprsendException {
 		distinctId = validateDistinctId(distinctId);

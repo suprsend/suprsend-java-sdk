@@ -153,42 +153,42 @@ public class MessagesApi {
 		return resp.jsonResponse;
 	}
 
-	private String validateMessageId(String messageId) throws SuprsendException {
-		if (messageId == null || messageId.trim().isEmpty()) {
-			throw new SuprsendException("missing messageId");
-		}
-		return messageId.trim();
-	}
+	// private String validateMessageId(String messageId) throws SuprsendException {
+	// 	if (messageId == null || messageId.trim().isEmpty()) {
+	// 		throw new SuprsendException("missing messageId");
+	// 	}
+	// 	return messageId.trim();
+	// }
 
-	private String contentUrl(String messageId) throws UnsupportedEncodingException {
-		return String.format("%s/%s/content", this.listUrl, Utils.urlEncode(messageId));
-	}
+	// private String contentUrl(String messageId) throws UnsupportedEncodingException {
+	// 	return String.format("%s/%s/content", this.listUrl, Utils.urlEncode(messageId));
+	// }
 
-	/**
-	 * Fetch the rendered content of a message (subject, body, title, etc.).
-	 * Throws SuprsendException with status 404 if content has expired or was never saved.
-	 *
-	 * @param messageId message ID (ULID)
-	 * @return JSONObject with {@code notification_id}, {@code channel}, {@code rendered_at},
-	 *         and {@code content} fields
-	 * @throws IOException
-	 * @throws SuprsendException
-	 */
-	public JSONObject getContent(String messageId) throws IOException, SuprsendException {
-		messageId = validateMessageId(messageId);
-		String url = contentUrl(messageId);
-		//
-		JSONObject headers = getHeaders();
-		// Signature and Authorization-header
-		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
-		String contentText = sigResult.getString("contentTxt");
-		headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
-		//
-		SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
-				contentText, this.config.httpClient);
-		if (resp.statusCode >= 400) {
-			throw new SuprsendException(resp.errMsg, resp.statusCode);
-		}
-		return resp.jsonResponse;
-	}
+	// /**
+	//  * Fetch the rendered content of a message (subject, body, title, etc.).
+	//  * Throws SuprsendException with status 404 if content has expired or was never saved.
+	//  *
+	//  * @param messageId message ID (ULID)
+	//  * @return JSONObject with {@code notification_id}, {@code channel}, {@code rendered_at},
+	//  *         and {@code content} fields
+	//  * @throws IOException
+	//  * @throws SuprsendException
+	//  */
+	// public JSONObject getContent(String messageId) throws IOException, SuprsendException {
+	// 	messageId = validateMessageId(messageId);
+	// 	String url = contentUrl(messageId);
+	// 	//
+	// 	JSONObject headers = getHeaders();
+	// 	// Signature and Authorization-header
+	// 	JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
+	// 	String contentText = sigResult.getString("contentTxt");
+	// 	headers.put("Authorization", String.format("%s:%s", this.config.apiKey, sigResult.getString("signature")));
+	// 	//
+	// 	SuprsendResponse resp = RequestLogs.makeHttpCall(logger, this.config.debug, HttpMethod.GET, url, headers,
+	// 			contentText, this.config.httpClient);
+	// 	if (resp.statusCode >= 400) {
+	// 		throw new SuprsendException(resp.errMsg, resp.statusCode);
+	// 	}
+	// 	return resp.jsonResponse;
+	// }
 }

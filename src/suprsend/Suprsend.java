@@ -32,6 +32,7 @@ public class Suprsend {
 	public WorkflowsApi workflows;
 	public ObjectsApi objects;
 	public UsersApi users;
+	public MessagesApi messages;
 	//
 	public SubscriberListsApi subscriberLists;
 
@@ -49,6 +50,7 @@ public class Suprsend {
 		this.workflows = new WorkflowsApi(this);
 		this.objects = new ObjectsApi(this);
 		this.users = new UsersApi(this);
+		this.messages = new MessagesApi(this);
 		//
 		this.subscriberLists = new SubscriberListsApi(this);
 	}

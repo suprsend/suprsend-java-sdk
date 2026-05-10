@@ -17,16 +17,6 @@ class EventCollector {
 		this.url = String.format("%sv2/event/", this.config.baseUrl);
 	}
 
-	/**
-	 * Headers required to trigger workflow request
-	 * 
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	JSONObject collect(Event event) throws InputValueException, SuprsendException, UnsupportedEncodingException {
 		JSONObject finalJson = event.getFinalJson(config, false);
 		JSONObject eventDict = finalJson.getJSONObject("event");
@@ -35,7 +25,7 @@ class EventCollector {
 	}
 
 	private JSONObject send(JSONObject event) {
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		JSONObject response = new JSONObject();
 		try {
 			// Signature and Authorization Header

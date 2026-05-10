@@ -40,14 +40,6 @@ public class Subscriber {
 		this.__warningsList = new ArrayList<String>();
 	}
 
-	/**
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private JSONObject getSuperProperties() {
 		return new JSONObject().put("$ss_sdk_version", this.config.userAgent);
 	}
@@ -117,7 +109,7 @@ public class Subscriber {
 		JSONObject response = new JSONObject();
 		try {
 			validateBody(false);
-			JSONObject headers = getHeaders();
+			JSONObject headers = this.config.getHeaders();
 			JSONObject eventTemp = getEvent();
 			// # --- validate event size
 			JSONObject ev = validateEventSize(eventTemp);

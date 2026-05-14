@@ -13,8 +13,8 @@ import org.json.JSONObject;
  */
 public class Suprsend {
 	protected String apiKey, apiSecret, baseUrl;
-	protected String userAgent = String.format("suprsend/%s;java/%s", Version.VERSION,
-			System.getProperty("java.version"));
+	protected String userAgent;
+	protected String clientUserAgent;
 	protected boolean debug = false;
 	protected ProxyConfig proxyConfig;
 	protected CloseableHttpClient httpClient;
@@ -57,7 +57,7 @@ public class Suprsend {
 
 	/**
 	 * constructor to initialize SDK with workspace-key and secret
-	 * 
+	 *
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
 	 * @throws SuprsendException Custom exception thrown by SDK
@@ -69,7 +69,7 @@ public class Suprsend {
 	/**
 	 * constructor to initialize SDK with workspace-key and secret. It also allows
 	 * the capability of passing custom base URL
-	 * 
+	 *
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
 	 * @param baseUrl   custom base-url instead of suprsend platform url
@@ -83,7 +83,7 @@ public class Suprsend {
 	 * constructor to initialize SDK with workspace-key and secret. It also allows
 	 * the capability to print debug logs. If set to true will print the HTTP
 	 * request logs sent to Suprsend platform
-	 * 
+	 *
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
 	 * @param debug     print logs of http-request to SuprSend
@@ -94,7 +94,7 @@ public class Suprsend {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
 	 * @param baseUrl   custom base-url instead of suprsend platform url
@@ -106,7 +106,7 @@ public class Suprsend {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param apiKey    api_key provided by SuprSend
 	 * @param apiSecret api_secret provided by SuprSend
 	 * @param baseUrl   custom base-url instead of suprsend platform url
@@ -121,12 +121,12 @@ public class Suprsend {
 
 	/**
 	 *
-	 * @param apiKey    api_key provided by SuprSend
-	 * @param apiSecret api_secret provided by SuprSend
-	 * @param baseUrl   custom base-url instead of suprsend platform url
-	 * @param debug     print logs of http-request to SuprSend
-	 * @param proxyConfig    proxy config
-	 * @param kwargs    extra parameters for SuprSend internal purpose
+	 * @param apiKey      api_key provided by SuprSend
+	 * @param apiSecret   api_secret provided by SuprSend
+	 * @param baseUrl     custom base-url instead of suprsend platform url
+	 * @param debug       print logs of http-request to SuprSend
+	 * @param proxyConfig proxy config
+	 * @param kwargs      extra parameters for SuprSend internal purpose
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
 	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, ProxyConfig proxyConfig, JSONObject kwargs)
@@ -139,10 +139,26 @@ public class Suprsend {
 		cleanup();
 		validate();
 		//
+		setAppInfo(null);
+		//
 		this.proxyConfig = proxyConfig;
 		this.httpClient = CustomHttpClient.initializeHttpClient(proxyConfig);
 		//
 		initHelpers();
+	}
+
+	/**
+	 * Build the common request headers used by every API call.
+	 *
+	 * @return JSONObject containing Content-Type, User-Agent,
+	 *         X-Suprsend-Client-User-Agent and Date headers
+	 */
+	JSONObject getHeaders() {
+		return new JSONObject()
+				.put("Content-Type", "application/json; charset=utf-8")
+				.put("User-Agent", this.userAgent)
+				.put("X-Suprsend-Client-User-Agent", this.clientUserAgent)
+				.put("Date", Utils.getCurrentDateTimeHeader());
 	}
 
 	/**
@@ -152,6 +168,18 @@ public class Suprsend {
 	public void setProxyConfig(ProxyConfig proxyConfig) {
 		this.proxyConfig = proxyConfig;
 		this.httpClient = CustomHttpClient.initializeHttpClient(proxyConfig);
+	}
+
+	/**
+	 * Set caller application metadata (name, version) which is appended to the
+	 * User-Agent header. Can be called any time after SDK initialization.
+	 *
+	 * @param appInfo caller application metadata (name, version)
+	 */
+	public void setAppInfo(AppInfo appInfo) {
+		UserAgentBuilder.UserAgent ua = UserAgentBuilder.build(appInfo);
+		this.userAgent = ua.userAgent;
+		this.clientUserAgent = ua.clientUserAgent;
 	}
 
 	private void cleanup() {

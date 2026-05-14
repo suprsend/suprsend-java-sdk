@@ -23,11 +23,6 @@ public class SubscriberListsApi {
 		this.nonErrorDefaultResponse = new JSONObject().put("success", true);
 	}
 
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private String validateListId(String listId) throws SuprsendException {
 		if (listId == null || listId.trim().isEmpty()) {
 			throw new SuprsendException("missing list_id");
@@ -43,7 +38,7 @@ public class SubscriberListsApi {
 		String listId = validateListId(payload.optString("list_id"));
 		payload.put("list_id", listId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(this.subscriberListUrl, HttpMethod.POST,
 				payload.toString(), headers, this.config.apiSecret);
@@ -92,7 +87,7 @@ public class SubscriberListsApi {
 		String encodedParams = Utils.buildQueryParams(queryParamsMap);
 		String url = String.format("%s?%s", this.subscriberListUrl, encodedParams);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -114,7 +109,7 @@ public class SubscriberListsApi {
 		listId = validateListId(listId);
 		String url = subscriberListDetailUrl(listId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -135,7 +130,7 @@ public class SubscriberListsApi {
 		}
 		String url = String.format("%ssubscriber/add/", subscriberListDetailUrl(listId));
 		JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -157,7 +152,7 @@ public class SubscriberListsApi {
 		}
 		String url = String.format("%ssubscriber/remove/", subscriberListDetailUrl(listId));
 		JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -177,7 +172,7 @@ public class SubscriberListsApi {
 		//
 		String url = String.format("%sdelete/", subscriberListDetailUrl(listId));
 		JSONObject payload = new JSONObject();
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -202,7 +197,7 @@ public class SubscriberListsApi {
 		//
 		JSONObject response = new JSONObject();
 		try {
-			JSONObject headers = getHeaders();
+			JSONObject headers = this.config.getHeaders();
 			// Signature and Authorization-header
 			JSONObject sigResult = Signature.getRequestSignature(this.broadcastUrl, HttpMethod.POST,
 					broadcastBody.toString(), headers, this.config.apiSecret);
@@ -232,7 +227,7 @@ public class SubscriberListsApi {
 		//
 		String url = String.format("%sstart_sync/", subscriberListDetailUrl(listId));
 		JSONObject payload = new JSONObject();
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -265,7 +260,7 @@ public class SubscriberListsApi {
 		versionId = validateVersionId(versionId);
 		String url = subscriberListUrlWithVersion(listId, versionId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -288,7 +283,7 @@ public class SubscriberListsApi {
 		}
 		String url = String.format("%ssubscriber/add/", subscriberListUrlWithVersion(listId, versionId));
 		JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -312,7 +307,7 @@ public class SubscriberListsApi {
 		}
 		String url = String.format("%ssubscriber/remove/", subscriberListUrlWithVersion(listId, versionId));
 		JSONObject payload = new JSONObject().put("distinct_ids", distinctIds);
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -333,7 +328,7 @@ public class SubscriberListsApi {
 		//
 		String url = String.format("%sfinish_sync/", subscriberListUrlWithVersion(listId, versionId));
 		JSONObject payload = new JSONObject();
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -354,7 +349,7 @@ public class SubscriberListsApi {
 		//
 		String url = String.format("%sdelete/", subscriberListUrlWithVersion(listId, versionId));
 		JSONObject payload = new JSONObject();
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);

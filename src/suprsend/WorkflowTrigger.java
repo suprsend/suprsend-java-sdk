@@ -28,16 +28,6 @@ class WorkflowTrigger {
 	}
 
 	/**
-	 * Headers required to trigger workflow request
-	 * 
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
-	/**
 	 * This method registers Dynamic workflow request with SuprSend platform.
 	 * 
 	 * @return Request acceptance status
@@ -52,7 +42,7 @@ class WorkflowTrigger {
 	}
 
 	JSONObject send(JSONObject workflowBody) {
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		JSONObject response = new JSONObject();
 		try {
 			String contentText;

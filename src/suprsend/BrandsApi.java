@@ -18,11 +18,6 @@ public class BrandsApi {
 		this.listUrl = String.format("%sv1/brand/", this.config.baseUrl);
 	}
 
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private int cleanLimit(int limit) {
 		// limit must be 0 < x <= 1000
 		if (limit > 0 && limit <= 1000) {
@@ -57,7 +52,7 @@ public class BrandsApi {
 		String encodedParams = Utils.buildQueryParams(queryParamsMap);
 		String url = String.format("%s?%s", this.listUrl, encodedParams);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -87,7 +82,7 @@ public class BrandsApi {
 		brandId = validateBrandId(brandId);
 		String url = detailUrl(brandId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -108,7 +103,7 @@ public class BrandsApi {
 			brandPayload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, brandPayload.toString(), headers,
 				this.config.apiSecret);

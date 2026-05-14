@@ -20,11 +20,6 @@ public class ObjectsApi {
 		this.bulkUrl = String.format("%sv1/bulk/object/", this.config.baseUrl);
 	}
 
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	public JSONObject list(String objectType) throws IOException, SuprsendException {
 		HashMap<String, Object> opts = new HashMap<String, Object>();
 		return list(objectType, opts);
@@ -36,7 +31,7 @@ public class ObjectsApi {
 		String url = String.format("%s%s/%s", this.listUrl, Utils.urlEncode(objectType),
 				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -75,7 +70,7 @@ public class ObjectsApi {
 		objectId = validateObjectId(objectId);
 		String url = detailUrl(objectType, objectId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -98,7 +93,7 @@ public class ObjectsApi {
 			payload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -121,7 +116,7 @@ public class ObjectsApi {
 		String url = detailUrl(editInstance.getObjectType(), editInstance.getObjectId());
 		JSONObject payload = editInstance.getPayload();
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -145,7 +140,7 @@ public class ObjectsApi {
 			payload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -165,7 +160,7 @@ public class ObjectsApi {
 		objectId = validateObjectId(objectId);
 		String url = detailUrl(objectType, objectId);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, "", headers,
 				this.config.apiSecret);
@@ -188,7 +183,7 @@ public class ObjectsApi {
 			payload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, payload.toString(), headers,
 				this.config.apiSecret);
@@ -213,7 +208,7 @@ public class ObjectsApi {
 		String url = String.format("%ssubscription/%s", detailUrl,
 				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -237,7 +232,7 @@ public class ObjectsApi {
 			payload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.POST, payload.toString(), headers,
 				this.config.apiSecret);
@@ -262,7 +257,7 @@ public class ObjectsApi {
 			payload = new JSONObject();
 		}
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.DELETE, payload.toString(), headers,
 				this.config.apiSecret);
@@ -287,7 +282,7 @@ public class ObjectsApi {
 		String url = String.format("%ssubscribed_to/object/%s", detailUrl,
 				(encodedParams == "" ? "" : String.format("?%s", encodedParams)));
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");

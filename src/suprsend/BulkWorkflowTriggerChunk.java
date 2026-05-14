@@ -33,12 +33,6 @@ public class BulkWorkflowTriggerChunk {
 		this.response = new JSONObject();
 	}
 
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent)
-				.put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private void addBodyToChunk(JSONObject body, int bodySize) {
 		this.runningSize += bodySize;
 		this.chunk.add(body);
@@ -74,7 +68,7 @@ public class BulkWorkflowTriggerChunk {
 	}
 
 	void trigger() {
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		try {
 			// Signature and Authorization Header
 			JSONObject sigResult = Signature.getRequestSignature(this.url, HttpMethod.POST, this.chunk.toString(),

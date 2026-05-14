@@ -31,11 +31,6 @@ public class MessagesApi {
 		this.bulkUrl = String.format("%sv1/bulk/message/", this.config.baseUrl);
 	}
 
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private String buildListQuery(HashMap<String, Object> opts) throws UnsupportedEncodingException {
 		if (opts == null || opts.isEmpty()) {
 			return "";
@@ -105,7 +100,7 @@ public class MessagesApi {
 		String encodedParams = buildListQuery(opts);
 		String url = this.listUrl + (encodedParams.isEmpty() ? "" : "?" + encodedParams);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -139,7 +134,7 @@ public class MessagesApi {
 		JSONObject payload = new JSONObject().put("messages", messages);
 		String url = this.bulkUrl;
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -179,7 +174,7 @@ public class MessagesApi {
 	// 	messageId = validateMessageId(messageId);
 	// 	String url = contentUrl(messageId);
 	// 	//
-	// 	JSONObject headers = getHeaders();
+	// 	JSONObject headers = this.config.getHeaders();
 	// 	// Signature and Authorization-header
 	// 	JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 	// 	String contentText = sigResult.getString("contentTxt");

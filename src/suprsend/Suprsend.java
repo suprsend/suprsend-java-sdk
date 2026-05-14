@@ -129,8 +129,8 @@ public class Suprsend {
 	 * @param kwargs      extra parameters for SuprSend internal purpose
 	 * @throws SuprsendException Custom exception thrown by SDK
 	 */
-	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, ProxyConfig proxyConfig,
-			JSONObject kwargs) throws SuprsendException {
+	public Suprsend(String apiKey, String apiSecret, String baseUrl, boolean debug, ProxyConfig proxyConfig, JSONObject kwargs)
+			throws SuprsendException {
 		this.apiKey = apiKey;
 		this.apiSecret = apiSecret;
 		this.baseUrl = getUrl(baseUrl);

@@ -387,26 +387,30 @@ public class Subscriber {
 
 	// =========================================================== Iospush
 	public void addIospush(String value) {
-		String caller = "add_iospush";
-		this.helper.addIospush(value, null, caller);
-		collectEvent();
+		addIospush(value, null, null);
 	}
 
 	public void addIospush(String value, String provider) {
+		addIospush(value, provider, null);
+	}
+
+	public void addIospush(String value, String provider, String bundle_id) {
 		String caller = "add_iospush";
-		this.helper.addIospush(value, provider, caller);
+		this.helper.addIospush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 
 	public void removeIospush(String value) {
-		String caller = "remove_iospush";
-		this.helper.removeIospush(value, null, caller);
-		collectEvent();
+		removeIospush(value, null, null);
 	}
 
 	public void removeIospush(String value, String provider) {
+		removeIospush(value, provider, null);
+	}
+
+	public void removeIospush(String value, String provider, String bundle_id) {
 		String caller = "remove_iospush";
-		this.helper.removeIospush(value, provider, caller);
+		this.helper.removeIospush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 

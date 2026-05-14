@@ -34,11 +34,11 @@ public class AppInfo {
 	 */
 	JSONObject toJson() {
 		JSONObject json = new JSONObject();
-		if (this.name != null) {
-			json.put("name", this.name);
+		if (this.name != null && !this.name.trim().isEmpty()) {
+			json.put("name", this.name.trim());
 		}
-		if (this.version != null) {
-			json.put("version", this.version);
+		if (this.version != null && !this.version.trim().isEmpty()) {
+			json.put("version", this.version.trim());
 		}
 		return json;
 	}

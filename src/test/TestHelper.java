@@ -2,6 +2,7 @@ package test;
 
 import java.net.Proxy;
 
+import suprsend.AppInfo;
 import suprsend.ProxyConfig;
 import suprsend.Suprsend;
 import suprsend.SuprsendException;
@@ -11,7 +12,10 @@ public class TestHelper {
 	public static Suprsend getClientInstance() throws SuprsendException {
 		String apiKey = "apikey";
 		String apiSecret = "apiSecret";
-		return new Suprsend(apiKey, apiSecret);
+		Suprsend suprClient = new Suprsend(apiKey, apiSecret);
+		// Set appinfo (for logging purpose)
+		suprClient.setAppInfo(new AppInfo("MyApp", "0.1.0"));
+		return suprClient;
 	}
 
 	public static Suprsend getClientInstanceWithProxyEnv() throws SuprsendException {

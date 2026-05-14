@@ -21,8 +21,8 @@ class UserAgentBuilder {
 	static UserAgent build(AppInfo appInfo) {
 		String os, osVersion;
 		try {
-			os = System.getProperty("os.name", "");
-			osVersion = System.getProperty("os.version", "");
+			os = System.getProperty("os.name", "").toLowerCase();
+			osVersion = System.getProperty("os.version", "").toLowerCase();
 		} catch (Exception e) {
 			os = "(disabled)";
 			osVersion = "(disabled)";
@@ -38,7 +38,10 @@ class UserAgentBuilder {
 				.put("os_version", osVersion);
 		//
 		if (appInfo != null) {
-			ins.put("app_info", appInfo.toJson());
+			JSONObject appInfoJson = appInfo.toJson();
+			if (appInfoJson != null && !appInfoJson.isEmpty()) {
+				ins.put("app_info", appInfoJson);
+			}
 		}
 		String clientUserAgent = ins.toString();
 

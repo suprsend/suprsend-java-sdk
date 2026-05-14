@@ -85,7 +85,7 @@ public class MessagesApi {
 	 *   <li>{@code idempotency_key} (String)</li>
 	 *   <li>{@code tenant_id} (String)</li>
 	 *   <li>{@code workflow_slug} (String)</li>
-	 *   <li>{@code channel} (String) — e.g. email, sms, inbox, androidpush</li>
+	 *   <li>{@code channel} (String) — e.g. email, sms, whatsapp, androidpush, iospush, webpush, slack, ms_teams</li>
 	 *   <li>{@code execution_id} (String) — workflow execution or broadcast ID</li>
 	 *   <li>{@code created_at_gte} (String) — RFC3339 timestamp</li>
 	 *   <li>{@code created_at_lte} (String) — RFC3339 timestamp</li>
@@ -129,12 +129,12 @@ public class MessagesApi {
 	 *   <li>{@code action} (String, required) — seen, clicked, dismissed, read, unread, archived, unarchived</li>
 	 * </ul>
 	 *
-	 * @param messages JSONArray of patch items
+	 * @param messages JSONArray of update items
 	 * @return JSONObject with a {@code records} array of per-item results
 	 * @throws IOException
 	 * @throws SuprsendException
 	 */
-	public JSONObject bulkPatch(JSONArray messages) throws IOException, SuprsendException {
+	public JSONObject bulkUpdate(JSONArray messages) throws IOException, SuprsendException {
 		JSONObject payload = new JSONObject().put("messages", messages);
 		String url = this.bulkUrl;
 		//

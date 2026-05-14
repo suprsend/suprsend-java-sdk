@@ -13,7 +13,7 @@ public class TestMessagesApi {
 	public static void main(String[] args) throws Exception {
 		testList();
 		testListWithFilters();
-		testBulkPatch();
+		testBulkUpdate();
 	}
 
 	public static void testList() throws Exception {
@@ -39,12 +39,12 @@ public class TestMessagesApi {
 		System.out.println(res);
 	}
 
-	public static void testBulkPatch() throws Exception {
+	public static void testBulkUpdate() throws Exception {
 		Suprsend suprClient = TestHelper.getClientInstance();
 		JSONArray messages = new JSONArray()
 				.put(new JSONObject().put("message_id", "<message_id_1>").put("action", "seen"))
 				.put(new JSONObject().put("message_id", "<message_id_2>").put("action", "clicked"));
-		JSONObject res = suprClient.messages.bulkPatch(messages);
+		JSONObject res = suprClient.messages.bulkUpdate(messages);
 		System.out.println(res);
 	}
 }

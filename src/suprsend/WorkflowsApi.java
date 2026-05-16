@@ -15,22 +15,11 @@ public class WorkflowsApi {
         this.config = config;
     }
 
-	/**
-	 * Headers required to trigger workflow request
-	 * 
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent)
-                .put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
     public JSONObject trigger(WorkflowTriggerRequest workflow) throws SuprsendException, UnsupportedEncodingException {
 		JSONObject o = workflow.getFinalJson(config, false);
 		JSONObject workflowBody = o.getJSONObject("event");
 		// int apparentSize = o.getInt("apparent_size");
-        JSONObject headers = getHeaders();
+        JSONObject headers = this.config.getHeaders();
 		JSONObject response = new JSONObject();
         String url = String.format("%strigger/", this.config.baseUrl);
 		try {

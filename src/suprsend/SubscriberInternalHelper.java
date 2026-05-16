@@ -22,6 +22,7 @@ class SubscriberInternalHelper {
 			IDENT_KEY_MS_TEAMS);
 
 	public static final String KEY_ID_PROVIDER = "$id_provider";
+	public static final String IOS_BUNDLE_ID = "$bundle_id";
 	public static final String KEY_PREFERRED_LANGUAGE = "$preferred_language";
 	public static final String KEY_LOCALE = "$locale";
 	public static final String KEY_TIMEZONE = "$timezone";
@@ -241,7 +242,7 @@ class SubscriberInternalHelper {
 			addAndroidpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			addIospush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
+			addIospush(value, kwargs.optString(KEY_ID_PROVIDER), kwargs.optString(IOS_BUNDLE_ID), newCaller);
 
 		}
 	}
@@ -275,7 +276,7 @@ class SubscriberInternalHelper {
 			removeAndroidpush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
 
 		} else if (IDENT_KEY_IOSPUSH.equals(key)) {
-			removeIospush(value, kwargs.optString(KEY_ID_PROVIDER), newCaller);
+			removeIospush(value, kwargs.optString(KEY_ID_PROVIDER), kwargs.optString(IOS_BUNDLE_ID), newCaller);
 
 		}
 	}
@@ -338,14 +339,16 @@ class SubscriberInternalHelper {
 
 	// ------------------------ Iospush
 
-	void addIospush(String value, String provider, String caller) {
+	void addIospush(String value, String provider, String bundle_id, String caller) {
 		this.dictAppend.put(IDENT_KEY_IOSPUSH, value);
 		this.dictAppend.put(KEY_ID_PROVIDER, provider);
+		this.dictAppend.put(IOS_BUNDLE_ID, bundle_id);
 	}
 
-	void removeIospush(String value, String provider, String caller) {
+	void removeIospush(String value, String provider, String bundle_id, String caller) {
 		this.dictRemove.put(IDENT_KEY_IOSPUSH, value);
 		this.dictRemove.put(KEY_ID_PROVIDER, provider);
+		this.dictRemove.put(IOS_BUNDLE_ID, bundle_id);
 	}
 
 	// ------------------------ Webpush

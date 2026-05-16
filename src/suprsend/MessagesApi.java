@@ -27,13 +27,8 @@ public class MessagesApi {
 
 	MessagesApi(Suprsend config) {
 		this.config = config;
-		this.listUrl = String.format("%sv1/message", this.config.baseUrl);
-		this.bulkUrl = String.format("%sv1/bulk/message", this.config.baseUrl);
-	}
-
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
+		this.listUrl = String.format("%sv1/message/", this.config.baseUrl);
+		this.bulkUrl = String.format("%sv1/bulk/message/", this.config.baseUrl);
 	}
 
 	private String buildListQuery(HashMap<String, Object> opts) throws UnsupportedEncodingException {
@@ -44,8 +39,9 @@ public class MessagesApi {
 		for (Map.Entry<String, Object> entry : opts.entrySet()) {
 			String key = entry.getKey();
 			Object val = entry.getValue();
-			if (MULTI_VALUE_KEYS.contains(key) && val instanceof List) {
-				for (Object item : (List<?>) val) {
+			if (MULTI_VALUE_KEYS.contains(key)) {
+				List<?> values = (val instanceof List) ? (List<?>) val : Arrays.asList(val);
+				for (Object item : values) {
 					if (sb.length() > 0)
 						sb.append("&");
 					sb.append(Utils.urlEncode(key + "[]")).append("=").append(Utils.urlEncode(String.valueOf(item)));
@@ -76,7 +72,7 @@ public class MessagesApi {
 	 *
 	 * <p>Supported keys in {@code opts}:
 	 * <ul>
-	 *   <li>{@code limit} (int) — results per page, max 1000, default 20</li>
+	 *   <li>{@code limit} (int) — results per page, max 1000, default 10</li>
 	 *   <li>{@code after} (String) — cursor for next page ({@code meta.after} from previous response)</li>
 	 *   <li>{@code before} (String) — cursor for previous page ({@code meta.before} from previous response)</li>
 	 *   <li>{@code recipient_id} (List&lt;String&gt; or String) — filter by recipient distinct_id</li>
@@ -85,7 +81,7 @@ public class MessagesApi {
 	 *   <li>{@code idempotency_key} (String)</li>
 	 *   <li>{@code tenant_id} (String)</li>
 	 *   <li>{@code workflow_slug} (String)</li>
-	 *   <li>{@code channel} (String) — e.g. email, sms, whatsapp, androidpush, iospush, webpush, slack, ms_teams</li>
+	 *   <li>{@code channel} (String) — e.g. email, sms, inbox, androidpush</li>
 	 *   <li>{@code execution_id} (String) — workflow execution or broadcast ID</li>
 	 *   <li>{@code created_at_gte} (String) — RFC3339 timestamp</li>
 	 *   <li>{@code created_at_lte} (String) — RFC3339 timestamp</li>
@@ -104,7 +100,7 @@ public class MessagesApi {
 		String encodedParams = buildListQuery(opts);
 		String url = this.listUrl + (encodedParams.isEmpty() ? "" : "?" + encodedParams);
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 		String contentText = sigResult.getString("contentTxt");
@@ -138,7 +134,7 @@ public class MessagesApi {
 		JSONObject payload = new JSONObject().put("messages", messages);
 		String url = this.bulkUrl;
 		//
-		JSONObject headers = getHeaders();
+		JSONObject headers = this.config.getHeaders();
 		// Signature and Authorization-header
 		JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.PATCH, payload.toString(), headers,
 				this.config.apiSecret);
@@ -168,7 +164,7 @@ public class MessagesApi {
 	//  * Fetch the rendered content of a message (subject, body, title, etc.).
 	//  * Throws SuprsendException with status 404 if content has expired or was never saved.
 	//  *
-	//  * @param messageId message ID (ULID)
+	//  * @param messageId message ID
 	//  * @return JSONObject with {@code notification_id}, {@code channel}, {@code rendered_at},
 	//  *         and {@code content} fields
 	//  * @throws IOException
@@ -178,7 +174,7 @@ public class MessagesApi {
 	// 	messageId = validateMessageId(messageId);
 	// 	String url = contentUrl(messageId);
 	// 	//
-	// 	JSONObject headers = getHeaders();
+	// 	JSONObject headers = this.config.getHeaders();
 	// 	// Signature and Authorization-header
 	// 	JSONObject sigResult = Signature.getRequestSignature(url, HttpMethod.GET, "", headers, this.config.apiSecret);
 	// 	String contentText = sigResult.getString("contentTxt");

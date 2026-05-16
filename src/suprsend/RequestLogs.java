@@ -104,6 +104,9 @@ class RequestLogs {
 		httpRequest.setHeader("User-Agent", headers.getString("User-Agent"));
 		httpRequest.setHeader("Date", headers.getString("Date"));
 
+		if (headers.opt("X-Suprsend-Client-User-Agent") != null) {
+			httpRequest.setHeader("X-Suprsend-Client-User-Agent", headers.getString("X-Suprsend-Client-User-Agent"));
+		}
 		if (headers.opt("Authorization") != null) {
 			httpRequest.setHeader("Authorization", headers.getString("Authorization"));
 		}

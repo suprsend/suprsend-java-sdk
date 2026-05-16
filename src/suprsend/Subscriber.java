@@ -40,14 +40,6 @@ public class Subscriber {
 		this.__warningsList = new ArrayList<String>();
 	}
 
-	/**
-	 * @return Headers as JSON object
-	 */
-	private JSONObject getHeaders() {
-		return new JSONObject().put("Content-Type", "application/json; charset=utf-8")
-				.put("User-Agent", this.config.userAgent).put("Date", Utils.getCurrentDateTimeHeader());
-	}
-
 	private JSONObject getSuperProperties() {
 		return new JSONObject().put("$ss_sdk_version", this.config.userAgent);
 	}
@@ -117,7 +109,7 @@ public class Subscriber {
 		JSONObject response = new JSONObject();
 		try {
 			validateBody(false);
-			JSONObject headers = getHeaders();
+			JSONObject headers = this.config.getHeaders();
 			JSONObject eventTemp = getEvent();
 			// # --- validate event size
 			JSONObject ev = validateEventSize(eventTemp);
@@ -395,26 +387,30 @@ public class Subscriber {
 
 	// =========================================================== Iospush
 	public void addIospush(String value) {
-		String caller = "add_iospush";
-		this.helper.addIospush(value, null, caller);
-		collectEvent();
+		addIospush(value, null, null);
 	}
 
 	public void addIospush(String value, String provider) {
+		addIospush(value, provider, null);
+	}
+
+	public void addIospush(String value, String provider, String bundle_id) {
 		String caller = "add_iospush";
-		this.helper.addIospush(value, provider, caller);
+		this.helper.addIospush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 
 	public void removeIospush(String value) {
-		String caller = "remove_iospush";
-		this.helper.removeIospush(value, null, caller);
-		collectEvent();
+		removeIospush(value, null, null);
 	}
 
 	public void removeIospush(String value, String provider) {
+		removeIospush(value, provider, null);
+	}
+
+	public void removeIospush(String value, String provider, String bundle_id) {
 		String caller = "remove_iospush";
-		this.helper.removeIospush(value, provider, caller);
+		this.helper.removeIospush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 

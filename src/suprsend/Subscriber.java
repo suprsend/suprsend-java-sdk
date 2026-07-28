@@ -362,26 +362,30 @@ public class Subscriber {
 	// =========================================================== Androidpush
 
 	public void addAndroidpush(String value) {
-		String caller = "add_androidpush";
-		this.helper.addAndroidpush(value, null, caller);
-		collectEvent();
+		addAndroidpush(value, null, null);
 	}
 
 	public void addAndroidpush(String value, String provider) {
+		addAndroidpush(value, provider, null);
+	}
+
+	public void addAndroidpush(String value, String provider, String bundle_id) {
 		String caller = "add_androidpush";
-		this.helper.addAndroidpush(value, provider, caller);
+		this.helper.addAndroidpush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 
 	public void removeAndroidpush(String value) {
-		String caller = "remove_androidpush";
-		this.helper.removeAndroidpush(value, null, caller);
-		collectEvent();
+		removeAndroidpush(value, null, null);
 	}
 
 	public void removeAndroidpush(String value, String provider) {
+		removeAndroidpush(value, provider, null);
+	}
+
+	public void removeAndroidpush(String value, String provider, String bundle_id) {
 		String caller = "remove_androidpush";
-		this.helper.removeAndroidpush(value, provider, caller);
+		this.helper.removeAndroidpush(value, provider, bundle_id, caller);
 		collectEvent();
 	}
 
